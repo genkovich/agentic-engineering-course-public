@@ -1,0 +1,8 @@
+{
+  "session_id": "test-isolation-protect-env",
+  "tool_name": "Write",
+  "tool_input": {
+    "file_path": "/Users/dev/project/.env",
+    "content": "OPENAI_API_KEY=sk-fake-xxxx"
+  }
+}

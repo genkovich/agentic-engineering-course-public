@@ -1,0 +1,107 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "permissions": {
+    "defaultMode": "acceptEdits",
+    "allow": [
+      "Bash(pytest *)",
+      "Bash(pytest)",
+      "Bash(python -m pytest *)",
+      "Bash(python -m pytest)",
+      "Bash(pip install -r requirements*.txt)",
+      "Bash(pip install -e .)",
+      "Bash(pip install -e .[dev])",
+      "Bash(ruff check *)",
+      "Bash(ruff check)",
+      "Bash(ruff format *)",
+      "Bash(ruff format)",
+      "Bash(mypy *)",
+      "Bash(mypy)",
+      "Bash(uvicorn *)",
+      "Bash(python --version)",
+      "Bash(python3 --version)",
+      "Bash(git diff *)",
+      "Bash(git status)",
+      "Bash(git log *)",
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(git stash *)",
+      "Bash(git branch *)",
+      "Bash(git checkout *)",
+      "Bash(make verify*)",
+      "Bash(make test)",
+      "Bash(make build)",
+      "Bash(make clean)",
+      "Read",
+      "Glob",
+      "Grep"
+    ],
+    "deny": [
+      "Bash(git push --force *)",
+      "Bash(git push -f *)",
+      "Bash(git reset --hard *)",
+      "Bash(rm -rf *)",
+      "Bash(sudo *)",
+      "Bash(chmod 777 *)",
+      "Bash(curl * | sh)",
+      "Bash(curl * | bash)",
+      "Bash(wget * | sh)",
+      "Bash(wget * | bash)",
+      "Bash(wget * -O- *)",
+      "Read(.env)",
+      "Read(.env.*)",
+      "Read(**/.env)",
+      "Read(**/.env.*)",
+      "Read(**/credentials*)",
+      "Read(**/*.pem)",
+      "Read(**/*.key)",
+      "Read(**/*secret*)",
+      "Read(**/*.sops.*)",
+      "Read(**/*.tfstate)",
+      "Read(**/*.tfstate.backup)",
+      "Read(~/.ssh/**)",
+      "Read(~/.aws/**)",
+      "Read(~/.kube/config)",
+      "Edit(.env)",
+      "Edit(.env.*)",
+      "Edit(**/.env)",
+      "Edit(**/.env.*)"
+    ]
+  },
+  "sandbox": {
+    "enabled": true,
+    "filesystem": {
+      "denyRead": [
+        "~/.ssh",
+        "~/.aws",
+        "~/.gnupg",
+        "~/.kube/config"
+      ],
+      "allowWrite": [
+        "/tmp/build"
+      ]
+    },
+    "network": {
+      "allowedDomains": [
+        "api.anthropic.com",
+        "statsig.anthropic.com",
+        "sentry.io",
+        "github.com",
+        "api.github.com",
+        "objects.githubusercontent.com",
+        "codeload.github.com",
+        "pypi.org",
+        "files.pythonhosted.org"
+      ],
+      "allowManagedDomainsOnly": false
+    },
+    "excludedCommands": [
+      "docker"
+    ],
+    "allowUnsandboxedCommands": true
+  },
+  "env": {
+    "BASH_DEFAULT_TIMEOUT_MS": "300000",
+    "BASH_MAX_TIMEOUT_MS": "900000",
+    "CLAUDE_CODE_SUBPROCESS_ENV_SCRUB": "1"
+  }
+}

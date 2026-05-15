@@ -1,0 +1,51 @@
+[
+  {
+    "name": "customer_name",
+    "type": "Tx",
+    "required": true,
+    "read_only": false,
+    "options": null
+  },
+  {
+    "name": "order_total",
+    "type": "Tx",
+    "required": true,
+    "read_only": false,
+    "options": null
+  },
+  {
+    "name": "signature_date",
+    "type": "Tx",
+    "required": false,
+    "read_only": false,
+    "options": null
+  },
+  {
+    "name": "newsletter_opt_in",
+    "type": "Btn",
+    "required": false,
+    "read_only": false,
+    "options": null
+  },
+  {
+    "name": "shipping_method",
+    "type": "Ch",
+    "required": true,
+    "read_only": false,
+    "options": ["standard", "express", "overnight"]
+  },
+  {
+    "name": "customer_signature",
+    "type": "Sig",
+    "required": false,
+    "read_only": false,
+    "options": null
+  },
+  {
+    "name": "order_id",
+    "type": "Tx",
+    "required": false,
+    "read_only": true,
+    "options": null
+  }
+]

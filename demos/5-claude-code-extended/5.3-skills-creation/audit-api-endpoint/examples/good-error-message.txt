@@ -1,0 +1,11 @@
+$ python audit.py --format xml
+Error: --format must be one of: json, markdown. Got: 'xml'.
+       Tip: pass --format json for machine-readable output.
+$ echo $?
+2
+
+# Why this saves the agent a turn:
+# - the offending flag is named (--format)
+# - the allowed values are listed
+# - the value the user passed is echoed back
+# - exit code 2 (usage error) vs 1 (findings) is distinguishable

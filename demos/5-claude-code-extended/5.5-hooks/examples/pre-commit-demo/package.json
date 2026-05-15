@@ -1,0 +1,21 @@
+{
+  "name": "pre-commit-demo",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Slide 7 + Slide 12 Variant D — копі-паст pre-commit стек (Husky + lint-staged + tsc + Vitest) на CRUD-сутності",
+  "scripts": {
+    "prepare": "husky",
+    "test": "vitest run",
+    "tsc": "tsc --noEmit",
+    "format": "prettier --write \"src/**/*.{ts,json,md}\""
+  },
+  "lint-staged": "lint-staged.config.json",
+  "devDependencies": {
+    "husky": "^9.1.7",
+    "lint-staged": "^15.2.10",
+    "prettier": "^3.3.3",
+    "typescript": "^5.6.3",
+    "vitest": "^2.1.4"
+  }
+}

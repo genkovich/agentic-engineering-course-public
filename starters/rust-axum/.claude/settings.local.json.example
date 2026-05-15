@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "_comment": "Скопіюй у .claude/settings.local.json і додай свої overrides. settings.local.json у gitignore - не комітимо.",
+  "permissions": {
+    "defaultMode": "acceptEdits",
+    "allow": [
+      "Bash(docker compose *)",
+      "Bash(docker ps)",
+      "Bash(docker logs *)",
+      "Bash(cargo bench *)",
+      "Bash(cargo expand *)"
+    ]
+  },
+  "env": {
+    "_comment_env": "Локальні env vars які не йдуть у git. Наприклад RUST_LOG=debug або CARGO_TERM_COLOR=always."
+  }
+}

@@ -1,0 +1,2 @@
+#!/usr/bin/env bash
+echo "Hello from hello-plugin/bin/hello-bin — this binary lives in \$PATH while the plugin is enabled."

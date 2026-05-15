@@ -1,0 +1,9 @@
+$ python audit.py --format xml
+Error: invalid input
+$ echo $?
+1
+
+# What went wrong from the agent's perspective:
+# - "invalid input" - which input?
+# - what values are valid?
+# - the agent now has to retry blindly or read source code

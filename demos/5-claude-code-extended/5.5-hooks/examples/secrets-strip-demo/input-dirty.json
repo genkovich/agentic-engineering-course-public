@@ -1,0 +1,17 @@
+{
+  "session_id": "demo-1234",
+  "tool_name": "Bash",
+  "tool_input": {
+    "command": "curl -H 'Authorization: Bearer REDACTED_GITHUB_PAT_PLACEHOLDER' https://api.github.com/user"
+  },
+  "tool_response": {
+    "stdout": "OPENAI_API_KEY=REDACTED_OPENAI_PLACEHOLDER\nDB_PASSWORD=REDACTED_PASSWORD\nGITHUB_TOKEN=REDACTED_GITHUB_TOKEN_PLACEHOLDER\nSLACK_TOKEN=REDACTED_SLACK_TOKEN_PLACEHOLDER\n"
+  },
+  "credentials": {
+    "api_key": "REDACTED_API_KEY_PLACEHOLDER",
+    "password": "REDACTED_PASSWORD",
+    "client_secret": "REDACTED_CLIENT_SECRET",
+    "username": "kept-as-is"
+  },
+  "note": "Cohabiting Authorization: Bearer REDACTED_JWT_PLACEHOLDER in prose."
+}

@@ -1,0 +1,9 @@
+{
+  "session_id": "test-isolation-protect-clean",
+  "tool_name": "Edit",
+  "tool_input": {
+    "file_path": "/Users/dev/project/src/api.ts",
+    "old_string": "// TODO",
+    "new_string": "// done"
+  }
+}

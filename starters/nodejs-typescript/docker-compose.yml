@@ -1,0 +1,28 @@
+# docker-compose.yml - production-ready Claude Code sandbox без VS Code інтеграції.
+# Якщо потрібна VS Code інтеграція - дивись .devcontainer/devcontainer.json.
+
+services:
+  claude:
+    build:
+      context: .devcontainer
+      dockerfile: Dockerfile
+    user: node
+    working_dir: /workspace
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+    volumes:
+      - .:/workspace:delegated
+      - claude-config:/home/node/.claude
+      - claude-history:/commandhistory
+    environment:
+      - CLAUDE_CONFIG_DIR=/home/node/.claude
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
+    entrypoint: ["/bin/bash", "-c", "sudo /usr/local/bin/init-firewall.sh && exec bash"]
+    stdin_open: true
+    tty: true
+    mem_limit: 4g
+
+volumes:
+  claude-config:
+  claude-history:

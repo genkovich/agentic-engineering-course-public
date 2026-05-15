@@ -1,0 +1,44 @@
+diff --git a/docs/CHANGELOG.md b/docs/CHANGELOG.md
+index a1b2c3d..e4f5g6h 100644
+--- a/docs/CHANGELOG.md
++++ b/docs/CHANGELOG.md
+@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
+ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
+ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+ ## [Unreleased]
++
++### Added
++
++- JSON output format for the `list` command
++- Custom expiration times for shortened URLs
++
++### Changed
++
++- Extracted URL validation into a separate module
++- Bumped Python requirement to 3.11
++
++### Fixed
++
++- URLs with trailing slashes are now handled correctly
++- Crash prevented when the database file is missing
+
+ ## [1.1.0] - 2026-03-15
+
+---
+
+This is the diff Claude Agent SDK typically produces against the fixture-repo
+on the lecture 5.7 demos. The agent reads `docs/CHANGELOG.md` to learn the
+project's style, runs `git log v1.1.0..HEAD --oneline` to enumerate commits
+since the last tag, reads `docs/README.md` for tone context, then edits the
+`## [Unreleased]` section in `docs/CHANGELOG.md`.
+
+Variance note: the agent's *trajectory* will vary between runs (3 vs 5 turns,
+slightly different wording on bullets, occasional reordering inside Added /
+Changed / Fixed). The *final state* is reliably the same: an Unreleased
+section populated with ~6 categorized bullets matching the six commits in
+the fixture.
+
+Counter-example: if the agent puts `refactor:` commits under Fixed instead
+of Changed — that's a worse fit. Worth discussing with students as "what a
+reviewer would push back on".

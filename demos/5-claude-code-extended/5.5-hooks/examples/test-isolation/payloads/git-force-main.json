@@ -1,0 +1,8 @@
+{
+  "session_id": "test-isolation-git-force",
+  "tool_name": "Bash",
+  "tool_input": {
+    "command": "git push --force origin main",
+    "description": "force push to main"
+  }
+}

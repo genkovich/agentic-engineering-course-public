@@ -1,0 +1,9 @@
+{
+  "customer_name": "Anna Kovalenko",
+  "order_total": "199.00",
+  "newsletter_opt_in": "yes please",
+  "shipping_method": "drone",
+  "customer_signature": "Anna",
+  "order_id": "order_42",
+  "fake_field": "should error"
+}

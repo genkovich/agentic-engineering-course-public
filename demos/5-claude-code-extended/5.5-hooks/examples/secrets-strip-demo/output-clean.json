@@ -1,0 +1,17 @@
+{
+  "session_id": "demo-1234",
+  "tool_name": "Bash",
+  "tool_input": {
+    "command": "curl -H 'Authorization: Bearer ***REDACTED***' https://api.github.com/user"
+  },
+  "tool_response": {
+    "stdout": "OPENAI_API_KEY=***REDACTED***\nDB_PASSWORD=***REDACTED***\nGITHUB_TOKEN=***REDACTED***\nSLACK_TOKEN=***REDACTED***\n"
+  },
+  "credentials": {
+    "api_key": "***REDACTED***",
+    "password": "***REDACTED***",
+    "client_secret": "***REDACTED***",
+    "username": "kept-as-is"
+  },
+  "note": "Cohabiting Authorization: Bearer ***REDACTED*** in prose."
+}

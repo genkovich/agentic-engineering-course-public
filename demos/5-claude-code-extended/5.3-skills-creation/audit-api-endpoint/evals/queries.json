@@ -1,0 +1,51 @@
+{
+  "skill_name": "audit-api-endpoint",
+  "split": {
+    "train": 5,
+    "validation": 2
+  },
+  "queries": [
+    {
+      "split": "train",
+      "query": "перевір чи /health у моєму API ок",
+      "should_trigger": true,
+      "rationale": "явний натяк на health endpoint, типовий тригер"
+    },
+    {
+      "split": "train",
+      "query": "що з продакшн-готовністю /ready endpoint?",
+      "should_trigger": true,
+      "rationale": "production readiness прямо в запиті"
+    },
+    {
+      "split": "train",
+      "query": "прогляну структурно свій /metrics endpoint",
+      "should_trigger": true,
+      "rationale": "structural review одного endpoint, немає слова audit"
+    },
+    {
+      "split": "train",
+      "query": "помінь HTTP метод з GET на POST на /users",
+      "should_trigger": false,
+      "rationale": "refactor, не аудит"
+    },
+    {
+      "split": "train",
+      "query": "оптимізуй швидкість /search endpoint",
+      "should_trigger": false,
+      "rationale": "performance, не структурний аудит"
+    },
+    {
+      "split": "validation",
+      "query": "глянь чи /api/v1/orders повертає правильний contract",
+      "should_trigger": true,
+      "rationale": "натяк на body shape, не очевидне ключове слово audit"
+    },
+    {
+      "split": "validation",
+      "query": "налаштуй CORS для нашого backend",
+      "should_trigger": false,
+      "rationale": "config task, не аудит endpoint quality"
+    }
+  ]
+}

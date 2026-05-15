@@ -1,0 +1,8 @@
+{
+  "_comment": "Скопіюй у settings.local.json і впиши свої значення. Файл .local.json — gitignored. Хуки читають env з цього файла через прямий source у скрипті, але Claude Code сам у env не пушить — простіше через .env-style export. Краще: винеси в shell rc або export перед запуском Claude.",
+  "_env_hint": "Перед claude: export ANALYTICS_URL=http://localhost:8090/events && export TELEGRAM_BOT_TOKEN=... && export TELEGRAM_CHAT_ID=...",
+  "ANALYTICS_URL": "http://localhost:8090/events",
+  "TELEGRAM_BOT_TOKEN": "REPLACE_ME_123456:ABC-DEF...",
+  "TELEGRAM_CHAT_ID": "REPLACE_ME_-1001234567890",
+  "MCP_ALLOWLIST": "mcp__filesystem,mcp__memory"
+}

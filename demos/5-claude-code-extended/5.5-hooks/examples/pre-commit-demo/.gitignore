@@ -1,0 +1,4 @@
+node_modules/
+dist/
+.lint-staged-cache
+*.log

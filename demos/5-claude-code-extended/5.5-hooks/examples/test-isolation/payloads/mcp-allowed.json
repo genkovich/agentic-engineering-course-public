@@ -1,0 +1,7 @@
+{
+  "session_id": "test-isolation-mcp-allowed",
+  "tool_name": "mcp__filesystem__read_file",
+  "tool_input": {
+    "path": "/Users/dev/project/README.md"
+  }
+}

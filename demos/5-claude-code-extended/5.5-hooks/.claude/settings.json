@@ -1,0 +1,193 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "_comment": "Hooks toolkit для лекції 5.4. Слайд 2 — всі 6 (+extra) hook events видно в одному файлі. Усі команди — через $CLAUDE_PROJECT_DIR щоб працювали з будь-якого cwd. Async hooks не блокують — для observability (slide 8). Блокуючі — без async — для security gates (slide 5).",
+  "hooks": {
+    "SessionStart": [
+      {
+        "_slide": "6.4 — Session context re-injection",
+        "matcher": "compact",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/recipe-4-session-context.sh"
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "_slide": "8 — Observability: prompt transcript",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/debug-prompt-transcript.sh",
+            "async": true
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "_slide": "6.2 — File protection",
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/recipe-2-protect-files.sh"
+          }
+        ]
+      },
+      {
+        "_slide": "6.3 — Secrets scan (security-guidance pattern)",
+        "matcher": "Edit|Write|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/recipe-3-secrets-scan.py"
+          }
+        ]
+      },
+      {
+        "_slide": "8 — Tool trace (async, не блокує)",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/debug-tool-trace.sh pre",
+            "async": true
+          }
+        ]
+      },
+      {
+        "_slide": "11 — MCP allowlist через regex matcher (allowlist по server name)",
+        "matcher": "mcp__.*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/mcp-allowlist.sh"
+          }
+        ]
+      },
+      {
+        "_slide": "4 — приклад if field: matcher Bash + if force-push на protected",
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "if": "Bash(git push --force *)",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/recipe-5-git-policy.sh"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "_slide": "6.1 — Auto-format після Edit/Write",
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/recipe-1-auto-format.sh"
+          }
+        ]
+      },
+      {
+        "_slide": "8 — Tool trace post (async)",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/debug-tool-trace.sh post",
+            "async": true
+          }
+        ]
+      },
+      {
+        "_slide": "8 — Analytics POST (async, після secrets-strip)",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/analytics-send.sh",
+            "async": true
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "_slide": "8 — Transcript на Stop (async)",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/debug-prompt-transcript.sh stop",
+            "async": true
+          }
+        ]
+      },
+      {
+        "_slide": "11 — Quality gate (вимкнено за замовч.; розкоментуй для демо decision:block)",
+        "_disabled_command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/stop-quality-gate.sh",
+        "hooks": []
+      }
+    ],
+    "Notification": [
+      {
+        "_slide": "6 — Telegram notifications",
+        "matcher": "permission_prompt|idle_prompt",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/notify-telegram.sh",
+            "async": true
+          }
+        ]
+      }
+    ],
+    "SubagentStart": [
+      {
+        "_slide": "8 — Subagent lifecycle (async)",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/debug-subagent-lifecycle.sh start",
+            "async": true
+          }
+        ]
+      }
+    ],
+    "SubagentStop": [
+      {
+        "_slide": "8 — Subagent lifecycle (async)",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/debug-subagent-lifecycle.sh stop",
+            "async": true
+          }
+        ]
+      }, 
+      {
+        "hooks": [
+          {
+            "type": "http",
+            "url": "http://localhost:8080/hooks/tool-use",
+            "headers": { "Authorization": "Bearer $MY_TOKEN" },
+            "allowedEnvVars": ["MY_TOKEN"]
+          },
+          {
+            "type": "prompt",
+            "prompt": "Check if all tasks are complete. If not, respond with {\"ok\": false, \"reason\": \"what remains\"}."
+          },
+          {
+            "type": "agent",
+            "prompt": "Verify that all unit tests pass. Run the test suite and check the results.",
+            "timeout": 120
+          },
+          {
+            "type": "command",
+            "if": "Bash(git *)",
+            "command": "./.claude/hooks/check-git-policy.sh"
+          }
+        ]
+      }
+    ]
+  }
+}

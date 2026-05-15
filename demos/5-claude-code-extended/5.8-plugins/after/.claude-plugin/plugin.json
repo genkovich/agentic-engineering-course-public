@@ -1,0 +1,10 @@
+{
+  "name": "hello-plugin",
+  "description": "Demo plugin for Lecture 5.5 — shows minimal valid plugin layout with command, skill, hook, and bin component.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Agentic Engineering Course",
+    "url": "https://github.com/example/agentic-engineering-course"
+  },
+  "keywords": ["demo", "lecture-5.5", "tutorial"]
+}

@@ -1,0 +1,8 @@
+{
+  "session_id": "test-isolation-git-ls",
+  "tool_name": "Bash",
+  "tool_input": {
+    "command": "ls -la",
+    "description": "list files"
+  }
+}

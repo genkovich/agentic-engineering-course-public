@@ -1,0 +1,59 @@
+# OS
+.DS_Store
+Thumbs.db
+
+# Editors
+.idea/
+.vscode/
+!.vscode/extensions.json
+*.swp
+*.swo
+
+# Secrets — кожен starter мусить мати .env.example, ніколи .env
+.env
+.env.local
+.env.*.local
+**/.env
+**/.env.local
+**/.env.*.local
+
+# Local Claude settings (per-user, не комітимо)
+.claude/settings.local.json
+**/.claude/settings.local.json
+
+# Node
+node_modules/
+dist/
+build/
+*.log
+npm-debug.log*
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.egg-info/
+
+# Go
+/bin/
+/vendor/
+*.test
+*.out
+
+# Rust
+target/
+Cargo.lock.bak
+
+# Docker
+.docker/
+
+# Lecture 5.9 fixture — regenerated locally via setup-fixture.sh
+demos/5-claude-code-extended/5.9-sdk/fixture-repo/
+
+# Lecture 5.9 sdk-python venv — bundled dev artifact, not source
+demos/5-claude-code-extended/5.9-sdk/sdk-python/.venv/
