@@ -20,10 +20,10 @@
 
 | Starter | Стек | README |
 |---|---|---|
-| [nodejs-typescript](./starters/nodejs-typescript/) | Node.js 20 + TypeScript + Express | [→](./starters/nodejs-typescript/README.md) |
-| [python-fastapi](./starters/python-fastapi/) | Python 3.12 + FastAPI + pytest | [→](./starters/python-fastapi/README.md) |
-| [go-chi](./starters/go-chi/) | Go 1.22 + chi/v5 | [→](./starters/go-chi/README.md) |
-| [rust-axum](./starters/rust-axum/) | Rust stable + axum | [→](./starters/rust-axum/README.md) |
+| [nodejs-typescript](./3.9-starters/nodejs-typescript/) | Node.js 20 + TypeScript + Express | [→](./3.9-starters/nodejs-typescript/README.md) |
+| [python-fastapi](./3.9-starters/python-fastapi/) | Python 3.12 + FastAPI + pytest | [→](./3.9-starters/python-fastapi/README.md) |
+| [go-chi](./3.9-starters/go-chi/) | Go 1.22 + chi/v5 | [→](./3.9-starters/go-chi/README.md) |
+| [rust-axum](./3.9-starters/rust-axum/) | Rust stable + axum | [→](./3.9-starters/rust-axum/README.md) |
 
 Starter це capstone artifact для лекцій 3.6–3.9. До цього достатньо самого Claude Code і свого редактора.
 

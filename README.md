@@ -20,7 +20,7 @@ Public repository for the **Agentic Engineering з Claude** course. Contains han
 
 ```bash
 # Знайди starter під свій стек
-cd modules/3-claude-code-setup/starters/go-chi  # або nodejs-typescript / python-fastapi / rust-axum
+cd modules/3-claude-code-setup/3.9-starters/go-chi  # або nodejs-typescript / python-fastapi / rust-axum
 
 # Відкрий у VS Code, натисни "Reopen in Container" (потрібен Docker Desktop)
 # Усередині контейнера:
@@ -56,7 +56,7 @@ make demo  # прогнати end-to-end
 └── modules/                один корінь курсу, лекційні та runnable артефакти разом
     ├── 3-claude-code-setup/
     │   ├── README.md
-    │   └── starters/                cloneable working projects (Module 3)
+    │   └── 3.9-starters/            cloneable working projects (Module 3)
     │       ├── go-chi/
     │       ├── nodejs-typescript/
     │       ├── python-fastapi/
