@@ -1,0 +1,22 @@
+[project]
+name = "stage-1-flat"
+version = "0.1.0"
+description = "Stage 1 (flat layered) — Bounded Contexts demo, Python edition"
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi>=0.110.0",
+    "uvicorn[standard]>=0.27.0",
+    "sqlalchemy[asyncio]>=2.0.25",
+    "asyncpg>=0.29.0",
+    "alembic>=1.13.1",
+    "pydantic>=2.6.0",
+    "passlib[bcrypt]>=1.7.4",
+    "bcrypt==4.0.1",
+]
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["app*"]

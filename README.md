@@ -9,6 +9,7 @@ Public repository for the **Agentic Engineering з Claude** course. Contains han
 | Module | Тема | Тип |
 |---|---|---|
 | [Module 3 — Claude Code Setup](starters/) | Встановлення, settings, permissions, sandbox, devcontainer | starters (4 стеки) |
+| [Module 4 — Prompting Mastery](modules/4-prompting-mastery/) | Промпти, контекст, `.claude/`, `CLAUDE.md`, rules, Plan/Think, BC, legacy refactor | demos (text + runnable) |
 | [Module 5 — Claude Code Extended](modules/5-claude-code-extended/) | Slash commands, custom skills, subagents, hooks, output styles, plan mode, plugins | demos (~7 production-ready) |
 
 Інші модулі курсу — окремо у LMS.
@@ -58,6 +59,10 @@ make demo  # прогнати end-to-end
 │   ├── python-fastapi/
 │   └── rust-axum/
 ├── demos/
+│   ├── 4-prompting-mastery/
+│   │   ├── 4.1-prompts/        text examples (PROMPTS.md, не runnable) (4.1)
+│   │   ├── 4.8-bc/             Bounded Contexts — Go × TS × Py × 3 stages (4.8)
+│   │   └── 4.9-legacy-refactor/  FastAPI legacy → account через 7 skills (4.9)
 │   └── 5-claude-code-extended/
 │       ├── 5.2-skills-intro/    PDF form-filler skill (5.2)
 │       ├── 5.3-skills-creation/ audit-api-endpoint skill walkthrough (5.3)
@@ -65,12 +70,13 @@ make demo  # прогнати end-to-end
 │       ├── 5.5-plugins/         3 sub-demos: before/after/red-flag (5.5)
 │       └── 5.7-sdk/             release-notes via claude -p (5.7)
 └── modules/
+    ├── 4-prompting-mastery/    module README з deep-link до кожного demo
     └── 5-claude-code-extended/  module README з deep-link до кожного demo
 ```
 
 ## Курс
 
-Курс «Agentic Engineering з Claude» — 11 модулів. У public репо зараз — Modules 3 (starters) і 5 (Claude Code extended).
+Курс «Agentic Engineering з Claude» — 11 модулів. У public репо зараз — Modules 3 (starters), 4 (prompting demos) і 5 (Claude Code extended).
 
 Деталі курсу: писати [@genkovich у Telegram](https://t.me/genkovich).
 

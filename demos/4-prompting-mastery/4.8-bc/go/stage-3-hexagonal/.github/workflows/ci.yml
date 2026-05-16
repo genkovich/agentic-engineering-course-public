@@ -1,0 +1,35 @@
+name: CI
+
+on:
+  push:
+    paths:
+      - '4.8-bc/go/stage-3-hexagonal/**'
+      - '.github/workflows/**'
+  pull_request:
+    paths:
+      - '4.8-bc/go/stage-3-hexagonal/**'
+
+defaults:
+  run:
+    working-directory: 4.8-bc/go/stage-3-hexagonal
+
+jobs:
+  build-and-arch-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.24'
+
+      - name: Build
+        run: go build ./...
+
+      - name: Vet
+        run: go vet ./...
+
+      - name: Install go-arch-lint
+        run: go install github.com/fe3dback/go-arch-lint@v1.11.5
+
+      - name: Arch test
+        run: go-arch-lint check

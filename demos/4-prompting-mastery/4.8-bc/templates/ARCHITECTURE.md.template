@@ -1,0 +1,55 @@
+# Architecture (template)
+
+> Скопіюй і адаптуй під свій домен. Mermaid рендериться нативно в GitHub і в Obsidian (плагін `mermaid-tools`).
+
+## Bounded Contexts
+
+5 BC поточної системи:
+
+- **Auth** — `User`, `Session`. Реєстрація, логін, паролі
+- **Catalog** — `Product`, `Category`. Каталог, пошук, листування
+- **Commerce** — `Cart`, `Order`. Кошик, оформлення замовлення
+- **Billing** — `Subscription`, `Invoice`. Підписки, оплати
+- **Notifications** — `Notification`. Email / push доставка
+
+## BC Map
+
+```mermaid
+graph LR
+    Auth["Auth Context\n(User, Session)"]
+    Catalog["Catalog Context\n(Product, Category)"]
+    Commerce["Commerce Context\n(Cart, Order)"]
+    Billing["Billing Context\n(Subscription, Invoice)"]
+    Notifications["Notifications Context\n(Notification)"]
+
+    Auth -->|UserRegistered event| Notifications
+    Catalog -->|ProductViewed event| Commerce
+    Commerce -->|OrderPlaced event| Billing
+    Commerce -->|OrderPlaced event| Notifications
+    Billing -->|PaymentFailed event| Notifications
+```
+
+## Інтеграційні патерни
+
+| Патерн | Де використовуємо |
+|---|---|
+| **Domain Events (асинхронно)** | Всі cross-BC звʼязки. `Auth → Notifications`, `Commerce → Billing`, `Billing → Notifications` |
+| **Repository** | Всередині кожного BC. Interface у `<bc>/domain/`, реалізація у `<bc>/infra/postgres/` |
+| **Hexagonal / Ports & Adapters** | Внутрішня архітектура BC. `domain` визначає порти, `infra` реалізує адаптери |
+| **Shared Kernel** | `shared/apperr/`, `shared/httputil/` — мінімум, тільки cross-cutting |
+| **Anti-Corruption Layer** | (поки не використовуємо — зʼявиться при інтеграції з зовнішніми API) |
+
+## Як читати цей граф
+
+- **Стрілка з підписом події** — асинхронна комунікація через event bus. BC-публікатор не знає про підписників. BC-підписник реєструє handler у своєму `infra/events/`
+- **Відсутність стрілки** — BC не звʼязані. Будь-яка спроба прямого імпорту падає на arch-test
+- **Двостороння комунікація** — рідкість. Зазвичай це сигнал, що BC треба розщепити або обʼєднати
+
+## Як додавати новий BC
+
+1. Створи `<new-bc>/{domain,app,infra}/`
+2. Додай ноду в mermaid-граф вище
+3. Додай стрілки подій до існуючих BC (вхідні і вихідні)
+4. Додай рядок у список BC на початку цього файлу
+5. Додай `.claude/rules/<new-bc>.md` зі scoped правилами
+6. Запусти `make arch-test` — має пройти

@@ -1,0 +1,218 @@
+version: 3
+workdir: .
+
+# Allowed deps між компонентами.
+# Component patterns відображають hexagonal layers і BC isolation.
+components:
+  # ===== shared =====
+  shared-apperr:
+    in: shared/apperr
+  shared-httputil:
+    in: shared/httputil
+  shared-events:
+    in: shared/events
+  shared-server:
+    in: shared/server
+
+  # ===== auth =====
+  auth-domain:
+    in: auth/domain
+  auth-app:
+    in: auth/app
+  auth-infra-postgres:
+    in: auth/infra/postgres
+  auth-infra-http:
+    in: auth/infra/http
+  auth-module:
+    in: auth
+
+  # ===== catalog =====
+  catalog-domain:
+    in: catalog/domain
+  catalog-app:
+    in: catalog/app
+  catalog-infra-postgres:
+    in: catalog/infra/postgres
+  catalog-infra-http:
+    in: catalog/infra/http
+  catalog-module:
+    in: catalog
+
+  # ===== commerce =====
+  commerce-domain:
+    in: commerce/domain
+  commerce-app:
+    in: commerce/app
+  commerce-infra-postgres:
+    in: commerce/infra/postgres
+  commerce-infra-http:
+    in: commerce/infra/http
+  commerce-module:
+    in: commerce
+
+  # ===== billing =====
+  billing-domain:
+    in: billing/domain
+  billing-app:
+    in: billing/app
+  billing-infra-postgres:
+    in: billing/infra/postgres
+  billing-infra-http:
+    in: billing/infra/http
+  billing-module:
+    in: billing
+
+  # ===== notifications =====
+  notifications-domain:
+    in: notifications/domain
+  notifications-app:
+    in: notifications/app
+  notifications-infra-postgres:
+    in: notifications/infra/postgres
+  notifications-infra-stub:
+    in: notifications/infra/stub
+  notifications-infra-events:
+    in: notifications/infra/events
+  notifications-infra-http:
+    in: notifications/infra/http
+  notifications-module:
+    in: notifications
+
+  main:
+    in: ""
+
+# Допустимі залежності між компонентами проекту.
+# Зовнішні vendor imports (chi, pgx, uuid, bcrypt) дозволені скрізь за замовчуванням.
+deps:
+  # shared
+  shared-apperr:
+    anyVendorDeps: true
+  shared-httputil:
+    mayDependOn: [shared-apperr]
+    anyVendorDeps: true
+  shared-events:
+    anyVendorDeps: true
+  shared-server:
+    anyVendorDeps: true
+
+  # auth
+  auth-domain:
+    anyVendorDeps: true
+  auth-app:
+    mayDependOn: [auth-domain, shared-events]
+    anyVendorDeps: true
+  auth-infra-postgres:
+    mayDependOn: [auth-domain]
+    anyVendorDeps: true
+  auth-infra-http:
+    mayDependOn: [auth-domain, auth-app, shared-apperr, shared-httputil]
+    anyVendorDeps: true
+  auth-module:
+    mayDependOn: [auth-app, auth-infra-postgres, auth-infra-http, shared-events, shared-server]
+    anyVendorDeps: true
+
+  # catalog
+  catalog-domain:
+    anyVendorDeps: true
+  catalog-app:
+    mayDependOn: [catalog-domain]
+    anyVendorDeps: true
+  catalog-infra-postgres:
+    mayDependOn: [catalog-domain]
+    anyVendorDeps: true
+  catalog-infra-http:
+    mayDependOn: [catalog-app, shared-httputil]
+    anyVendorDeps: true
+  catalog-module:
+    mayDependOn: [catalog-app, catalog-infra-postgres, catalog-infra-http, shared-server]
+    anyVendorDeps: true
+
+  # commerce
+  commerce-domain:
+    anyVendorDeps: true
+  commerce-app:
+    mayDependOn: [commerce-domain, shared-events]
+    anyVendorDeps: true
+  commerce-infra-postgres:
+    mayDependOn: [commerce-domain]
+    anyVendorDeps: true
+  commerce-infra-http:
+    mayDependOn: [commerce-app, shared-httputil]
+    anyVendorDeps: true
+  commerce-module:
+    mayDependOn: [commerce-app, commerce-infra-postgres, commerce-infra-http, shared-events, shared-server]
+    anyVendorDeps: true
+
+  # billing
+  billing-domain:
+    anyVendorDeps: true
+  billing-app:
+    mayDependOn: [billing-domain, shared-events]
+    anyVendorDeps: true
+  billing-infra-postgres:
+    mayDependOn: [billing-domain]
+    anyVendorDeps: true
+  billing-infra-http:
+    mayDependOn: [billing-app, billing-domain, shared-apperr, shared-httputil]
+    anyVendorDeps: true
+  billing-module:
+    mayDependOn: [billing-app, billing-infra-postgres, billing-infra-http, shared-events, shared-server]
+    anyVendorDeps: true
+
+  # notifications
+  notifications-domain:
+    anyVendorDeps: true
+  notifications-app:
+    mayDependOn: [notifications-domain]
+    anyVendorDeps: true
+  notifications-infra-postgres:
+    mayDependOn: [notifications-domain]
+    anyVendorDeps: true
+  notifications-infra-stub:
+    mayDependOn: [notifications-domain]
+    anyVendorDeps: true
+  # ВИНЯТОК: notifications/infra/events підписується на події інших BC.
+  # Тому має право на cross-BC domain imports — але тільки для domain (event types), не для app/infra.
+  notifications-infra-events:
+    mayDependOn:
+      - notifications-domain
+      - notifications-app
+      - shared-events
+      - auth-domain
+      - billing-domain
+      - commerce-domain
+    anyVendorDeps: true
+  notifications-infra-http:
+    mayDependOn: [notifications-app, notifications-domain, shared-httputil]
+    anyVendorDeps: true
+  notifications-module:
+    mayDependOn:
+      - notifications-app
+      - notifications-domain
+      - notifications-infra-postgres
+      - notifications-infra-stub
+      - notifications-infra-events
+      - notifications-infra-http
+      - shared-events
+      - shared-server
+    anyVendorDeps: true
+
+  # main wires everything
+  main:
+    mayDependOn:
+      - auth-module
+      - catalog-module
+      - commerce-module
+      - billing-module
+      - notifications-module
+      - shared-events
+      - shared-server
+    anyVendorDeps: true
+
+excludeFiles:
+  - ".*_test\\.go$"
+  # module.go файли — це wiring layer, який ЗАВЖДИ торкає i app, i infra.
+  # Виключаємо їх з аналізу, бо go-arch-lint v1.14 трасує type flow і помилково
+  # звинувачує infra-postgres у залежності на app, коли module.go робить
+  # `app.New(postgresRepo, ...)`. Архітектурно це коректно (DI через інтерфейс).
+  - "[^/]+/module\\.go$"

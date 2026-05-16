@@ -1,0 +1,34 @@
+name: CI (TS stage-3-hexagonal)
+
+on:
+  push:
+    paths:
+      - '4.8-bc/ts/stage-3-hexagonal/**'
+      - '.github/workflows/**'
+  pull_request:
+    paths:
+      - '4.8-bc/ts/stage-3-hexagonal/**'
+
+defaults:
+  run:
+    working-directory: 4.8-bc/ts/stage-3-hexagonal
+
+jobs:
+  build-and-arch-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: 4.8-bc/ts/stage-3-hexagonal/package-lock.json
+
+      - name: Install
+        run: npm ci || npm install
+
+      - name: Typecheck
+        run: npx tsc --noEmit
+
+      - name: Arch test
+        run: npx depcruise --config .dependency-cruiser.cjs src

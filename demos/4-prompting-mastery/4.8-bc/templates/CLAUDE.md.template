@@ -1,0 +1,62 @@
+# CLAUDE.md (template)
+
+> Скопіюй у корінь свого hexagonal-проекту і адаптуй до своєї доменної моделі. Це router-CLAUDE.md за патерном лекції 4.5 — короткий, з мапою на scoped rules.
+
+## Architecture
+
+Pattern: **Hexagonal per Bounded Context**.
+
+Кожен BC — окремий модуль: `<bc>/{domain,app,infra}/`. Залежності тільки всередину: `infra → app → domain`. `domain` не імпортує нічого ззовні крім стандартної бібліотеки і shared/utility пакетів.
+
+### Bounded Contexts (адаптуй під свій домен)
+
+- `auth/` — реєстрація, сесії, паролі
+- `catalog/` — продукти, категорії, пошук
+- `commerce/` — кошик, замовлення, статуси
+- `billing/` — підписки, оплати
+- `notifications/` — email / push / sms доставка
+
+### Shared
+
+`shared/` — тільки cross-cutting:
+- `apperr/` — типізовані помилки `{Code, Message, StatusCode}`
+- `httputil/` — JSON response helpers
+- `db/` — connection pool, transaction helpers
+
+⚠ **Бізнес-логіка ніколи у `shared/`.** Якщо тягне щось туди покласти — це сигнал, що BC неточно визначений. Пройди ще раз через event storming.
+
+## Dependency rule (hard)
+
+```
+domain → nothing (тільки stdlib)
+app    → domain
+infra  → domain, app
+ports  → domain, app, infra (HTTP handlers, CLI, jobs)
+```
+
+**NEVER:**
+- `domain` імпортує `infra` (порушує DIP — domain не знає про БД/HTTP)
+- BC `auth` імпортує BC `billing` напряму (порушує BC isolation — комунікація через події)
+- `shared/` імпортує конкретний BC
+
+`make arch-test` перевіряє це автоматично.
+
+## Workflow
+
+1. **Визначити BC.** Фіча про що — Notifications? Billing? Auth? Якщо торкається 2+ BC — розбий на задачі з координацією через події
+2. **Створити domain entity.** Типи й interface. Без бази даних, без HTTP
+3. **Написати use case.** Логіка в `<bc>/app/`, тільки через interfaces
+4. **Додати infra adapter.** `<bc>/infra/postgres/` для БД, `<bc>/infra/http/` для handlers
+5. **Запустити arch-test.** `make arch-test` → `✓ No violations found`
+6. **PR.** Якщо торкає тільки один BC — все правильно
+
+## Conventions
+
+- All code in English. Comments українською дозволені для складних шматків бізнес-логіки
+- Conventional commits: `feat(bc): ...`, `fix(bc): ...`, `chore: ...`. BC у scope.
+- One BC per PR. Cross-BC зміни — окремі PR з координацією через події
+- Tests run on every PR. CI блокує merge на failing arch-test — ніяких `--no-verify`
+
+## Path-specific rules
+
+Конкретні правила для кожного BC живуть у `.claude/rules/<bc>.md` з frontmatter `paths:`. Підтягуються автоматично, коли Claude читає matching файли. Дивись `.claude/rules/` для деталей.

@@ -1,0 +1,31 @@
+{
+  "name": "stage-3-hexagonal",
+  "version": "0.1.0",
+  "description": "TS stage-3-hexagonal — full hexagonal per BC, dependency-cruiser arch tests, in-memory event bus",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "start": "tsx src/index.ts",
+    "build": "tsc",
+    "typecheck": "tsc --noEmit",
+    "arch:check": "depcruise --config .dependency-cruiser.cjs src"
+  },
+  "dependencies": {
+    "fastify": "^4.28.1",
+    "knex": "^3.1.0",
+    "pg": "^8.13.1",
+    "bcryptjs": "^2.4.3"
+  },
+  "devDependencies": {
+    "@types/node": "^22.9.0",
+    "@types/pg": "^8.11.10",
+    "@types/bcryptjs": "^2.4.6",
+    "dependency-cruiser": "^16.7.0",
+    "tsx": "^4.19.2",
+    "typescript": "^5.6.3"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}
