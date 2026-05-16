@@ -61,10 +61,9 @@ make demo  # прогнати end-to-end
 │   └── 5-claude-code-extended/
 │       ├── 5.2-skills-intro/    PDF form-filler skill (5.2)
 │       ├── 5.3-skills-creation/ audit-api-endpoint skill walkthrough (5.3)
-│       ├── 5.5-hooks/           hooks toolkit з 13 hooks (5.5)
-│       ├── 5.7-capstone/        capstone skeleton (5.7)
-│       ├── 5.8-plugins/         3 sub-demos: before/after/red-flag (5.8)
-│       └── 5.9-sdk/             release-notes via claude -p (5.9)
+│       ├── 5.4-hooks/           hooks toolkit з 13 hooks (5.4)
+│       ├── 5.5-plugins/         3 sub-demos: before/after/red-flag (5.5)
+│       └── 5.7-sdk/             release-notes via claude -p (5.7)
 └── modules/
     └── 5-claude-code-extended/  module README з deep-link до кожного demo
 ```
