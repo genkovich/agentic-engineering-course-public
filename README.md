@@ -8,7 +8,7 @@ Public repository for the **Agentic Engineering з Claude** course. Contains han
 
 | Module | Тема | Тип |
 |---|---|---|
-| [Module 3 — Claude Code Setup](starters/) | Встановлення, settings, permissions, sandbox, devcontainer | starters (4 стеки) |
+| [Module 3 — Claude Code Setup](modules/3-claude-code-setup/) | Встановлення, settings, permissions, sandbox, devcontainer | starters (4 стеки) |
 | [Module 4 — Prompting Mastery](modules/4-prompting-mastery/) | Промпти, контекст, `.claude/`, `CLAUDE.md`, rules, Plan/Think, BC, legacy refactor | demos (text + runnable) |
 | [Module 5 — Claude Code Extended](modules/5-claude-code-extended/) | Slash commands, custom skills, subagents, hooks, output styles, plan mode, plugins | demos (~7 production-ready) |
 
@@ -20,7 +20,7 @@ Public repository for the **Agentic Engineering з Claude** course. Contains han
 
 ```bash
 # Знайди starter під свій стек
-cd starters/go-chi  # або nodejs-typescript / python-fastapi / rust-axum
+cd modules/3-claude-code-setup/starters/go-chi  # або nodejs-typescript / python-fastapi / rust-axum
 
 # Відкрий у VS Code, натисни "Reopen in Container" (потрібен Docker Desktop)
 # Усередині контейнера:
@@ -32,7 +32,7 @@ make verify  # усі security checks мають пройти
 ### Module 5 demos
 
 ```bash
-cd demos/5-claude-code-extended/5.2-skills-intro/pdf-form-filler
+cd modules/5-claude-code-extended/5.2-skills-intro/pdf-form-filler
 make demo  # прогнати end-to-end
 ```
 
@@ -53,25 +53,26 @@ make demo  # прогнати end-to-end
 .
 ├── README.md
 ├── LICENSE                 MIT
-├── starters/               cloneable working projects (Module 3)
-│   ├── go-chi/
-│   ├── nodejs-typescript/
-│   ├── python-fastapi/
-│   └── rust-axum/
-├── demos/
-│   ├── 4-prompting-mastery/
-│   │   ├── 4.1-prompts/        text examples (PROMPTS.md, не runnable) (4.1)
-│   │   ├── 4.8-bc/             Bounded Contexts — Go × TS × Py × 3 stages (4.8)
-│   │   └── 4.9-legacy-refactor/  FastAPI legacy → account через 7 skills (4.9)
-│   └── 5-claude-code-extended/
-│       ├── 5.2-skills-intro/    PDF form-filler skill (5.2)
-│       ├── 5.3-skills-creation/ audit-api-endpoint skill walkthrough (5.3)
-│       ├── 5.4-hooks/           hooks toolkit з 13 hooks (5.4)
-│       ├── 5.5-plugins/         3 sub-demos: before/after/red-flag (5.5)
-│       └── 5.7-sdk/             release-notes via claude -p (5.7)
-└── modules/
-    ├── 4-prompting-mastery/    module README з deep-link до кожного demo
-    └── 5-claude-code-extended/  module README з deep-link до кожного demo
+└── modules/                один корінь курсу, лекційні та runnable артефакти разом
+    ├── 3-claude-code-setup/
+    │   ├── README.md
+    │   └── starters/                cloneable working projects (Module 3)
+    │       ├── go-chi/
+    │       ├── nodejs-typescript/
+    │       ├── python-fastapi/
+    │       └── rust-axum/
+    ├── 4-prompting-mastery/
+    │   ├── README.md
+    │   ├── 4.1-prompts/             text examples (PROMPTS.md, не runnable) (4.1)
+    │   ├── 4.8-bc/                  Bounded Contexts — Go × TS × Py × 3 stages (4.8)
+    │   └── 4.9-legacy-refactor/     FastAPI legacy → account через 7 skills (4.9)
+    └── 5-claude-code-extended/
+        ├── README.md
+        ├── 5.2-skills-intro/        PDF form-filler skill (5.2)
+        ├── 5.3-skills-creation/     audit-api-endpoint skill walkthrough (5.3)
+        ├── 5.4-hooks/               hooks toolkit з 13 hooks (5.4)
+        ├── 5.5-plugins/             3 sub-demos: before/after/red-flag (5.5)
+        └── 5.7-sdk/                 release-notes via claude -p (5.7)
 ```
 
 ## Курс

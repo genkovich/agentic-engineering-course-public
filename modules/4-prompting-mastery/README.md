@@ -2,7 +2,7 @@
 
 Як писати промпти і керувати контекстом так, щоб Claude Code давав результат, який не треба переробляти. Цей модуль збирає прийоми (specificity, few-shot, verification) і артефакти контролю контексту (`.claude/`, `CLAUDE.md`, rules, Plan/Think режими) у єдину дисципліну роботи з агентом — від короткого промпта до багатоденного legacy-рефакторингу.
 
-Артефакти модуля впорядковані за LMS-нумерацією: `demos/4-prompting-mastery/4.N-<topic>/`.
+Артефакти модуля впорядковані за LMS-нумерацією: `modules/4-prompting-mastery/4.N-<topic>/`.
 
 ## Лекції модуля
 
@@ -21,9 +21,9 @@
 
 | Demo | Що показує | Лекції |
 |---|---|---|
-| [4.1-prompts](../../demos/4-prompting-mastery/4.1-prompts) | Текстові приклади промптів для скринкастів лекції: vague vs explicit, few-shot з 1/3 прикладами, race-condition, verification. Не runnable — це reference для повторення вживу | 4.1 |
-| [4.8-bc](../../demos/4-prompting-mastery/4.8-bc) | E-commerce домен з 5 BC, реалізований у Go × TS × Python × 3 стадіях зрілості (flat → feature-first → hexagonal). 9 робочих проєктів, per-stage Makefile, arch-test у Stage 3 | 4.8 |
-| [4.9-legacy-refactor](../../demos/4-prompting-mastery/4.9-legacy-refactor) | FastAPI «спагетті» users-модуль + протокол з 7 skills (`legacy-spike` → `legacy-extract` → `legacy-critic` → `legacy-plan` → `legacy-tests` → `legacy-cutover`) для рефакторингу у чистий `internal/account/` через 1-2 дні роботи з агентом | 4.9 |
+| [4.1-prompts](./4.1-prompts) | Текстові приклади промптів для скринкастів лекції: vague vs explicit, few-shot з 1/3 прикладами, race-condition, verification. Не runnable — це reference для повторення вживу | 4.1 |
+| [4.8-bc](./4.8-bc) | E-commerce домен з 5 BC, реалізований у Go × TS × Python × 3 стадіях зрілості (flat → feature-first → hexagonal). 9 робочих проєктів, per-stage Makefile, arch-test у Stage 3 | 4.8 |
+| [4.9-legacy-refactor](./4.9-legacy-refactor) | FastAPI «спагетті» users-модуль + протокол з 7 skills (`legacy-spike` → `legacy-extract` → `legacy-critic` → `legacy-plan` → `legacy-tests` → `legacy-cutover`) для рефакторингу у чистий `internal/account/` через 1-2 дні роботи з агентом | 4.9 |
 
 ## Pre-requisites
 
@@ -37,11 +37,11 @@
 
 ```bash
 # 4.8 — Go stage-1 baseline
-cd demos/4-prompting-mastery/4.8-bc/go/stage-1-flat
+cd modules/4-prompting-mastery/4.8-bc/go/stage-1-flat
 make run
 
 # 4.9 — Legacy refactor demo
-cd demos/4-prompting-mastery/4.9-legacy-refactor
+cd modules/4-prompting-mastery/4.9-legacy-refactor
 python3 -m venv .venv && source .venv/bin/activate && pip install -e .
 pytest -q
 ```

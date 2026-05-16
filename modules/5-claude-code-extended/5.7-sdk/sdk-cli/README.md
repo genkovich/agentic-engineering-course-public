@@ -62,7 +62,7 @@ ANTHROPIC_API_KEY=sk-... ../sdk-cli/release-notes.sh
 
 ```bash
 # 1. Створити fixture (один раз)
-cd ~/sources/agentic-engineering-course/demos/5-claude-code-extended/lecture-7/
+cd ~/sources/agentic-engineering-course/modules/5-claude-code-extended/5.7-sdk/
 bash setup-fixture.sh --force
 
 # 2. Підтвердити стан fixture — обов'язкова перевірка перед записом
