@@ -1,0 +1,67 @@
+openapi: 3.1.0
+info:
+  title: <Feature> API
+  version: 0.1.0
+  description: |
+    <Stage 10 → see SDLC/plugin/skills/define-api/SKILL.md>
+
+servers:
+  - url: https://api.example.com
+    description: Production
+  - url: http://localhost:8080
+    description: Local
+
+paths:
+  /<resource>:
+    get:
+      summary: <List ...>
+      operationId: list<Resources>
+      parameters:
+        - in: query
+          name: after
+          schema: { type: string, format: uuid }
+        - in: query
+          name: limit
+          schema: { type: integer, minimum: 1, maximum: 100, default: 20 }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/<Resource>Page"
+        "4XX":
+          $ref: "#/components/responses/Error"
+
+components:
+  schemas:
+    Error:
+      type: object
+      required: [code, message]
+      properties:
+        code: { type: string, example: "<module>.<error_name>" }
+        message: { type: string }
+        details: { type: object }
+
+    <Resource>:
+      type: object
+      required: [id]
+      properties:
+        id: { type: string, format: uuid }
+        # ...
+
+    <Resource>Page:
+      type: object
+      properties:
+        items:
+          type: array
+          items: { $ref: "#/components/schemas/<Resource>" }
+        has_next: { type: boolean }
+        has_prev: { type: boolean }
+
+  responses:
+    Error:
+      description: Error
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }

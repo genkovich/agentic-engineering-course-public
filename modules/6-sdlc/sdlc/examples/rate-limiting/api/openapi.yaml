@@ -1,0 +1,47 @@
+openapi: 3.1.0
+info:
+  title: API (rate-limiting addendum)
+  version: 0.2.0
+  description: |
+    Зміни контракту для rate limiting per user. Тільки нові responses / headers.
+
+paths:
+  /v1/resources:
+    get:
+      summary: List resources (rate-limited)
+      responses:
+        "200":
+          description: OK
+          headers:
+            X-RateLimit-Limit:
+              schema: { type: integer }
+              description: Window limit (e.g., 100)
+            X-RateLimit-Remaining:
+              schema: { type: integer }
+              description: Залишок у поточному вікні
+            X-RateLimit-Reset:
+              schema: { type: integer }
+              description: Unix epoch ms, коли скинеться найстаріший запит
+        "429":
+          description: Rate limit exceeded
+          headers:
+            Retry-After:
+              schema: { type: integer }
+              description: Скільки секунд почекати
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+components:
+  schemas:
+    Error:
+      type: object
+      required: [code, message]
+      properties:
+        code:
+          type: string
+          example: "rate_limit.exceeded"
+        message:
+          type: string
+          example: "Too many requests. Try again later."

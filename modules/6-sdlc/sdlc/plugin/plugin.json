@@ -1,0 +1,29 @@
+{
+  "name": "sdlc",
+  "version": "3.3.1",
+  "description": "Lean SDLC pipeline for Claude Code: 9 atomic stage skills + 2 cross-cutting skills covering ideation → ship. Ideation is a single consolidated 14-phase skill (interview). Stage 03 PRD via write-prd (code-aware, Socratic). Architecture is a single Socratic skill (architecture-design) producing the Software Architecture Document (Arc42 12 sections) + inline ADRs + C4 L1/L2. Sequence diagrams via complete-sequence-diagrams (PRD §4 audit + per-UC iterative completion; single-flow case via --flow). Persistence via generate-data-model (PRD + SAD + sequences → data-model.md + paired .up/.down.sql migrations + audit report). API contracts via api-forge — generates OpenAPI 3.1 as a derived function of data-model + sequences + PRD, with inline 5-point drift check and scenarios A (typed) vs B (PRD/sequence-derived with reconcile mode). decide-adr for post-hoc ADRs. break-tasks for 3-stage task breakdown (slicing proposal → DoR per task → tracker). plan-tests for the test plan. Cross-cutting: fix-term (lazy CONTEXT.md glossary), classify-size (XS/S/M/L/XL). GATE skills hard-refuse when the prereq artefact is missing. Each SKILL.md is the source of truth (protocol + DoD + anti-patterns); each skill copies its own templates from skills/<name>/templates/ into delivery/<slug>/. document-templates/ holds only cross-feature / manual / legacy snippets pulled by hand.",
+  "author": {
+    "name": "Kyrylo Genkov",
+    "email": "genkovi4@gmail.com",
+    "url": "https://github.com/genkovich"
+  },
+  "license": "MIT",
+  "homepage": "https://github.com/genkovich/agentic-engineering-course/tree/main/sdlc",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/genkovich/agentic-engineering-course.git",
+    "directory": "sdlc/plugin"
+  },
+  "keywords": [
+    "sdlc",
+    "claude-code",
+    "prd",
+    "adr",
+    "architecture",
+    "arc42",
+    "c4",
+    "sad",
+    "review-checklist",
+    "obsidian"
+  ]
+}
