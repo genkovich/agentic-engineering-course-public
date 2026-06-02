@@ -1,0 +1,6 @@
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+# src/ навмисне НЕ ігнорується - stubs (NotImplementedError) комітяться в репо,
+# щоб `make verify` був RED на чистому checkout.

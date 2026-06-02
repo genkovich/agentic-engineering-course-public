@@ -1,0 +1,10 @@
+.venv/
+__pycache__/
+.pytest_cache/
+*.egg-info/
+src/*.egg-info/
+.mutmut-cache/
+.coverage
+htmlcov/
+.hypothesis/
+.DS_Store

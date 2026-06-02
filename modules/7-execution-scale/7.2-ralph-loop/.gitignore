@@ -1,0 +1,8 @@
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+cost.log
+DONE
+# app/ is created by Ralph during the run — keep the repo clean before each demo
+app/

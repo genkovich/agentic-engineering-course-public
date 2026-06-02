@@ -1,0 +1,8 @@
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+node_modules/
+# NB: src/ is NOT ignored - models.py/store.py/tags.py are committed working,
+# search.py/dedupe.py/export.py are committed NotImplementedError stubs (the three
+# independent stories the workflow fans out in parallel).

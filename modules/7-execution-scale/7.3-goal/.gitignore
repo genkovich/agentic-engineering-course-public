@@ -1,0 +1,6 @@
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+# NB: src/ is NOT ignored - models.py/store.py are committed working,
+# tags.py is a committed NotImplementedError stub (the /goal task).

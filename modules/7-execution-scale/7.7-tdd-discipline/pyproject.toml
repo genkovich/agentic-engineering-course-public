@@ -1,0 +1,41 @@
+[project]
+name = "course-7-7-tdd-discipline"
+version = "0.1.0"
+description = "Demo project for Lecture 7.7 — TDD as execution discipline (SM-2 spaced repetition)"
+requires-python = ">=3.12"
+dependencies = [
+    "pytest>=8.0",
+    "hypothesis>=6.100",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest-watch>=4.2",
+    "coverage>=7.4",
+    "mutmut>=2.4",
+]
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+
+[tool.coverage.run]
+source = ["src"]
+branch = true
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = false
+
+[tool.mutmut]
+paths_to_mutate = "src/sm2.py"
+runner = "pytest -q -x"
+tests_dir = "tests/"

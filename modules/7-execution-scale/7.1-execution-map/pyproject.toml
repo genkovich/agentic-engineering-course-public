@@ -1,0 +1,13 @@
+[project]
+name = "snippets-execution-map"
+version = "0.1.0"
+description = "Seed-проєкт Module 7: домен snippets + мапа патернів виконання (Lecture 7.1)"
+requires-python = ">=3.12"
+dependencies = []
+
+[dependency-groups]
+dev = ["pytest>=8.0"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]

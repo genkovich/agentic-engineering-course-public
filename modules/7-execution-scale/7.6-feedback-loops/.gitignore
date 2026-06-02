@@ -1,0 +1,8 @@
+node_modules/
+dist/
+tmp/
+*.local
+*.tsbuildinfo
+.DS_Store
+# baselines/ навмисно НЕ ігноруємо — еталонний скриншот комітимо як артефакт демо.
+.playwright-cli/
