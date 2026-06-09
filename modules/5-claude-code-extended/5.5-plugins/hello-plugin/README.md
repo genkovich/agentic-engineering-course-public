@@ -25,8 +25,10 @@ hello-plugin/
 
 ## Запуск без install (для розробки)
 
+Ефемерний запуск — плагін живе тільки в цій сесії, нічого не встановлюється:
+
 ```bash
-cd /path/to/lecture-5
+cd /path/to/5.5-plugins
 claude --plugin-dir ./hello-plugin
 ```
 
@@ -34,15 +36,19 @@ claude --plugin-dir ./hello-plugin
 
 ## Локальне встановлення
 
+Встановлення йде через marketplace, навіть для локальної теки — два кроки:
+
 ```bash
-cd hello-plugin
-claude plugins add .
-claude plugins list
+# 1. Зареєструвати теку як локальний marketplace
+claude plugin marketplace add ./hello-plugin
+
+# 2. Встановити плагін з нього
+claude plugin install hello-plugin
 ```
+
+Перевірити: `claude plugin list`. Видалити: `claude plugin uninstall hello-plugin`.
 
 ## Що показано в скринкастах
 
-- **Скринкаст 1** (структура плагіна) — `tree` + walk-through `plugin.json` і компонентів
-- **Скринкаст 2** (локальне встановлення + namespace) — `claude plugins add .` і виклик `/hello-plugin:greet`
-- **Скринкаст 3** (installation scopes) — `--scope project` + git diff на `.claude/settings.json`
-- **Скринкаст 4** (`--plugin-dir` + `/reload-plugins`) — edit-test loop без рестарту
+- **Скринкаст 1** (структура плагіна) — walk-through `plugin.json` і компонентів у file explorer
+- **Скринкаст 2** (`--plugin-dir` + namespace) — поле `name` у маніфесті стає префіксом `/hello-plugin:greet`

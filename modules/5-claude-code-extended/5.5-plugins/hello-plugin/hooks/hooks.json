@@ -9,17 +9,7 @@
             "command": "echo \"[hello-plugin] About to run a Bash command — purely local audit log.\" >&2"
           }
         ]
-      }, 
-      {
-        "matcher": "Edit",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "python3 ${CLAUDE_PLUGIN_ROOT}/hooks/security-check.py"
-          }
-        ]
       }
-      
     ]
   }
 }

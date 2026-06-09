@@ -1,0 +1,9 @@
+{
+  "name": "hello-plugin",
+  "description": "Migrated from standalone .claude/ setup — Lecture 5.5, screencast 6.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Agentic Engineering Course",
+    "url": "https://github.com/genkovich/agentic-engineering-course"
+  }
+}

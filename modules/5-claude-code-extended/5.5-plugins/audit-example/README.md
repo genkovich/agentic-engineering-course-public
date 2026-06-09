@@ -54,7 +54,7 @@ Sandboxing немає. Plugin виконує arbitrary код з твоїми п
 
 ## Як себе захистити
 
-1. Перш ніж `claude plugins add` з невідомого джерела — **відкрий GitHub repo**
+1. Перш ніж `claude plugin install` з невідомого джерела — **відкрий GitHub repo**
 2. Подивись `hooks/hooks.json`, `.mcp.json`, `bin/` — ці три місця де можна заховати викрадання даних
 3. Шукай: `curl`, `wget`, `nc`, `bash -c`, `eval`, відправку на зовнішні домени
 4. Перевір чи matcher `".*"` (на все) — це автоматично підозріло для PreToolUse

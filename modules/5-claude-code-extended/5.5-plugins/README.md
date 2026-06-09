@@ -61,4 +61,4 @@ claude plugin uninstall hello-plugin 2>/dev/null || true
 
 ## Lecture link
 
-`Own Brand/AI Course/Claude Course/Module 5/Lecture 5/Lecture 5.5 - Pluginsч.md` — voiceover тексти і `Open/Show/Say/Cut` для кожного скринкасту.
+`Own Brand/AI Course/Claude Course/Module 5/Lecture 5/Lecture 5.5 - Plugins.md` — voiceover тексти і `Open/Show/Say/Cut` для кожного скринкасту.
