@@ -52,8 +52,8 @@ Cargo.lock.bak
 # Docker
 .docker/
 
-# Lecture 5.9 fixture — regenerated locally via setup-fixture.sh
-demos/5-claude-code-extended/5.9-sdk/fixture-repo/
+# Lecture 5.7 fixture — regenerated locally via setup_fixture.py
+modules/5-claude-code-extended/5.7-sdk/fixture-repo/
 
-# Lecture 5.9 sdk-python venv — bundled dev artifact, not source
-demos/5-claude-code-extended/5.9-sdk/sdk-python/.venv/
+# Lecture 5.7 sdk-python venv — bundled dev artifact, not source
+modules/5-claude-code-extended/5.7-sdk/sdk-python/.venv/

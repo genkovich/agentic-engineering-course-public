@@ -1,0 +1,11 @@
+[project]
+name = "sdk-python-release-notes-demo"
+version = "0.2.0"
+description = "Lecture 5.7 demo — Python orchestration around a Claude Agent SDK release-notes pipeline"
+requires-python = ">=3.11"
+dependencies = [
+    "claude-agent-sdk>=0.1.0",
+]
+
+[tool.uv]
+package = false

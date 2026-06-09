@@ -21,8 +21,9 @@
 ```
 sdk-cli/
 ├── README.md
-├── Makefile                                # ціль `demo-fixture` запускає agent на fixture-repo
+├── Makefile                                # ціль `demo-fixture` запускає agent на fixture-repo (macOS/Linux)
 ├── release-notes.sh                        # головний скрипт з claude -p + allowed-tools + json-schema
+├── release-notes.ps1                       # той самий pipeline для Windows (PowerShell 5.1+ / pwsh 7)
 ├── prompts/
 │   └── generate-release-notes.md           # задача для агента (workflow + constraints + JSON format)
 └── examples/
@@ -55,6 +56,27 @@ claude auth login                # один раз, відкриє браузе�
 # Або через env var (наприклад, у CI):
 ANTHROPIC_API_KEY=sk-... ../sdk-cli/release-notes.sh
 ```
+
+## Windows (PowerShell)
+
+Makefile-таргети розраховані на macOS/Linux (`make` нема на Windows натівно). На Windows запускай PowerShell-порт напряму — він робить той самий виклик `claude -p` з тими самими `--allowed-tools`, `--max-turns`, `--json-schema`:
+
+```powershell
+# 1. Створити fixture (один раз; Python — та сама передумова, що й для sdk-python)
+python ..\setup_fixture.py
+
+# 2. Запустити agent з fixture-repo як cwd
+cd ..\fixture-repo
+..\sdk-cli\release-notes.ps1
+```
+
+Замість `make clean` — відкат правок агента вручну:
+
+```powershell
+git restore docs/CHANGELOG.md
+```
+
+`jq` не потрібен: парсинг JSON-відповіді зроблено через вбудовані `ConvertFrom-Json`/`ConvertTo-Json`. Працює і у Windows PowerShell 5.1, і у PowerShell 7 (`pwsh`). Загальний гайд по Windows-середовищах для всього курсу — [WINDOWS.md](../../../WINDOWS.md) у корені репо.
 
 ## Recording the screencast
 
