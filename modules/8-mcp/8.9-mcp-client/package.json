@@ -1,0 +1,26 @@
+{
+  "name": "mcp-client-demo",
+  "version": "1.0.0",
+  "description": "Demo 8.9: власний MCP-клієнт на TypeScript — від listTools до повного tool-use loop з Claude API",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "test": "vitest run",
+    "01": "tsx src/01-list-and-call.ts",
+    "02": "tsx src/02-claude-loop.ts",
+    "03": "tsx src/03-claude-serve.ts"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.70.0",
+    "@modelcontextprotocol/sdk": "^1.24.0",
+    "dotenv": "^17.2.3",
+    "zod": "^4.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.7.0",
+    "vitest": "^3.0.0"
+  }
+}

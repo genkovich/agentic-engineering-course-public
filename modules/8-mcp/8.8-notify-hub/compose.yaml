@@ -1,0 +1,18 @@
+# Локальна перевірка образу перед деплоєм (лекція 8.12):
+#   docker compose up --build
+#   curl localhost:3334/healthz   → {"ok":true,...}
+# Зупинити і прибрати: docker compose down
+services:
+  notify-hub:
+    build: .
+    ports:
+      - "3334:3334"
+    # .env не обов'язковий: без нього сервер чесно працює у dry-run режимі
+    env_file:
+      - path: .env
+        required: false
+    volumes:
+      - notify-data:/app/data
+
+volumes:
+  notify-data:

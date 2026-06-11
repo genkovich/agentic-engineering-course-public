@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "task-store": {
+      "command": "node",
+      "args": ["dist/server.js"]
+    }
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "manifest_version": "0.2",
+  "name": "task-store",
+  "display_name": "Task Store",
+  "version": "1.0.0",
+  "description": "Demo MCP server: задачі з tools, resource і prompt (лекції 8.6-8.11)",
+  "author": {
+    "name": "genkovich"
+  },
+  "server": {
+    "type": "node",
+    "entry_point": "dist/server.js",
+    "mcp_config": {
+      "command": "node",
+      "args": ["${__dirname}/dist/server.js"]
+    }
+  }
+}

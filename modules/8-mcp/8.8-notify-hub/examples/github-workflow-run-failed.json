@@ -1,0 +1,28 @@
+{
+  "action": "completed",
+  "workflow_run": {
+    "id": 9876543210,
+    "name": "CI",
+    "run_number": 318,
+    "event": "push",
+    "status": "completed",
+    "conclusion": "failure",
+    "head_branch": "main",
+    "head_sha": "d6f3a9c1e8b24f50a7c3d2e1f0b9a8c7d6e5f4a3",
+    "html_url": "https://github.com/acme/billing-api/actions/runs/9876543210",
+    "created_at": "2026-06-09T11:02:00Z",
+    "updated_at": "2026-06-09T11:06:42Z"
+  },
+  "workflow": {
+    "id": 112233,
+    "name": "CI",
+    "path": ".github/workflows/ci.yml"
+  },
+  "repository": {
+    "id": 612345678,
+    "full_name": "acme/billing-api",
+    "html_url": "https://github.com/acme/billing-api",
+    "default_branch": "main"
+  },
+  "sender": { "login": "okovalenko" }
+}
