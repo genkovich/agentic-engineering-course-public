@@ -1,0 +1,28 @@
+[project]
+name = "task-store-mcp-py"
+version = "1.0.0"
+description = "Demo MCP server (lecture 8.6): task store on Python FastMCP, mirror of the TypeScript task-store"
+requires-python = ">=3.10"
+dependencies = [
+    "mcp>=1.12",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8",
+    "pytest-asyncio>=0.24",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8",
+    "pytest-asyncio>=0.24",
+]
+
+# Це не бібліотека, а демо-скрипти: uv ставить тільки залежності, сам проєкт
+# не збирає у пакет.
+[tool.uv]
+package = false
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
