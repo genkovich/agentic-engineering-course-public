@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "webchat": {
+      "command": "bun",
+      "args": ["run", "--silent", "start"]
+    }
+  }
+}

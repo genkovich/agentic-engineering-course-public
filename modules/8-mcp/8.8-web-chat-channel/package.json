@@ -1,0 +1,17 @@
+{
+  "name": "web-chat-channel",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "bun install --no-summary && bun server.ts",
+    "test": "bun install --no-summary && bun test"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0",
+    "zod": "^3.23.0"
+  },
+  "devDependencies": {
+    "@types/bun": "^1.1.0"
+  }
+}
