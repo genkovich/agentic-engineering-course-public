@@ -57,7 +57,6 @@ make inspect      # tools/list публічного Context7: побачиш Lis
 
 ## Source
 
-- Лекція 8.1 у Obsidian vault: `Own Brand/AI Course/Claude Course/Module 8/Lecture 1/`
 - Офіційна документація MCP: `https://modelcontextprotocol.io`
 - Context7: `https://github.com/upstash/context7`
 - MCP Inspector: `https://github.com/modelcontextprotocol/inspector`

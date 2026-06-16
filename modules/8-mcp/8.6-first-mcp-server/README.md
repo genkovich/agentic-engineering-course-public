@@ -149,8 +149,6 @@ npx @modelcontextprotocol/inspector node dist/server.buggy.js
 
 ## Source
 
-- Лекція 8.6 у Obsidian vault: `Own Brand/AI Course/Claude Course/Module 8/Lecture 6/`
-- Лекція 8.7 (Inspector, дебаг цього сервера): `Own Brand/AI Course/Claude Course/Module 8/Lecture 7/`
 - TypeScript SDK: `https://github.com/modelcontextprotocol/typescript-sdk`
 - MCP Inspector: `https://github.com/modelcontextprotocol/inspector`
 - Специфікація MCP: `https://modelcontextprotocol.io/specification`
