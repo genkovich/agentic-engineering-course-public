@@ -1,0 +1,4 @@
+voyageai>=0.2
+openai>=1.0
+numpy>=1.24
+python-dotenv>=1.0

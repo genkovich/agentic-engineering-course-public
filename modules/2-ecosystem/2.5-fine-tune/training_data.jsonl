@@ -1,0 +1,25 @@
+{"instruction": "Як підключити Slack до TeamHub?", "response": "Перейдіть в Налаштування → Інтеграції → Slack → Install App. Після авторизації оберіть канали для нотифікацій."}
+{"instruction": "Скільки коштує Pro план?", "response": "$12 за користувача на місяць. При щорічній оплаті — знижка 20%. Є 14-денний безкоштовний trial."}
+{"instruction": "Як налаштувати SSO?", "response": "SSO доступний на Enterprise плані. Адмін → Безпека → SSO → Configure. Підтримується SAML 2.0 (Okta, Azure AD) та OAuth 2.0."}
+{"instruction": "Що робити якщо CI/CD pipeline падає?", "response": "Перевірте YAML синтаксис у .teamhub/pipeline.yml — найчастіша помилка це таби замість пробілів. Логи: Tasks → Pipeline → Logs."}
+{"instruction": "Як отримати API ключ?", "response": "Налаштування → API → Generate Key. Ключ починається з th_. Можна створити до 5 ключів з різними правами."}
+{"instruction": "Де зберігаються дані?", "response": "AWS eu-central-1 (Франкфурт). Шифрування AES-256 at rest, TLS 1.3 in transit. Бекапи кожні 6 годин."}
+{"instruction": "Як підключити GitHub?", "response": "Налаштування → Інтеграції → GitHub → Authorize. Потрібні права на repo та pull_request. PR автоматично синхронізуються з задачами."}
+{"instruction": "Які є плани?", "response": "Free (до 5 юзерів, 1 проєкт), Pro ($12/юзер/міс, необмежено проєктів, CI/CD), Enterprise (SSO, audit log, SLA 99.9%)."}
+{"instruction": "Чи є безкоштовний trial?", "response": "Так, Pro план має 14-денний trial без кредитної картки. Enterprise — демо через sales@teamhub.example.com."}
+{"instruction": "Як увімкнути двофакторну автентифікацію?", "response": "Профіль → Безпека → 2FA → Enable. Підтримує Google Authenticator, Authy та YubiKey. Адмін може зробити 2FA обовʼязковою."}
+{"instruction": "Як видалити організацію?", "response": "Адмін → Налаштування → Danger Zone → Delete Organization. Потрібно ввести назву для підтвердження. Дані видаляються за 30 днів."}
+{"instruction": "Які інтеграції підтримуються?", "response": "Git: GitHub, GitLab, Bitbucket. CI/CD: Jenkins, CircleCI. Моніторинг: Datadog, Grafana. Комунікація: Slack, Teams, Discord."}
+{"instruction": "Як працює webhook?", "response": "Налаштування → Webhooks → Add URL. Підтримуються події: task.created, task.updated, pr.merged, incident.opened. Payload підписується HMAC-SHA256."}
+{"instruction": "Який максимальний розмір файлу?", "response": "50 МБ на файл. Загальний обсяг: 5 ГБ (Free), 100 ГБ (Pro), необмежено (Enterprise)."}
+{"instruction": "Як повернути гроші?", "response": "Повернення протягом 7 днів без питань. Після 7 днів — пропорційне повернення за невикористаний час."}
+{"instruction": "Не приходять Slack нотифікації", "response": "1. Перевірте що бот додано в канал. 2. Перевірте фільтри: Налаштування → Notifications → Slack. 3. Перевірте що App не відключено."}
+{"instruction": "Повільний дашборд аналітики", "response": "Для організацій з >1000 задач рекомендуємо фільтрувати по спринту або команді. Кеш оновлюється кожні 15 хвилин."}
+{"instruction": "Чи є SOC 2 сертифікат?", "response": "Так, TeamHub має SOC 2 Type II. Також відповідає GDPR — DPA доступний для Enterprise клієнтів."}
+{"instruction": "Скільки проєктів можна створити?", "response": "Free: 1 проєкт. Pro: необмежено. Enterprise: необмежено + project templates і cross-project залежності."}
+{"instruction": "Як працює On-Call?", "response": "Модуль інцидентів: алерти з моніторингу → ескалація L1→L2→L3 → post-mortem. Інтеграція з PagerDuty та Opsgenie."}
+{"instruction": "Як експортувати дані з аналітики?", "response": "Дашборд → Export → CSV або підключення через API /api/v1/analytics. Доступні метрики: cycle time, lead time, throughput."}
+{"instruction": "Задачі не синхронізуються з GitHub", "response": "Перевірте права GitHub App: Налаштування → Інтеграції → GitHub → Permissions. Натисніть Resync. Синхронізація до 5 хвилин."}
+{"instruction": "Як створити sub-task?", "response": "Відкрийте задачу → Add Sub-task. Sub-tasks успадковують проєкт і спринт батьківської задачі. Підтримуються залежності."}
+{"instruction": "Які метрики є в аналітиці?", "response": "Cycle time, lead time, throughput, deployment frequency. Порівняння по командах і спринтах. Графіки трендів за останні 90 днів."}
+{"instruction": "Як налаштувати CI/CD?", "response": "Створіть .teamhub/pipeline.yml в репозиторії. Підтримує Docker, Kubernetes, AWS ECS. Pipeline запускається при push в main або при PR."}

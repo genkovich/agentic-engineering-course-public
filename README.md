@@ -8,16 +8,27 @@ Public repository for the **Agentic Engineering з Claude** course. Contains han
 
 | Module | Тема | Тип |
 |---|---|---|
+| [Module 1 — LLM Mechanics](modules/1-llm-mechanics/) | Токени, контекстне вікно, стохастичність, embeddings | demos (4, runnable) |
+| [Module 2 — Ecosystem](modules/2-ecosystem/) | Tool use, agentic loop, RAG vs fine-tune, prompt injection, privacy | demos (6, runnable) |
 | [Module 3 — Claude Code Setup](modules/3-claude-code-setup/) | Встановлення, settings, permissions, sandbox, devcontainer | starters (4 стеки) |
 | [Module 4 — Prompting Mastery](modules/4-prompting-mastery/) | Промпти, контекст, `.claude/`, `CLAUDE.md`, rules, Plan/Think, BC, legacy refactor | demos (text + runnable) |
 | [Module 5 — Claude Code Extended](modules/5-claude-code-extended/) | Slash commands, custom skills, subagents, hooks, output styles, plan mode, plugins | demos (~7 production-ready) |
 | [Module 6 — SDLC через артефакти](modules/6-sdlc/) | Idea → CONTEXT/PRD/SAD/data-model/OpenAPI/tasks через 11 skills і шаблони | SDLC toolkit + наскрізний example |
 | [Module 7 - Execution & Scale](modules/7-execution-scale/) | Патерни виконання: Ralph, /goal, dynamic workflows, фон/розклад, feedback loops, TDD | demos (7, runnable) |
-| [Module 8 - MCP](modules/8-mcp/) | Власний MCP-сервер і клієнт, транспорти, дистрибуція, прод, MCP vs CLI | demos (3, runnable) + fixtures |
+| [Module 8 - MCP](modules/8-mcp/) | Власний MCP-сервер і клієнт, транспорти, advanced-можливості і безпека MCP | demos (3, runnable) |
 
 Інші модулі курсу — окремо у LMS.
 
 ## Як використовувати
+
+### Modules 1-2 demos
+
+```bash
+cd modules/1-llm-mechanics/1.2-token-counter
+pip install -r requirements.txt && make run
+```
+
+Кожен demo — самостійна Python-директорія (`README.md`, `main.py`, `requirements.txt`, `Makefile`, `.env.example`). Потрібен `ANTHROPIC_API_KEY`. Перелік демо до лекцій — у README модулів [1](modules/1-llm-mechanics/README.md) і [2](modules/2-ecosystem/README.md).
 
 ### Module 3 starters
 
@@ -61,7 +72,7 @@ make install && make test   # 17 тестів зелені
 make run                    # MCP-сервер на stdio; make run-http — Streamable HTTP на :3335
 ```
 
-Три runnable демо (task-store сервер, notify-hub з Dockerfile + DEPLOY.md, власний клієнт) і два набори фікстур (дистрибуція, аудит конфігу). Мапа демо до лекцій — у [`modules/8-mcp/README.md`](modules/8-mcp/README.md).
+Три runnable демо: task-store сервер (stdio + HTTP), канал web-chat і власний MCP-клієнт. Мапа демо до лекцій — у [`modules/8-mcp/README.md`](modules/8-mcp/README.md).
 
 ## Pre-requisites
 
@@ -77,6 +88,20 @@ make run                    # MCP-сервер на stdio; make run-http — Str
 ├── README.md
 ├── LICENSE                 MIT
 └── modules/                один корінь курсу, лекційні та runnable артефакти разом
+    ├── 1-llm-mechanics/            як LLM працює зсередини, 4 runnable демо (Module 1)
+    │   ├── README.md               мапа демо → лекцій
+    │   ├── 1.2-token-counter/      токени, ціна input/output, UA vs EN (1.1-1.2)
+    │   ├── 1.3-context-window/     вигорання контекстного вікна за сесію (1.3, 1.7)
+    │   ├── 1.4-stochasticity/      той самий промпт через T=0/0.5/1.0 (1.4)
+    │   └── 1.9-embeddings/         cosine similarity, king-man+woman≈queen (1.9)
+    ├── 2-ecosystem/                LLM → агент: tool use, RAG, захисти, 6 демо (Module 2)
+    │   ├── README.md               мапа демо → лекцій
+    │   ├── 2.1-tool-use/           базовий tool use: tool_use → tool_result (2.1-2.2)
+    │   ├── 2.3-agentic-loop/       observe → think → act без SDK helpers (2.3)
+    │   ├── 2.5-rag/                RAG pipeline: PGVector + embeddings + Claude (2.5)
+    │   ├── 2.5-fine-tune/          QLoRA з Unsloth на TinyLlama, Colab T4 (2.5)
+    │   ├── 2.6-prompt-injection/   3 типи атак + defense-in-depth pipeline (2.6)
+    │   └── 2.7-data-privacy/       env vars що контролюють telemetry (2.7)
     ├── 3-claude-code-setup/
     │   ├── README.md
     │   └── 3.9-starters/            cloneable working projects (Module 3)
@@ -114,18 +139,16 @@ make run                    # MCP-сервер на stdio; make run-http — Str
     │   ├── 7.5-background/          матриця рівнів розкладу + рецепти (7.5)
     │   ├── 7.6-feedback-loops/      детермінований гейт + браузер через Playwright (7.6)
     │   └── 7.7-tdd-discipline/      RGR однією командою: orchestrator + 3 agents (7.7)
-    └── 8-mcp/                       MCP: сервер, клієнт, дистрибуція (Module 8)
+    └── 8-mcp/                       MCP: сервер, канал, клієнт (Module 8)
         ├── README.md                мапа демо → лекцій, швидкий старт
-        ├── 8.6-first-mcp-server/    task-store: tools/resource/prompt, stdio + HTTP (8.6-8.8, 8.10-8.11)
-        ├── 8.8-notify-hub/          webhook-приймач + MCP endpoint, Dockerfile + DEPLOY.md (8.8, 8.12)
-        ├── 8.9-mcp-client/          власний клієнт: listTools → tool-use loop (8.9)
-        ├── 8.11-distribution/       заготовки mcpb-бандла і MCP Registry (8.11)
-        └── 8.13-audit-config/       фікстура .mcp.json для аудиту «MCP чи CLI» (8.13)
+        ├── 8.6-first-mcp-server/    task-store: tools/resource/prompt, stdio + HTTP (8.6-8.8, 8.10)
+        ├── 8.8-web-chat-channel/    канал Claude Code: MCP-канал + веб-чат на SSE (8.8)
+        └── 8.9-mcp-client/          власний клієнт: listTools → tool-use loop (8.9)
 ```
 
 ## Курс
 
-Курс «Agentic Engineering з Claude» — 11 модулів. У public репо зараз — Modules 3 (starters), 4 (prompting demos), 5 (Claude Code extended), 6 (SDLC toolkit), 7 (execution & scale demos) і 8 (MCP demos).
+Курс «Agentic Engineering з Claude» — 11 модулів. У public репо зараз — Modules 1 (LLM mechanics demos), 2 (ecosystem demos), 3 (starters), 4 (prompting demos), 5 (Claude Code extended), 6 (SDLC toolkit), 7 (execution & scale demos) і 8 (MCP demos).
 
 Деталі курсу: писати [@genkovich у Telegram](https://t.me/genkovich).
 
