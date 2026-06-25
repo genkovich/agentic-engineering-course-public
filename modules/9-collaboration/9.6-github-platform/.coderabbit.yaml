@@ -1,0 +1,29 @@
+# CodeRabbit config. Ще один рушій рев'ю на тому самому PR — поряд із Claude,
+# Codex і Copilot. Ключі звірені зі схемою CodeRabbit v2.
+# yaml-language-server: $schema=https://storage.googleapis.com/coderabbit_public_assets/schema.v2.json
+
+language: uk-UA
+
+reviews:
+  # chill — менше шуму; assertive — прискіпливіше. Беремо assertive для демо.
+  profile: assertive
+  # Що рев'юити, а що ігнорувати (glob; "!" = виключити).
+  path_filters:
+    - "src/**"
+    - "!**/*.lock"
+    - "!**/__pycache__/**"
+  # Точкові інструкції під конкретні шляхи.
+  path_instructions:
+    - path: "src/**"
+      instructions: >-
+        Будь-який недовірений ввід (email, query-параметри, тіла запитів),
+        що тече в SQL, шелл або шлях — це P0. Вимагай параметризований запит
+        замість конкатенації рядків. Хардкоднуті секрети — P0.
+  auto_review:
+    enabled: true
+    drafts: false
+
+knowledge_base:
+  learnings:
+    # auto: local для публічних репо, global для приватних.
+    scope: auto
