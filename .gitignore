@@ -57,3 +57,24 @@ modules/5-claude-code-extended/5.7-sdk/fixture-repo/
 
 # Lecture 5.7 sdk-python venv — bundled dev artifact, not source
 modules/5-claude-code-extended/5.7-sdk/sdk-python/.venv/
+
+# --- Module 9 collaboration demo sandboxes (rebuilt locally via make sandbox) ---
+# Lecture 9.1 demo sandbox — rebuilt locally via setup.sh (make sandbox)
+modules/9-collaboration/9.1-git-workflow/sandbox/
+
+# Lecture 9.2 demo sandbox + w-helper worktree siblings + bare origin — rebuilt via make sandbox
+modules/9-collaboration/9.2-git-worktrees/sandbox/
+modules/9-collaboration/9.2-git-worktrees/sandbox-*/
+modules/9-collaboration/9.2-git-worktrees/.sandbox-origin.git/
+
+# Lecture 9.3 demo sandbox + worktree siblings + bare origin — rebuilt via make sandbox
+modules/9-collaboration/9.3-worktree-merge-cleanup/sandbox/
+modules/9-collaboration/9.3-worktree-merge-cleanup/sandbox-*/
+modules/9-collaboration/9.3-worktree-merge-cleanup/.sandbox-origin.git/
+
+# Lecture 9.4 demo sandbox — local seed (+ real GitHub origin), rebuilt via make sandbox/rules/perms
+modules/9-collaboration/9.4-pull-requests/sandbox/
+
+# Lecture 9.5 demo sandbox + bare origin — rebuilt via make sandbox (baseline main + feat/reminders PR)
+modules/9-collaboration/9.5-code-review/sandbox/
+modules/9-collaboration/9.5-code-review/.sandbox-origin.git/
