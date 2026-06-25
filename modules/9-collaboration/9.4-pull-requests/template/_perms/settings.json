@@ -1,0 +1,6 @@
+{
+  "permissions": {
+    "allow": ["Bash(gh pr create *)", "Bash(glab mr create *)"],
+    "ask": ["Bash(gh pr merge *)", "Bash(glab mr merge *)"]
+  }
+}
