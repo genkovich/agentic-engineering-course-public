@@ -1,0 +1,5 @@
+# .worktreeinclude — which git-ignored files to copy into every fresh worktree.
+# Same syntax as .gitignore. Only files that match a pattern AND are actually
+# git-ignored get copied; tracked files are never duplicated.
+.env
+.env.local
