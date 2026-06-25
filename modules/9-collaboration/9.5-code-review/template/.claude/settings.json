@@ -1,0 +1,5 @@
+{
+  "permissions": {
+    "allow": ["Bash(git diff:*)", "Bash(git log:*)", "Bash(python3 -m unittest:*)"]
+  }
+}
