@@ -1,0 +1,15 @@
+# Native Claude Code worktrees land here — keep them out of the repo status,
+# otherwise every worktree shows up as untracked files in the main repo.
+.claude/worktrees/
+
+# Worktree siblings are created next to sandbox/; ignore any that land inside.
+sandbox/
+
+# Secrets — .env is git-ignored on purpose, then copied into each worktree
+# via .worktreeinclude. Only .env.example stays tracked.
+.env
+.env.local
+
+__pycache__/
+*.pyc
+.claude/settings.local.json
