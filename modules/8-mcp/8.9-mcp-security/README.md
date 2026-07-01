@@ -62,5 +62,6 @@ make inspect-safe       # tools/list: чистий опис того самог�
 
 ## Source
 
+- Лекція 8.9 у Obsidian vault: `Own Brand/AI Course/Claude Course/Module 8/Lecture 9/`
 - MCP Inspector: `https://github.com/modelcontextprotocol/inspector`
 - Специфікація MCP: `https://modelcontextprotocol.io/specification`

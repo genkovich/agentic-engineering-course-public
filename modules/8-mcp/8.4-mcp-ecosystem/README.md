@@ -54,5 +54,6 @@ GitHub і Playwright з `.mcp.json.example` підключаються у сві
 
 ## Source
 
+- Лекція 8.4 у Obsidian vault: `Own Brand/AI Course/Claude Course/Module 8/Lecture 4/`
 - Офіційний MCP Registry: `https://registry.modelcontextprotocol.io`
 - github/github-mcp-server, microsoft/playwright-mcp, upstash/context7

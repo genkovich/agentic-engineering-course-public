@@ -56,5 +56,6 @@ ssh-ключами), Bash виконує довільні команди - ві�
 
 ## Source
 
+- Лекція 8.5 у Obsidian vault: `Own Brand/AI Course/Claude Course/Module 8/Lecture 5/`
 - CLI reference: `https://code.claude.com/docs/en/cli-reference`
 - MCP Inspector: `https://github.com/modelcontextprotocol/inspector`

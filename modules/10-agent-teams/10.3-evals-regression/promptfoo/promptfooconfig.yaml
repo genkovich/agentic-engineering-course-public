@@ -1,0 +1,38 @@
+# 10.3 · Скринкаст #4 — Promptfoo trajectory-асерти на живому кейсі.
+# Той самий принцип, що в bash-харнесі (детермінований чекер над недетермінованим
+# агентом), але індустріальним інструментом: матриця тестів + готові типи асертів.
+#
+# Запуск (коштує токени, потрібен ANTHROPIC_API_KEY):
+#   bash setup.sh                      # чиста робоча копія fixtures/route -> workdir/
+#   npx promptfoo@latest eval --no-cache
+#   npx promptfoo@latest view
+description: '10.3 · агент додає auth на роут; trajectory-асерт доводить, що він РЕАЛЬНО перевірив поведінку'
+
+prompts:
+  - file://prompts/fix-route.md
+
+providers:
+  # Tier 1 «Coding agent SDK» — реальний coding-агент через Claude Agent SDK
+  - id: anthropic:claude-agent-sdk
+    config:
+      model: claude-sonnet-4-6
+      working_dir: ./workdir
+      append_allowed_tools: ['Write', 'Edit', 'MultiEdit', 'Bash']
+      permission_mode: acceptEdits
+
+tests:
+  - description: '/private захищено, і агент сам це довів (підняв сервіс + curl)'
+    assert:
+      # Поведінковий контракт (trajectory): агент СПРАВДІ виконував команди —
+      # піднімав сервіс і ганяв curl, — а не лише написав «готово».
+      - type: trajectory:tool-used
+        value: Bash
+      # Бюджет кроків: захист від нескінченного блукання (і від "0 кроків").
+      - type: trajectory:step-count
+        value:
+          type: command
+          min: 1
+          max: 30
+      # Детермінований шар: фінальний підсумок згадує 401 для /private без токена.
+      - type: contains
+        value: '401'

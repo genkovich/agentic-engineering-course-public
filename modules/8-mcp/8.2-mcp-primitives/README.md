@@ -59,5 +59,6 @@ make inspect-prompts    # prompts/list:   побачиш explain-primitive з а
 
 ## Source
 
+- Лекція 8.2 у Obsidian vault: `Own Brand/AI Course/Claude Course/Module 8/Lecture 2/`
 - Повний сервер з усіма примітивами і тестами: `../8.6-first-mcp-server`
 - Специфікація трьох примітивів: `https://modelcontextprotocol.io`

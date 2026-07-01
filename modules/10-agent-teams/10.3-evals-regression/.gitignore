@@ -1,0 +1,7 @@
+tmp/
+node_modules/
+*.local
+.DS_Store
+# Пісочниці прогонів (tmp/run-*/), транскрипти, agent.stderr — артефакти, не комітимо.
+promptfoo/workdir/
+.promptfoo/

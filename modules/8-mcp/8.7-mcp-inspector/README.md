@@ -69,5 +69,6 @@ History сирий JSON-RPC обох викликів.
 
 ## Source
 
+- Лекція 8.7 у Obsidian vault: `Own Brand/AI Course/Claude Course/Module 8/Lecture 7/`
 - Повний task-store (з persistence і Python-дзеркалом): `../8.6-first-mcp-server`
 - MCP Inspector: `https://github.com/modelcontextprotocol/inspector`

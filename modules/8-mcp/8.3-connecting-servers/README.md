@@ -59,5 +59,6 @@ make demo      # підключає Context7 (без ключа) і друкує
 
 ## Source
 
+- Лекція 8.3 у Obsidian vault: `Own Brand/AI Course/Claude Course/Module 8/Lecture 3/`
 - MCP у Claude Code: `https://code.claude.com/docs/en/mcp`
 - CLI reference: `https://code.claude.com/docs/en/cli-reference`
