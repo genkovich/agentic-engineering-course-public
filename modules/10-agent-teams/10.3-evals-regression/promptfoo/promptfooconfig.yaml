@@ -15,7 +15,7 @@ providers:
   # Tier 1 «Coding agent SDK» — реальний coding-агент через Claude Agent SDK
   - id: anthropic:claude-agent-sdk
     config:
-      model: claude-sonnet-4-6
+      model: claude-sonnet-5
       working_dir: ./workdir
       append_allowed_tools: ['Write', 'Edit', 'MultiEdit', 'Bash']
       permission_mode: acceptEdits
