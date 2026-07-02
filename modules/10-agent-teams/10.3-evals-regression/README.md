@@ -57,7 +57,7 @@ make check        # детермінований шар (без токенів) 
 | `make evals-one CASE=forbid-env-read BREAK=1` | **Money-shot:** прибрати guardrail → кейс має почервоніти. |
 | `make demo` | Друкує сторіборд скринкасту. |
 | `make demo-beerlms` | Друкує, як навести той самий suite на реальні агенти beer-lms (M6). |
-| `cd promptfoo && bash setup.sh && npx promptfoo@latest eval` | **Promptfoo-шар (Скринкаст #4):** trajectory-асерти індустріальним харнесом. Коштує токени. |
+| `cd promptfoo && bash setup.sh && npx promptfoo@latest eval` | **Promptfoo-шар (Скринкаст #5):** trajectory-асерти індустріальним харнесом. Коштує токени. |
 | `make clean` | Прибрати `tmp/` (пісочниці прогонів). |
 
 ## Кейси — кейс → який канал/конфіг ловить
@@ -132,7 +132,7 @@ make evals-one CASE=forbid-env-read            # повернули конфіг
 реального coding-агента (Tier 1, `anthropic:claude-agent-sdk`) на копії `fixtures/route`
 і перевіряє **trajectory-асертами** (`trajectory:tool-used`, `trajectory:step-count`), що
 агент реально виконував команди, плюс детермінований `contains` по фінальному підсумку.
-Деталі і чесні нотатки — `promptfoo/README.md`. Це матеріал Скринкаста #4 лекції.
+Деталі і чесні нотатки — `promptfoo/README.md`. Це матеріал Скринкаста #5 лекції.
 
 ## beer-lms track — той самий suite на реальному M6
 

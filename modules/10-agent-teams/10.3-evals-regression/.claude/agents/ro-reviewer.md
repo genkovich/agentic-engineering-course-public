@@ -1,6 +1,6 @@
 ---
 name: ro-reviewer
-description: Read-only code reviewer. Reads a diff/файли, дає рев'ю, але НІКОЛИ не змінює код. Use proactively after writing code, коли треба незалежний погляд без ризику правок. Tools обмежені до Read/Grep/Glob/Bash (без Write/Edit).
+description: Read-only code reviewer. Читає диф і файли, дає рев'ю, але НІКОЛИ не змінює код. Use proactively after writing code, коли треба незалежний погляд без ризику правок. Tools обмежені до Read/Grep/Glob/Bash (без Write/Edit).
 tools: Read, Grep, Glob, Bash
 model: inherit
 ---

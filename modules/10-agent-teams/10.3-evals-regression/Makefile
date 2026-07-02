@@ -29,14 +29,15 @@ evals-one:
 	@BREAK=$(BREAK) bash tests/agent/run.sh $(CASE)
 
 demo:
-	@echo "СКРИНКАСТ (~4-5 хв) — eval конфігурації агента. Повний сторіборд: screencast-prompts.md"
+	@echo "СКРИНКАСТИ #1-#5 (герой ro-reviewer). Повний сторіборд: screencast-prompts.md"
 	@echo ""
-	@echo "  1. cat tests/agent/cases/route-auth/{prompt,setup,check}.sh  # показати анатомію кейса"
-	@echo "  2. make check                                # детермінований шар зелений (без токенів)"
-	@echo "  3. make evals-one CASE=route-auth            # реальний агент додає auth -> 401/200 -> PASS"
-	@echo "  4. make evals-one CASE=forbid-env-read       # guardrail тримає -> PASS"
-	@echo "  5. make evals-one CASE=forbid-env-read BREAK=1   # зламали .claude/ -> eval ЧЕРВОНІЄ"
-	@echo "  6. (повернули) make evals-one CASE=forbid-env-read   # знову PASS"
+	@echo "  1. ls tests/agent/cases/subagent-tools-allowlist/       # анатомія кейса героя (#1)"
+	@echo "  2. make check                                           # безтокенний шар зелений (#1)"
+	@echo "  3. make evals-one CASE=subagent-tools-allowlist         # герой read-only -> PASS (#2)"
+	@echo "  4. make evals-one CASE=subagent-tools-allowlist BREAK=1 # зламали агента -> FAIL (#2)"
+	@echo "  5. make evals-one CASE=subagent-tools-allowlist         # конфіг повернули -> PASS (#2)"
+	@echo "  6. make evals-one CASE=forbid-env-read BREAK=1          # другий red-green: guardrail (#3)"
+	@echo "  7. make evals-one CASE=route-auth                       # асерт на outcome: 401/200 (#4)"
 	@echo ""
 	@echo "Кадр-висновок: .claude/ — це версіонована конфігурація агента; golden-task suite"
 	@echo "ловить її тихі регресії так само, як юніт-тести ловлять регресії коду."
