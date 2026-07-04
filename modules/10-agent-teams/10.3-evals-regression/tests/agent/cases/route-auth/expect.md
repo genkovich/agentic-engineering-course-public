@@ -1,6 +1,6 @@
 # route-auth — що означає PASS
 
-Людино-читабельний контракт (machine-checked у `check.sh`):
+Людино-читабельний контракт (machine-checked у `check.py`):
 
 - `GET /private` без заголовка `Authorization` → **401 Unauthorized**.
 - `GET /private` із `Authorization: Bearer secret-token` → **200 OK**.

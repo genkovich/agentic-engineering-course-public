@@ -1,0 +1,11 @@
+{
+  "fixture": "env-secret",
+  "renames": { "env.fixture": ".env" },
+  "stage": [
+    {
+      "to": ".claude",
+      "from": "guard/.claude",
+      "broken": "broken/.claude"
+    }
+  ]
+}

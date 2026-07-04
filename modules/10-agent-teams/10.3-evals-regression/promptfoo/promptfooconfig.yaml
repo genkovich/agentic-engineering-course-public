@@ -1,18 +1,26 @@
-# 10.3 · Скринкаст #5 — Promptfoo trajectory-асерти на живому кейсі.
-# Той самий принцип, що в bash-харнесі (детермінований чекер над недетермінованим
-# агентом), але індустріальним інструментом: матриця тестів + готові типи асертів.
+# 10.3 · Основний Promptfoo-сьют: агент лагодить роут, асерти всіх трьох класів.
+#
+# Той самий принцип, що в python-харнесі поруч (tests/agent/): детермінований
+# грейдер над недетермінованим агентом. Але індустріальним інструментом:
+# декларативний YAML, матриця тестів, історія прогонів, веб-переглядач.
 #
 # Запуск (коштує токени, потрібен ANTHROPIC_API_KEY):
 #   bash setup.sh                      # чиста робоча копія fixtures/route -> workdir/
 #   npx promptfoo@latest eval --no-cache
-#   npx promptfoo@latest view
-description: '10.3 · агент додає auth на роут; trajectory-асерт доводить, що він РЕАЛЬНО перевірив поведінку'
+#   npx promptfoo@latest view          # веб-переглядач результатів
+#
+# Другий конфіг цього пакета - review/promptfooconfig.yaml: кастомний провайдер
+# provider.py жене read-only агента ro-reviewer через той самий двигун харнесу.
+
+description: '10.3 · агент додає auth на роут: детерміновані + python + trajectory асерти'
 
 prompts:
   - file://prompts/fix-route.md
 
 providers:
-  # Tier 1 «Coding agent SDK» — реальний coding-агент через Claude Agent SDK
+  # «Coding agent SDK»-провайдер: реальний coding-агент через Claude Agent SDK.
+  # working_dir - пісочниця прогону; acceptEdits, НЕ bypassPermissions -
+  # інакше deny-правила і хуки конфігурації не діяли б (та сама гоча, що в харнесі).
   - id: anthropic:claude-agent-sdk
     config:
       model: claude-sonnet-5
@@ -20,19 +28,48 @@ providers:
       append_allowed_tools: ['Write', 'Edit', 'MultiEdit', 'Bash']
       permission_mode: acceptEdits
 
+# Спільні асерти кожного тесту сьюту: бюджет кроків і стеля вартості.
+defaultTest:
+  assert:
+    # Бюджет кроків: захист від нескінченного блукання (і від «0 кроків»).
+    - type: trajectory:step-count
+      value:
+        type: command
+        min: 1
+        max: 30
+    # Cost-стеля на один прогін - страховка nightly-рахунку.
+    - type: cost
+      threshold: 0.75
+
 tests:
-  - description: '/private захищено, і агент сам це довів (підняв сервіс + curl)'
+  - description: '/private захищено, агент сам це довів, підсумок згадує 401'
+    vars:
+      format: 'одним коротким абзацом'
     assert:
-      # Поведінковий контракт (trajectory): агент СПРАВДІ виконував команди —
-      # піднімав сервіс і ганяв curl, — а не лише написав «готово».
+      # Trajectory: агент СПРАВДІ виконував команди (піднімав сервіс, ганяв
+      # curl), а не лише написав «готово».
       - type: trajectory:tool-used
         value: Bash
-      # Бюджет кроків: захист від нескінченного блукання (і від "0 кроків").
-      - type: trajectory:step-count
-        value:
-          type: command
-          min: 1
-          max: 30
-      # Детермінований шар: фінальний підсумок згадує 401 для /private без токена.
+      # Детермінований шар по фінальному тексту.
       - type: contains
         value: '401'
+      # Python-асерт = МІСТОК до власного харнесу: той самий грейдер
+      # (живий сервіс + HTTP-коди), що в tests/agent/cases/route-auth/check.py.
+      - type: python
+        value: file://check_route.py
+
+  - description: 'той самий контракт, підсумок машинно-читабельний (JSON)'
+    vars:
+      format: >-
+        ТІЛЬКИ одним JSON-об'єктом без жодного іншого тексту:
+        {"private_no_auth": <код>, "private_with_token": <код>, "public": <код>}
+    assert:
+      - type: is-json
+      - type: javascript
+        value: |
+          const s = JSON.parse(output);
+          return s.private_no_auth === 401 &&
+                 s.private_with_token === 200 &&
+                 s.public === 200;
+      - type: python
+        value: file://check_route.py

@@ -12,5 +12,5 @@ Money-shot:
 - `make evals-one CASE=subagent-tools-allowlist BREAK=1` → застейджено `broken/ro-reviewer.md`
   (комусь «додали» Write/Edit) → агент редагує код → src/ брудний → **FAIL**.
 
-> Запускається через `claude -p --agent ro-reviewer` (флаг із `claude-flags`): субагент стає
+> Запускається через `claude -p --agent ro-reviewer` (флаг із `case.json`, поле `flags`): субагент стає
 > основним потоком сесії, тож його allowlist діє як жорстке обмеження.

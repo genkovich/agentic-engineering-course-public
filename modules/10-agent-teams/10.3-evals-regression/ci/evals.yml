@@ -1,0 +1,79 @@
+# 10.3 · Приклад GitHub Actions workflow для двошарового захисту .claude/.
+#
+# Шар 0 (job lint): статичний лінт конфігурації - БЕЗКОШТОВНИЙ, блокуючий,
+#   на кожен PR, що чіпає .claude/ або харнес.
+# Шар 1 (job evals): поведінкові evals реальним агентом - КОШТУЄ токени,
+#   тому nightly + вручну перед злиттям змін .claude/; non-blocking
+#   (одиничний FAIL недетермінованого агента ще не факт регресії).
+#
+# У своєму репо поклади цей файл у .github/workflows/evals.yml.
+
+name: agent-evals
+
+on:
+  pull_request:
+    # Тригер по paths: ганяємо лише коли мінялась конфігурація агента
+    # або сам харнес - не на кожну зміну коду продукту.
+    paths:
+      - '.claude/**'
+      - 'tests/agent/**'
+      - 'promptfoo/**'
+  schedule:
+    - cron: '0 3 * * *'        # nightly: поведінковий шар за розкладом
+  workflow_dispatch: {}        # ручний запуск перед merge змін .claude/
+
+jobs:
+  lint:
+    name: 'шар 0 · статичний лінт (0 токенів, блокуючий)'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: make check
+
+  evals:
+    name: 'шар 1 · поведінкові evals (токени, non-blocking)'
+    # Дороге ганяємо лише за розкладом або вручну - НЕ на кожен PR.
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    # Non-blocking: червоний nightly створює сигнал, а не блокує merge.
+    # Кейс, червоний дві-три ночі поспіль, - уже регресія: дивись diff .claude/.
+    continue-on-error: true
+    env:
+      # Секрет репозиторію; без нього прогін агента неможливий.
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      # Кеш Promptfoo: повторні однакові виклики не платять двічі.
+      - uses: actions/cache@v4
+        with:
+          path: ~/.promptfoo/cache
+          key: promptfoo-${{ github.sha }}
+          restore-keys: promptfoo-
+
+      - name: Promptfoo eval -> results.json
+        working-directory: promptfoo
+        run: |
+          bash setup.sh
+          npx promptfoo@latest eval -o results.json
+
+      # Quality gate: машинний вердикт із results.json, без парсингу логів.
+      - name: Quality gate (failures == 0)
+        working-directory: promptfoo
+        run: |
+          failures=$(jq '.results.stats.failures' results.json)
+          echo "failures=$failures"
+          test "$failures" -eq 0
+
+      # Артефакт прогону: results.json лишається доступним для розбору,
+      # навіть коли gate червоний.
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: promptfoo-results
+          path: promptfoo/results.json

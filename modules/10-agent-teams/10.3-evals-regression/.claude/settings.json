@@ -3,7 +3,7 @@
     "allow": [
       "Bash(claude:*)",
       "Bash(make:*)",
-      "Bash(bash tests/agent/:*)",
+      "Bash(python3 tests/agent/:*)",
       "Bash(git diff:*)",
       "Bash(git status:*)",
       "Bash(git log:*)",
