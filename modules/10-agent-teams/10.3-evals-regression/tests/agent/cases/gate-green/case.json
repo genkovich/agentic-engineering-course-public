@@ -1,9 +1,0 @@
-{
-  "fixture": "gate",
-  "stage": [
-    {
-      "to": ".claude",
-      "from": "config/.claude"
-    }
-  ]
-}

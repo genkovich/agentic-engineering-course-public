@@ -2,8 +2,11 @@ tmp/
 node_modules/
 *.local
 .DS_Store
-# Пісочниці прогонів (tmp/run-*/), транскрипти, agent.stderr — артефакти, не комітимо.
-promptfoo/workdir/
+__pycache__/
+# Артефакти прогонів: рев'ю першого тесту, пісочниці, workdir-и, результати.
+review.md
 .promptfoo/
 promptfoo/results.json
-promptfoo/review/results.json
+promptfoo/suite/results.json
+promptfoo/suite/workdir-route/
+promptfoo/suite/workdir-nplusone/

@@ -1,10 +1,10 @@
 # 10.3 · Приклад GitHub Actions workflow для двошарового захисту .claude/.
 #
 # Шар 0 (job lint): статичний лінт конфігурації - БЕЗКОШТОВНИЙ, блокуючий,
-#   на кожен PR, що чіпає .claude/ або харнес.
-# Шар 1 (job evals): поведінкові evals реальним агентом - КОШТУЄ токени,
-#   тому nightly + вручну перед злиттям змін .claude/; non-blocking
-#   (одиничний FAIL недетермінованого агента ще не факт регресії).
+#   на кожен PR, що чіпає .claude/ або evals.
+# Шар 1 (job evals): поведінкові evals реальним агентом через Promptfoo -
+#   КОШТУЄ токени, тому nightly + вручну перед злиттям змін .claude/;
+#   non-blocking (одиничний FAIL недетермінованого агента ще не факт регресії).
 #
 # У своєму репо поклади цей файл у .github/workflows/evals.yml.
 
@@ -13,10 +13,10 @@ name: agent-evals
 on:
   pull_request:
     # Тригер по paths: ганяємо лише коли мінялась конфігурація агента
-    # або сам харнес - не на кожну зміну коду продукту.
+    # або самі evals - не на кожну зміну коду продукту.
     paths:
       - '.claude/**'
-      - 'tests/agent/**'
+      - 'eval/**'
       - 'promptfoo/**'
   schedule:
     - cron: '0 3 * * *'        # nightly: поведінковий шар за розкладом
@@ -31,7 +31,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - run: make check
+      - run: python3 eval/lint.py
 
   evals:
     name: 'шар 1 · поведінкові evals (токени, non-blocking)'
@@ -56,20 +56,27 @@ jobs:
           key: promptfoo-${{ github.sha }}
           restore-keys: promptfoo-
 
-      - name: Promptfoo eval -> results.json
+      - name: Головний кейс (ro-reviewer) -> results.json
         working-directory: promptfoo
         run: |
-          npm ci                # @anthropic-ai/claude-agent-sdk для провайдера
+          npm ci                # @anthropic-ai/claude-agent-sdk для сьюту
+          npx promptfoo@latest eval -o results.json
+
+      - name: Сьют (5 кейсів) -> suite/results.json
+        working-directory: promptfoo/suite
+        run: |
           bash setup.sh
           npx promptfoo@latest eval -o results.json
 
       # Quality gate: машинний вердикт із results.json, без парсингу логів.
-      - name: Quality gate (failures == 0)
+      - name: Quality gate (failures == 0 в обох прогонах)
         working-directory: promptfoo
         run: |
-          failures=$(jq '.results.stats.failures' results.json)
-          echo "failures=$failures"
-          test "$failures" -eq 0
+          for f in results.json suite/results.json; do
+            failures=$(jq '.results.stats.failures' "$f")
+            echo "$f: failures=$failures"
+            test "$failures" -eq 0
+          done
 
       # Артефакт прогону: results.json лишається доступним для розбору,
       # навіть коли gate червоний.
@@ -77,4 +84,6 @@ jobs:
         if: always()
         with:
           name: promptfoo-results
-          path: promptfoo/results.json
+          path: |
+            promptfoo/results.json
+            promptfoo/suite/results.json

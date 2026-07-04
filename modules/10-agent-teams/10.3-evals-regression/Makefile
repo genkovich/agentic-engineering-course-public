@@ -1,75 +1,69 @@
-.PHONY: help check evals evals-one demo demo-beerlms clean
+.PHONY: help lint eval-one evals demo demo-beerlms clean
 
 help:
-	@echo "Targets - golden-task eval suite для .claude/ (лекція 10.3):"
+	@echo "Targets - evals для агентів цього проєкту (лекція 10.3):"
 	@echo ""
-	@echo "  check         - ШАР 0: статичний лінт конфігурації БЕЗ ТОКЕНІВ (lint.py)."
-	@echo "                  Frontmatter агентів проти контракту + структура кейсів."
-	@echo "                  Має бути зелено на чистому checkout - це CI/pre-commit-шар."
-	@echo "  evals         - реальний claude -p на ВСІХ кейсах (коштує токени, як 7.2)."
-	@echo "  evals-one CASE=route-auth   - один кейс."
-	@echo "  demo          - друкує сторіборд скринкастів лекції."
-	@echo "  demo-beerlms  - друкує, як навести той самий suite на реальні агенти beer-lms (M6)."
-	@echo "  clean         - прибрати tmp/ (пісочниці прогонів)."
+	@echo "  lint      - статичний лінт конфігурації агентів (0 токенів, секунди)."
+	@echo "  eval-one  - головний кейс (ro-reviewer) у Promptfoo. Коштує токени."
+	@echo "              BREAK=1 make eval-one - зламаний агент -> FAIL."
+	@echo "  evals     - сьют: решта 5 кейсів у Promptfoo. Коштує токени."
+	@echo "  demo      - друкує сторіборд скринкастів лекції."
+	@echo "  demo-beerlms - як навести ті самі evals на реальні агенти beer-lms (M6)."
+	@echo "  clean     - прибрати tmp/ і workdir-* (пісочниці прогонів)."
 	@echo ""
-	@echo "Red-green цикл (доказ тези): зламати конфіг -> eval червоніє, повернути -> зелено:"
-	@echo "  make evals-one CASE=subagent-tools-allowlist            # PASS (allowlist на місці)"
-	@echo "  make evals-one CASE=subagent-tools-allowlist BREAK=1    # FAIL (staged broken-конфіг)"
+	@echo "Руками (шлях лекції, без інструментів):"
+	@echo "  bash eval/check.sh      # перший тест: рев'ю є, код незайманий"
+	@echo "  bash eval/judge.sh      # суддя: бал за рубрикою eval/rubric.md"
+	@echo "  bash eval/sandbox.sh    # пісочниця: копія проєкту + свіжий git"
 
-# Шар 0: статичний лінт конфігурації. Без агента, без токенів. Ходить у CI на кожен PR.
-check:
-	@python3 tests/agent/lint.py
+# Статичний лінт: без агента, без токенів. Ходить у CI на кожен PR.
+lint:
+	@python3 eval/lint.py
 
-# Реальний прогін: пісочниці, claude -p, детерміновані грейдери.
+# Головний кейс лекції у Promptfoo (провайдер provider.py + llm-rubric).
+eval-one:
+	@cd promptfoo && npx promptfoo@latest eval --no-cache
+
+# Сьют: 5 кейсів (claude-agent-sdk + власний провайдер).
 evals:
-	@python3 tests/agent/run.py
-
-# Один кейс. Передай BREAK=1, щоб stage-крок підклав broken-конфіг (демо регресії).
-evals-one:
-	@if [ -z "$(CASE)" ]; then echo "Вкажи CASE=, напр.: make evals-one CASE=route-auth"; exit 2; fi
-	@BREAK=$(BREAK) python3 tests/agent/run.py $(CASE)
+	@cd promptfoo/suite && bash setup.sh && npx promptfoo@latest eval --no-cache
 
 demo:
 	@echo "СКРИНКАСТИ лекції 10.3. Повний сторіборд: screencast-prompts.md"
 	@echo ""
-	@echo "  1. ls tests/agent/cases/subagent-tools-allowlist/       # анатомія кейса"
-	@echo "  2. make check                                           # шар 0: статичний лінт, 0 токенів"
-	@echo "  3. make evals-one CASE=subagent-tools-allowlist         # read-only агент -> PASS"
-	@echo "  4. make evals-one CASE=subagent-tools-allowlist BREAK=1 # зламаний конфіг -> FAIL"
-	@echo "  5. make evals-one CASE=subagent-tools-allowlist         # конфіг повернули -> PASS"
-	@echo "  6. make evals                                           # весь сьют + підсумкова матриця"
-	@echo "  7. cd promptfoo && bash setup.sh && npx promptfoo@latest eval && npx promptfoo@latest view"
+	@echo "  1. cat .claude/agents/ro-reviewer.md      # агент, написаний з нуля"
+	@echo "  2. bash eval/check.sh                     # перший тест руками -> PASS"
+	@echo "  3. cp eval/broken/ro-reviewer.md .claude/agents/ && bash eval/check.sh  # FAIL"
+	@echo "  4. git checkout .claude/agents/ro-reviewer.md && make lint             # лінт"
+	@echo "  5. bash eval/judge.sh                     # суддя: JSON {score, reason}"
+	@echo "  6. make eval-one && npx promptfoo@latest view   # той самий кейс у Promptfoo"
+	@echo "  7. make evals                             # сьют: решта 5 кейсів"
 	@echo ""
-	@echo "Кадр-висновок: .claude/ - це версіонована конфігурація агента; golden-task suite"
-	@echo "ловить її тихі регресії так само, як юніт-тести ловлять регресії коду."
+	@echo "Кадр-висновок: .claude/ - версіонована конфігурація агента; evals ловлять"
+	@echo "її тихі регресії так само, як юніт-тести ловлять регресії коду."
 
 demo-beerlms:
-	@echo "Той самий suite, наведений на реальні агенти beer-lms (~/sources/beer-lms, M6):"
-	@echo ""
-	@echo "BEERLMS=~/sources/beer-lms"
+	@echo "Ті самі evals, наведені на реальні агенти beer-lms (~/sources/beer-lms, M6):"
 	@echo ""
 	@echo "── Ідея ────────────────────────────────────────────────────────────────────────"
 	@echo "  beer-lms має власну .claude/ (agents, hooks, CLAUDE.md). Це конфігурація, яку"
-	@echo "  так само треба захищати від регресій, як код. Кейси нижче - портовні шаблони."
+	@echo "  так само треба захищати від регресій, як код."
 	@echo ""
-	@echo "── Кейс A · subagent-tools-allowlist на реальному рев'юері ─────────────────────"
-	@echo "  Якщо у beer-lms є read-only review-агент - golden-task: дай йому diff, асерт"
-	@echo "  git diff --stat по src/ ПОРОЖНІЙ (рев'ю згенеровано, файли не змінені)."
-	@echo "  Регресія: хтось додав Write у tools агента -> кейс червоніє."
+	@echo "── Кейс A · read-only рев'юер ──────────────────────────────────────────────────"
+	@echo "  Якщо у beer-lms є review-агент: golden-задача 'зроби рев'ю', асерт"
+	@echo "  git diff по src/ ПОРОЖНІЙ + llm-rubric на якість тексту (як головний кейс)."
 	@echo ""
-	@echo "── Кейс B · respects-claude-md-rule на реальному CLAUDE.md ────────────────────"
-	@echo "  Правило beer-lms (напр. 'лише repository pattern' / 'структуровані slog-логи')."
-	@echo "  Golden-task: задача, що спокушає порушити правило; check.py грепає diff."
-	@echo "  Доводить, що CLAUDE.md направду кермує агентом."
+	@echo "── Кейс B · правило CLAUDE.md ──────────────────────────────────────────────────"
+	@echo "  Задача, що спокушає порушити правило (напр. 'лише repository pattern');"
+	@echo "  python-грейдер грепає diff на порушення."
 	@echo ""
-	@echo "── Кейс C · gate-green на реальному go test ───────────────────────────────────"
-	@echo "  cd \$$BEERLMS/beer-lms-api"
-	@echo "  Стартова story з червоним тестом; check.py: go test ./... exit 0 після прогону."
+	@echo "── Кейс C · gate-green на go test ──────────────────────────────────────────────"
+	@echo "  Стартова story з червоним тестом; грейдер: go test ./... exit 0."
 	@echo ""
 	@echo "── Чесна примітка ──────────────────────────────────────────────────────────────"
-	@echo "  agent-runs недетерміновані: деякі кейси можуть 'мигати'. Тому асерт на OUTCOME,"
-	@echo "  а 'make check' (без токенів) лишається завжди-зеленим CI-шаром."
+	@echo "  Прогони агента недетерміновані: кейси можуть 'мигати'. Асерт на OUTCOME,"
+	@echo "  а 'make lint' (0 токенів) лишається завжди-зеленим CI-шаром."
 
 clean:
-	@rm -rf tmp
-	@echo "Прибрано tmp/ (пісочниці прогонів)."
+	@rm -rf tmp promptfoo/suite/workdir-route promptfoo/suite/workdir-nplusone review.md
+	@echo "Прибрано tmp/, workdir-* і review.md."

@@ -1,9 +1,0 @@
-{
-  "fixture": "tdd-task",
-  "stage": [
-    {
-      "to": ".claude",
-      "from": "config/.claude"
-    }
-  ]
-}
