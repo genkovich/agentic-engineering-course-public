@@ -59,6 +59,7 @@ jobs:
       - name: Promptfoo eval -> results.json
         working-directory: promptfoo
         run: |
+          npm ci                # @anthropic-ai/claude-agent-sdk для провайдера
           bash setup.sh
           npx promptfoo@latest eval -o results.json
 
