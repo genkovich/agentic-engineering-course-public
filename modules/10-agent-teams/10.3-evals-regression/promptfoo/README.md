@@ -23,6 +23,7 @@
 
 ```bash
 cd promptfoo
+npm install                         # разово: @anthropic-ai/claude-agent-sdk для провайдера
 bash setup.sh                       # чиста пісочниця workdir/ (копія fixtures/route)
 npx promptfoo@latest eval --no-cache
 npx promptfoo@latest view           # веб-переглядач прогону
@@ -32,13 +33,17 @@ npx promptfoo@latest eval --no-cache
 BREAK=1 npx promptfoo@latest eval --no-cache   # зламаний конфіг -> асерти червоні
 ```
 
-Потрібні: `node`, `ANTHROPIC_API_KEY` в env (для `review/` - ще й `claude` CLI).
+Потрібні: `node` і `claude` CLI. Авторизація - через локальну сесію Claude Code
+(`apiKeyRequired: false` у конфігах, Pro/Max підписка) АБО `ANTHROPIC_API_KEY` в env.
 Прогони коштують токени (як `make evals`).
 
 ## Встановлення Promptfoo
 
 - Разово: `npx promptfoo@latest init` (скелет конфіга) / `npx promptfoo@latest eval`.
 - Глобально: `npm install -g promptfoo`.
+- Для провайдера `anthropic:claude-agent-sdk` - ще npm-пакет поруч із конфігом:
+  `npm install @anthropic-ai/claude-agent-sdk` (без нього eval падає з
+  «package could not be resolved»).
 
 ## Чесні нотатки
 
@@ -46,6 +51,12 @@ BREAK=1 npx promptfoo@latest eval --no-cache   # зламаний конфіг -
   ре-верифіковано через context7 2026-07-04): `trajectory:step-count` /
   `tool-used` / `tool-args-match` / `tool-sequence` - усі на
   `promptfoo.dev/docs/configuration/expected-outputs/deterministic`.
+- Trajectory-асерти потребують УВІМКНЕНОГО tracing: блок `tracing.otlp.http` у
+  конфігу + env `CLAUDE_CODE_ENABLE_TELEMETRY`/`OTEL_EXPORTER_OTLP_*` у провайдера.
+  Без нього - «No trace data available» (спіймано живим прогоном 2026-07-05).
+- У trace claude-agent-sdk кроки маркуються як `tool:Bash`, `tool:Read`, ... -
+  тож `trajectory:step-count` бере `type: tool`. Тип `command` - зі схеми
+  Codex SDK, тут дає 0 збігів (теж знахідка живого прогону).
 - Провайдер `anthropic:claude-agent-sdk` МАЄ `setting_sources: ['project']`
   (підхоплює CLAUDE.md/skills з working_dir) і програмні `agents:`
   (субагенти для делегування), але запустити НАЗВАНОГО агента з
@@ -65,9 +76,12 @@ BREAK=1 npx promptfoo@latest eval --no-cache   # зламаний конфіг -
 
 ## Runbook перед записом скринкастів
 
-- [ ] `export ANTHROPIC_API_KEY=...` і один живий `npx promptfoo@latest eval`
-      у `promptfoo/` - звірити, що обидва тести проходять (2026-07-04 прогін
-      не виконувався: ключа в env не було; механіка обох конфігів перевірена
-      offline - python-асерти, provider-імпорти, YAML-парс).
+- [x] Живий `npx promptfoo@latest eval` у `promptfoo/` - ЗВІРЕНО 2026-07-05
+      (subscription-auth, без ANTHROPIC_API_KEY): тест «абзацом» - PASS усі
+      асерти (python-грейдер «всі три HTTP-контракти виконані», trajectory 7
+      tool-кроків, cost $0.16); тест «тільки JSON» - python/trajectory/cost
+      PASS, `is-json` мигтить (агент інколи додає речення перед JSON) - це
+      задокументований навчальний флейк, у кадрі він працює НА тезу.
 - [ ] `npx promptfoo@latest view` - переглядач відкривається, асерти розгортаються.
-- [ ] `cd review && npx promptfoo@latest eval` + `BREAK=1 ...` - red-green.
+- [ ] `cd review && npx promptfoo@latest eval` + `BREAK=1 ...` - red-green
+      (зелена гілка звірена 2026-07-05, BREAK-гілку прогнати перед записом).

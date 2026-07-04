@@ -17,24 +17,44 @@ description: '10.3 · агент додає auth на роут: детермін
 prompts:
   - file://prompts/fix-route.md
 
+# Trajectory-асерти читають trace агента - без цього блока вони падають
+# з «No trace data available». Promptfoo піднімає локальний OTLP-приймач,
+# а env-блок провайдера каже Claude Agent SDK слати телеметрію туди.
+tracing:
+  enabled: true
+  otlp:
+    http:
+      enabled: true
+      port: 4318
+
 providers:
   # «Coding agent SDK»-провайдер: реальний coding-агент через Claude Agent SDK.
+  # Потребує npm-пакет поруч із конфігом: npm install @anthropic-ai/claude-agent-sdk
   # working_dir - пісочниця прогону; acceptEdits, НЕ bypassPermissions -
   # інакше deny-правила і хуки конфігурації не діяли б (та сама гоча, що в харнесі).
+  # apiKeyRequired: false - авторизація через локальну сесію Claude Code
+  # (Pro/Max підписка) замість ANTHROPIC_API_KEY.
   - id: anthropic:claude-agent-sdk
     config:
       model: claude-sonnet-5
       working_dir: ./workdir
       append_allowed_tools: ['Write', 'Edit', 'MultiEdit', 'Bash']
       permission_mode: acceptEdits
+      apiKeyRequired: false
+      env:
+        CLAUDE_CODE_ENABLE_TELEMETRY: '1'
+        OTEL_EXPORTER_OTLP_ENDPOINT: 'http://127.0.0.1:4318'
+        OTEL_EXPORTER_OTLP_PROTOCOL: 'http/protobuf'
 
 # Спільні асерти кожного тесту сьюту: бюджет кроків і стеля вартості.
 defaultTest:
   assert:
     # Бюджет кроків: захист від нескінченного блукання (і від «0 кроків»).
+    # type: tool - так claude-agent-sdk маркує кроки у trace (tool:Bash,
+    # tool:Read, ...); тип `command` - з trace-схеми Codex SDK, тут дав би 0.
     - type: trajectory:step-count
       value:
-        type: command
+        type: tool
         min: 1
         max: 30
     # Cost-стеля на один прогін - страховка nightly-рахунку.

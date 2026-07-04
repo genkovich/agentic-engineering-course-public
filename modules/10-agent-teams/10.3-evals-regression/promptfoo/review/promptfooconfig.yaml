@@ -27,7 +27,13 @@ defaultTest:
   options:
     # Модель-суддя для llm-rubric. Без явного вибору Promptfoo взяв би
     # свій дефолтний грейдер - хочемо контрольований і той самий вендор.
-    provider: anthropic:messages:claude-sonnet-5
+    # apiKeyRequired: false - суддя теж працює через локальну сесію Claude Code.
+    # ⚠️ Haiku 4.5, НЕ Claude 5: грейдер Promptfoo шле temperature=0, а моделі
+    # 5-го покоління цей параметр відхиляють (400 «temperature is deprecated»).
+    provider:
+      id: anthropic:messages:claude-haiku-4-5-20251001
+      config:
+        apiKeyRequired: false
 
 tests:
   - description: 'рев''ю з вердиктом є, файли незаймані, текст рев''ю предметний'
