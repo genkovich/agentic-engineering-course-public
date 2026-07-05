@@ -19,10 +19,10 @@ Demo-пакет до лекції **10.3** (Module 10 · Agent Teams). Це ма
 | Крок | Файл | Що це |
 |---|---|---|
 | 1. Агент з нуля | `.claude/agents/ro-reviewer.md` | read-only рев'юер (10.2), предмет тестування |
-| 2. Перший тест руками | `eval/check.sh` (~10 рядків) | прогін у проєкті + `git diff` + вердикт; БЕЗ пісочниці |
+| 2. Перший тест руками | `eval/check.py` (~35 рядків) | прогін у проєкті + `git status` по `src/` + вердикт; БЕЗ пісочниці |
 | 3. Лінт за нуль токенів | `eval/lint.py` (~30 рядків) | frontmatter проти контракту `EXPECTED_TOOLS` |
-| 4. Пісочниця руками | `eval/sandbox.sh` (~10 рядків) | копія проєкту + свіжий git; готового тула нема - і не треба |
-| 5. Суддя руками | `eval/judge.sh` + `eval/rubric.md` | ще один `claude -p`: бал {score, reason} за рубрикою |
+| 4. Пісочниця руками | `eval/sandbox.py` (~20 рядків) | копія проєкту + свіжий git; готового тула нема - і не треба |
+| 5. Суддя руками | `eval/judge.py` + `eval/rubric.md` | ще один `claude -p`: бал {score, reason} за рубрикою |
 | 6. Той самий кейс у Promptfoo | `promptfoo/promptfooconfig.yaml` | regex + python + llm-rubric; провайдер `provider.py` |
 | 7. Сьют: решта 5 кейсів | `promptfoo/suite/promptfooconfig.yaml` | claude-agent-sdk + власний провайдер + trajectory |
 | 8. CI | `ci/evals.yml` | lint блокуючий на PR; evals nightly non-blocking |
@@ -47,10 +47,11 @@ cd promptfoo && npm ci   # разово: @anthropic-ai/claude-agent-sdk для �
 
 | Команда | Що робить | Ціна |
 |---|---|---|
-| `bash eval/check.sh` | перший тест: рев'ю є, `src/` незайманий, `git restore` прибирає сліди | токени |
+| `python3 eval/check.py` | перший тест: рев'ю є, `src/` незайманий, `git restore` прибирає сліди | токени |
 | `make lint` | статичний лінт конфігурації агентів | 0 |
-| `bash eval/sandbox.sh` | зібрати пісочницю `tmp/sandbox` | 0 |
-| `bash eval/judge.sh` | суддя: JSON-бал за `eval/rubric.md` для `review.md` | токени |
+| `python3 eval/sandbox.py` | зібрати пісочницю `tmp/sandbox` | 0 |
+| `python3 eval/judge.py` | суддя: JSON-бал за `eval/rubric.md` для `review.md` | токени |
+| `make eval-simple` | крок нуль: звичайний промпт під тестом, без агента | копійки |
 | `make eval-one` | головний кейс у Promptfoo (`BREAK=1 make eval-one` - red-green) | токени |
 | `make evals` | сьют: 5 кейсів | токени |
 | `npx promptfoo@latest view` | веб-переглядач прогонів (з `promptfoo/` або `promptfoo/suite/`) | 0 |
@@ -59,11 +60,11 @@ cd promptfoo && npm ci   # разово: @anthropic-ai/claude-agent-sdk для �
 ## Red-green руками - «зламай конфіг → тест червоніє»
 
 ```bash
-bash eval/check.sh                                        # PASS
+python3 eval/check.py                                     # PASS
 cp eval/broken/ro-reviewer.md .claude/agents/ro-reviewer.md
-bash eval/check.sh                                        # FAIL: агент ЗМІНИВ код
+python3 eval/check.py                                     # FAIL: агент ЗМІНИВ код
 git checkout .claude/agents/ro-reviewer.md
-bash eval/check.sh                                        # знову PASS
+python3 eval/check.py                                     # знову PASS
 ```
 
 Той самий диф `+Edit, +Write` ловиться і дешевше - `make lint` (нуль токенів,
@@ -72,11 +73,16 @@ Edit), накази в body і недетермінізм моделі лови�
 
 ## Promptfoo-шар
 
+**Крок нуль** (`promptfoo/simple/promptfooconfig.yaml`) - Promptfoo у рідній
+стихії, ще без агента: звичайний промпт («поясни, що робить функція»), модель
+і два асерти. Прожени його першим - побачиш увесь цикл eval → view на
+найпростішому матеріалі, за копійки.
+
 **Головний конфіг** (`promptfoo/promptfooconfig.yaml`) - той самий перший кейс,
-без самопису: провайдер `provider.py` (наш sandbox.sh + `claude -p --agent
+без самопису: провайдер `provider.py` (наш sandbox.py + `claude -p --agent
 ro-reviewer`, загорнуті у функцію), асерти = regex-вердикт + `check_clean.py`
-(git diff порожній) + `llm-rubric` (рубрика з `eval/rubric.md` дослівно,
-поріг 0.7).
+(git status по `src/` чистий) + `llm-rubric` (рубрика з `eval/rubric.md`
+дослівно, поріг 0.7).
 
 **Сьют** (`promptfoo/suite/promptfooconfig.yaml`) - решта 5 кейсів:
 
@@ -112,12 +118,19 @@ Generic-кейси їдуть через готовий провайдер `anth
   `bash setup.sh` між прогонами.
 - `is-json`-тест може почервоніти, якщо агент не втримав формат: червоніє
   контракт на ТЕКСТ, не поведінка. Навмисна ілюстрація різниці.
+- Обидва конфіги тримають `evaluateOptions: maxConcurrency: 1`: пісочниці
+  (`tmp/pf-sandbox`, `workdir-*`) спільні між тестами, паралельний прогін дав
+  би гонку. Це стосується і `--repeat 3` для pass-rate: повтори теж ідуть
+  по одному.
+- Кеш Promptfoo для агентних прогонів - самообман: закешована відповідь
+  минулого прогону нічого не каже про сьогоднішню конфігурацію. Тому скрізь
+  (локально і в CI) - `--no-cache`.
 
 ## CI/CD (`ci/evals.yml`)
 
 Job `lint` - блокуючий на кожен PR по paths `.claude/**`/`eval/**`/`promptfoo/**`,
 нуль токенів. Job `evals` - nightly + workflow_dispatch, non-blocking
-(`continue-on-error`), обидва promptfoo-конфіги, quality-gate
+(`continue-on-error`), обидва promptfoo-конфіги з `--no-cache`, quality-gate
 `jq '.results.stats.failures'`, артефакт results.json. Кейс, червоний дві-три
 ночі поспіль, - уже регресія: дивись diff `.claude/` за ці дні.
 

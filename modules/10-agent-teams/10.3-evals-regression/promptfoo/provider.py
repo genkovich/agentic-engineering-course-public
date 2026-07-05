@@ -2,7 +2,7 @@
 
 Навіщо свій: готовий провайдер anthropic:claude-agent-sdk не запускає
 НАЗВАНОГО агента з .claude/agents/ головним потоком. А предмет тесту -
-саме конфігурація ro-reviewer. Тож call_api - це наш eval/sandbox.sh
+саме конфігурація ro-reviewer. Тож call_api - це наш eval/sandbox.py
 плюс claude -p, загорнуті в одну python-функцію.
 
 Контракт провайдера Promptfoo: call_api(prompt, options, context)
@@ -22,7 +22,7 @@ SANDBOX = PKG / "tmp" / "pf-sandbox"
 
 
 def call_api(prompt, options, context):
-    # 1) Пісочниця: та сама логіка, що eval/sandbox.sh - копія проєкту
+    # 1) Пісочниця: та сама логіка, що eval/sandbox.py - копія проєкту
     #    (src + .claude + eval) і свіжий git, щоразу з нуля.
     shutil.rmtree(SANDBOX, ignore_errors=True)
     SANDBOX.mkdir(parents=True)

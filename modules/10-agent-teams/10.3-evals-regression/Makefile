@@ -1,9 +1,10 @@
-.PHONY: help lint eval-one evals demo demo-beerlms clean
+.PHONY: help lint eval-simple eval-one evals demo demo-beerlms clean
 
 help:
 	@echo "Targets - evals для агентів цього проєкту (лекція 10.3):"
 	@echo ""
 	@echo "  lint      - статичний лінт конфігурації агентів (0 токенів, секунди)."
+	@echo "  eval-simple - крок нуль: звичайний промпт під тестом, без агента."
 	@echo "  eval-one  - головний кейс (ro-reviewer) у Promptfoo. Коштує токени."
 	@echo "              BREAK=1 make eval-one - зламаний агент -> FAIL."
 	@echo "  evals     - сьют: решта 5 кейсів у Promptfoo. Коштує токени."
@@ -12,13 +13,17 @@ help:
 	@echo "  clean     - прибрати tmp/ і workdir-* (пісочниці прогонів)."
 	@echo ""
 	@echo "Руками (шлях лекції, без інструментів):"
-	@echo "  bash eval/check.sh      # перший тест: рев'ю є, код незайманий"
-	@echo "  bash eval/judge.sh      # суддя: бал за рубрикою eval/rubric.md"
-	@echo "  bash eval/sandbox.sh    # пісочниця: копія проєкту + свіжий git"
+	@echo "  python3 eval/check.py      # перший тест: рев'ю є, код незайманий"
+	@echo "  python3 eval/judge.py      # суддя: бал за рубрикою eval/rubric.md"
+	@echo "  python3 eval/sandbox.py    # пісочниця: копія проєкту + свіжий git"
 
 # Статичний лінт: без агента, без токенів. Ходить у CI на кожен PR.
 lint:
 	@python3 eval/lint.py
+
+# Крок нуль: Promptfoo на звичайному промпті, без агента.
+eval-simple:
+	@cd promptfoo/simple && npx promptfoo@latest eval --no-cache
 
 # Головний кейс лекції у Promptfoo (провайдер provider.py + llm-rubric).
 eval-one:
@@ -32,10 +37,10 @@ demo:
 	@echo "СКРИНКАСТИ лекції 10.3. Повний сторіборд: screencast-prompts.md"
 	@echo ""
 	@echo "  1. cat .claude/agents/ro-reviewer.md      # агент, написаний з нуля"
-	@echo "  2. bash eval/check.sh                     # перший тест руками -> PASS"
-	@echo "  3. cp eval/broken/ro-reviewer.md .claude/agents/ && bash eval/check.sh  # FAIL"
+	@echo "  2. python3 eval/check.py                  # перший тест руками -> PASS"
+	@echo "  3. cp eval/broken/ro-reviewer.md .claude/agents/ && python3 eval/check.py  # FAIL"
 	@echo "  4. git checkout .claude/agents/ro-reviewer.md && make lint             # лінт"
-	@echo "  5. bash eval/judge.sh                     # суддя: JSON {score, reason}"
+	@echo "  5. python3 eval/judge.py                  # суддя: JSON {score, reason}"
 	@echo "  6. make eval-one && npx promptfoo@latest view   # той самий кейс у Promptfoo"
 	@echo "  7. make evals                             # сьют: решта 5 кейсів"
 	@echo ""

@@ -49,24 +49,19 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      # Кеш Promptfoo: повторні однакові виклики не платять двічі.
-      - uses: actions/cache@v4
-        with:
-          path: ~/.promptfoo/cache
-          key: promptfoo-${{ github.sha }}
-          restore-keys: promptfoo-
-
+      # БЕЗ кешу Promptfoo: закешована відповідь минулого прогону нічого
+      # не каже про сьогоднішню конфігурацію агента. Свіжий прогін щоразу.
       - name: Головний кейс (ro-reviewer) -> results.json
         working-directory: promptfoo
         run: |
           npm ci                # @anthropic-ai/claude-agent-sdk для сьюту
-          npx promptfoo@latest eval -o results.json
+          npx promptfoo@latest eval --no-cache -o results.json
 
       - name: Сьют (5 кейсів) -> suite/results.json
         working-directory: promptfoo/suite
         run: |
           bash setup.sh
-          npx promptfoo@latest eval -o results.json
+          npx promptfoo@latest eval --no-cache -o results.json
 
       # Quality gate: машинний вердикт із results.json, без парсингу логів.
       - name: Quality gate (failures == 0 в обох прогонах)

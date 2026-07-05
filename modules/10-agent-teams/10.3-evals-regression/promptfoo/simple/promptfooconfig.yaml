@@ -1,0 +1,32 @@
+# 10.3 · Крок нуль: Promptfoo у рідній стихії - звичайний промпт, без агента.
+#
+# ДО того, як ми загорнули в Promptfoo цілого агента (../promptfooconfig.yaml),
+# подивись на його рідну стихію: промпт × модель × асерти. Один файл, один
+# запуск, нуль власного коду.
+#
+# Запуск (коштує токени, копійки):
+#   cd promptfoo/simple && npx promptfoo@latest eval --no-cache
+#   npx promptfoo@latest view
+
+description: '10.3 · крок нуль: звичайний промпт під тестом (без агента)'
+
+prompts:
+  - 'Поясни одним реченням українською, що робить ця JS-функція: {{code}}'
+
+providers:
+  - id: anthropic:messages:claude-haiku-4-5-20251001
+    config:
+      apiKeyRequired: false   # авторизація через локальну сесію Claude Code
+
+tests:
+  - description: 'пояснення згадує знижку і не розтікається'
+    vars:
+      code: |
+        function applyDiscount(price, percent) {
+          return price - (price * percent) / 100;
+        }
+    assert:
+      - type: icontains-any
+        value: ['знижк', 'відсот']
+      - type: javascript
+        value: output.length < 400

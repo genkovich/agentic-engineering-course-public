@@ -1,6 +1,6 @@
 """check_clean.py - python-асерт Promptfoo: код у пісочниці незайманий.
 
-Той самий перший тест, що eval/check.sh (git diff по src/ порожній),
+Той самий перший тест, що eval/check.py (git status по src/ чистий),
 тільки загорнутий у функцію get_assert(output, context) ->
 {pass, score, reason}.
 """
