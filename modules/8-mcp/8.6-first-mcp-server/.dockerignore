@@ -1,0 +1,13 @@
+node_modules
+dist
+data
+.env
+*.md
+.git
+.gitignore
+.mcp.json
+.mcp.json.example
+Makefile
+compose.yaml
+# Python-дзеркало (python/) у образ не їде: деплоїмо TS-варіант
+python

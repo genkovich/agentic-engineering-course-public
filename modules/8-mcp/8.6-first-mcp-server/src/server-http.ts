@@ -22,7 +22,25 @@ store.load();
 const app = express();
 app.use(express.json());
 
+// Liveness/readiness-проба для балансувальника чи оркестратора: дешева, без
+// MCP-протоколу. Окремий шлях /healthz (конвенція k8s-стилю) відповідає миттєво
+// і не тягне MCP initialize. tasks - скільки задач у сховищі: проба заразом
+// підтверджує, що дані з data/tasks.json реально піднялись (лекція 8.12).
+app.get("/healthz", (_req: Request, res: Response) => {
+  res.json({ ok: true, tasks: store.listTasks("all").length });
+});
+
 app.post("/mcp", async (req: Request, res: Response) => {
+  // Trace-кореляція (лекція 8.12): клієнт кладе W3C traceparent у params._meta
+  // свого запиту, сервер пише його у лог - виклик клієнта зв'язується з логами
+  // сервера одним id. Читання _meta і прикріплення id до логів - робота автора
+  // сервера; у проді цю роль бере на себе інтеграція з OpenTelemetry SDK.
+  const traceparent = req.body?.params?._meta?.traceparent;
+  if (typeof traceparent === "string") {
+    console.log(
+      `[mcp] trace=${traceparent} method=${req.body?.method} tool=${req.body?.params?.name ?? "-"}`,
+    );
+  }
   const server = createServer(store);
   const transport = new StreamableHTTPServerTransport({
     sessionIdGenerator: undefined,

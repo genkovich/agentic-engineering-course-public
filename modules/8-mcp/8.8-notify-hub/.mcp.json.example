@@ -1,8 +1,0 @@
-{
-  "mcpServers": {
-    "notify-hub": {
-      "type": "http",
-      "url": "http://localhost:3334/mcp"
-    }
-  }
-}

@@ -5,6 +5,7 @@
 //   - Prompt (plan-day) - готовий шаблон, який юзер обирає явно
 
 import { McpServer, ResourceTemplate } from "@modelcontextprotocol/sdk/server/mcp.js";
+import type { ServerOptions } from "@modelcontextprotocol/sdk/server/index.js";
 import { completable } from "@modelcontextprotocol/sdk/server/completable.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { fileURLToPath, pathToFileURL } from "node:url";
@@ -31,11 +32,17 @@ function textResult(payload: unknown) {
 
 // Фабрика сервера приймає store ззовні (dependency injection).
 // Завдяки цьому тести підкладають in-memory store без файлу на диску.
-export function createServer(store: TaskStore): McpServer {
-  const server = new McpServer({
-    name: "task-store",
-    version: "1.0.0",
-  });
+// options - необов'язковий: надбудовам (лекція 8.10, server-advanced.ts) він дає
+// оголосити додаткові server-capabilities (наприклад logging) уже при конструюванні,
+// і тоді SDK сам реєструє відповідні обробники. Для 8.6 options не передають.
+export function createServer(store: TaskStore, options?: ServerOptions): McpServer {
+  const server = new McpServer(
+    {
+      name: "task-store",
+      version: "1.0.0",
+    },
+    options,
+  );
 
   // ─── TOOL 1: add_task ───
   // inputSchema це об'єкт zod-схем. SDK сам:

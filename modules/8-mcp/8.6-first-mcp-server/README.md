@@ -25,18 +25,29 @@
 ```
 8.6-first-mcp-server/
 ├── README.md            цей файл
-├── Makefile             install / run / run-http / build / test / inspect / inspect-buggy / clean
+├── Makefile             install / run / run-http / seed / build / test / inspect / inspect-buggy / clean
 ├── package.json         build=tsc, test=vitest run, start=node dist/server.js
 ├── tsconfig.json
-├── .mcp.json.example    приклад підключення у Claude Code
+├── .mcp.json.example    приклад підключення у Claude Code (stdio + HTTP)
+├── Dockerfile           2-стадійний образ HTTP-сервера для деплою (лекція 8.12)
+├── compose.yaml         локальна перевірка образу: docker compose up --build
+├── .env.example         єдина змінна PORT=3335
+├── DEPLOY.md            шпаргалка деплою task-store на VPS (лекція 8.12)
 ├── src/
 │   ├── server.ts        MCP-шар: 3 tools + resource + prompt, докладні коментарі
-│   ├── server-http.ts   той самий createServer через Streamable HTTP на :3335 (лекція 8.8)
+│   ├── server-http.ts   той самий createServer через Streamable HTTP на :3335 (+/healthz)
 │   ├── server.buggy.ts  навмисно зламана копія для лекції 8.7 (див. нижче)
+│   ├── seed.ts          кладе демо-задачі у data/tasks.json для deploy-проходу (8.12)
 │   ├── store.ts         логіка сховища, без жодної згадки про MCP
 │   ├── store.test.ts    unit-тести сховища
 │   └── server.test.ts   тести MCP-шару через InMemoryTransport (без stdio і процесів)
-└── data/tasks.json      зʼявляється після першого add_task (у .gitignore)
+├── python/              те саме на Python SDK (FastMCP) - дзеркало секції 9 лекції
+│   ├── server.py        FastMCP-шар: ті самі 3 tools + resource + prompt декораторами
+│   ├── store.py         логіка сховища, без жодної згадки про MCP (camelCase для сумісності файлу)
+│   ├── test_server.py   17 тестів: store + MCP-шар через in-memory клієнт + інтероп файлу
+│   ├── pyproject.toml   залежність mcp, dev-залежність pytest
+│   └── README.md        запуск і підключення Python-версії
+└── data/tasks.json      зʼявляється після першого add_task (у .gitignore; спільний для TS і Python)
 ```
 
 ## Pre-requisites
@@ -55,6 +66,7 @@ make test       # npm install + vitest: 17 тестів, store + сервер ч
 make inspect    # збірка + MCP Inspector у CLI-режимі: tools/list через справжній stdio
 make run        # запустити сервер вручну (чекає JSON-RPC на stdin, Ctrl+C щоб вийти)
 make run-http   # той самий сервер через Streamable HTTP на :3335 (лекція 8.8)
+make seed       # покласти кілька демо-задач у data/tasks.json (для deploy-проходу 8.12)
 make clean      # прибрати node_modules, dist, data
 ```
 
@@ -63,6 +75,20 @@ make clean      # прибрати node_modules, dist, data
 register* без змін. Підключення: `claude mcp add --transport http task-store-http http://localhost:3335/mcp`.
 
 `make run` корисний хіба що подивитись, що сервер стартує. Сам по собі stdio-сервер у терміналі мовчить: він чекає повідомлення протоколу на stdin. Спілкуються з ним клієнти (Claude Code, Inspector), не людина.
+
+## Деплой (лекція 8.12)
+
+HTTP-варіант task-store задеплоюється на свій VPS як спільний сервіс команди: одна інстанція, до якої ходять агенти всіх і CI-машини замість локальної копії в кожного. Для цього поруч лежать `Dockerfile` (2-стадійний образ HTTP-сервера), `compose.yaml` і `.env.example`.
+
+```bash
+make build
+docker compose up --build        # збирає образ і піднімає сервіс на :3335
+curl localhost:3335/healthz      # → {"ok":true,"tasks":0} - дешева проба без MCP-протоколу
+```
+
+`/healthz` навмисно не йде через MCP: це звичайний GET, який балансувальник чи оркестратор смикає щосекунди, не піднімаючи MCP-сесію. Поле `tasks` заразом підтверджує, що дані з `data/tasks.json` реально піднялись.
+
+Транспорт у task-store stateless (на кожен запит свіжий `McpServer`), а **дані - ні**: задачі живуть у `data/tasks.json`. Тому в проді цей файл монтується як volume (`-v task-data:/app/data`), інакше перезапуск контейнера втратить задачі. Повна шпаргалка від `docker build` до `claude mcp add --transport http` - у [`DEPLOY.md`](./DEPLOY.md).
 
 ## Як підключити до Claude Code
 
@@ -121,6 +147,32 @@ cp .mcp.json.example /шлях/до/свого/проекту/.mcp.json
 }
 ```
 
+## Python-версія (FastMCP)
+
+У папці `python/` лежить той самий `task-store` на офіційному Python SDK через
+`FastMCP` - дзеркало секції 9 лекції. Те, що у TS робить `zod` + `registerTool`,
+у Python робить сама сигнатура функції: type hints + `Field(description=...)`
+стають JSON Schema, анотація повернення `-> Task` дає structured output, а
+`raise ValueError(...)` - відповідь з `isError: true`.
+
+```bash
+make py-install   # uv sync: .venv + mcp + pytest
+make py-test      # 17 зелених тестів (store + MCP-шар через in-memory клієнт)
+make py-run       # запуск сервера на stdio
+```
+
+Підключення (абсолютний шлях до `python/`):
+
+```bash
+claude mcp add task-store-py -- \
+  uv run --directory /шлях/до/8.6-first-mcp-server/python server.py
+claude mcp list   # task-store-py ... ✔ Connected
+```
+
+Імена tools і схеми ідентичні TS-версії, а `data/tasks.json` спільний: задачу,
+додану Python-сервером, прочитає TS-сервер, і навпаки - клієнт не бачить різниці
+мов. Деталі - у `python/README.md`.
+
 ## Для лекції 8.7 (MCP Inspector)
 
 `src/server.buggy.ts` це копія сервера з одним підкладеним багом: `complete_task` тихо ковтає помилку про неіснуючий id і повертає `success: true`. Зовні сервер виглядає здоровим, `tools/list` чистий, схеми валідні. Тести цей файл не покривають, він зламаний навмисно.
@@ -149,8 +201,6 @@ npx @modelcontextprotocol/inspector node dist/server.buggy.js
 
 ## Source
 
-- Лекція 8.6 у Obsidian vault: `Own Brand/AI Course/Claude Course/Module 8/Lecture 6/`
-- Лекція 8.7 (Inspector, дебаг цього сервера): `Own Brand/AI Course/Claude Course/Module 8/Lecture 7/`
 - TypeScript SDK: `https://github.com/modelcontextprotocol/typescript-sdk`
 - MCP Inspector: `https://github.com/modelcontextprotocol/inspector`
 - Специфікація MCP: `https://modelcontextprotocol.io/specification`

@@ -1,3 +1,9 @@
 node_modules/
 dist/
 data/
+.env
+
+# Python-під-демо (python/): віртуальне оточення і кеші
+python/.venv/
+python/__pycache__/
+python/.pytest_cache/
