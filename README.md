@@ -17,7 +17,7 @@ Public repository for the **Agentic Engineering з Claude** course. Contains han
 | [Module 7 - Execution & Scale](modules/7-execution-scale/) | Патерни виконання: Ralph, /goal, dynamic workflows, фон/розклад, feedback loops, TDD | demos (7, runnable) |
 | [Module 8 - MCP](modules/8-mcp/) | Власний MCP-сервер і клієнт, транспорти, advanced-можливості і безпека MCP | demos (3, runnable) |
 | [Module 9 — Collaboration](modules/9-collaboration/) | Git workflow, worktrees, merge/cleanup, PR, code review локально й на платформі, реліз і docs | demos (7, runnable) |
-| [Module 10 — Agent Teams](modules/10-agent-teams/) | Evals і регресії, agentic debugging | demos (2, runnable) |
+| [Module 10 — Agent Teams](modules/10-agent-teams/) | Subagents, custom subagents, evals і регресії, agentic debugging, agent teams | demos (5, runnable) |
 
 Лекції та теорія всіх модулів — у LMS курсу; тут — код, що клонується і запускається.
 
@@ -156,7 +156,10 @@ make run                    # MCP-сервер на stdio; make run-http — Str
     │   ├── 9.6-github-platform/     рев'ю на платформі: GitHub App, екосистема рев'юерів (9.6)
     │   └── 9.7-release-docs/        локальні skills → CI release pipeline, docs (9.7)
     └── 10-agent-teams/              від агента до команд агентів (Module 10)
+        ├── 10.1-subagents/          субагенти: делегування, ізоляція контексту (10.1)
+        ├── 10.2-custom-subagents/   авторинг спеціалізованих субагентів (10.2)
         ├── 10.3-evals-regression/   golden-task evals для .claude/ (10.3)
+        ├── 10.4-agent-teams/        команди агентів-пірів (10.4)
         └── 10.5-agentic-debugging/  агентний дебаг, bisect (10.5)
 ```
 

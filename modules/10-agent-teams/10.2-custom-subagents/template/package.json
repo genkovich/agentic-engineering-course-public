@@ -1,0 +1,12 @@
+{
+  "name": "custom-subagents-demo-monorepo",
+  "private": true,
+  "version": "0.0.0",
+  "description": "Throwaway monorepo for the 10.2 custom-subagents authoring screencasts. Two surfaces (queue with a subtle bug, auth) for model-comparison and least-privilege demos. Pure node, no dependencies.",
+  "scripts": {
+    "test": "node --test"
+  },
+  "workspaces": [
+    "packages/*"
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "name": "subagents-demo-monorepo",
+  "private": true,
+  "version": "0.0.0",
+  "description": "Throwaway monorepo with four independent surfaces (billing, queue, auth, reports) for the 10.1 subagent screencasts. Pure node, no dependencies.",
+  "scripts": {
+    "test": "node --test"
+  },
+  "workspaces": [
+    "packages/*"
+  ]
+}
