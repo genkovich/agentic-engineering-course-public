@@ -1,2 +1,0 @@
-# SDK ставить beta-header managed-agents-2026-04-01 сам.
-anthropic>=0.40

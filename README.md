@@ -17,8 +17,7 @@ Public repository for the **Agentic Engineering з Claude** course. Contains han
 | [Module 7 - Execution & Scale](modules/7-execution-scale/) | Патерни виконання: Ralph, /goal, dynamic workflows, фон/розклад, feedback loops, TDD | demos (7, runnable) |
 | [Module 8 - MCP](modules/8-mcp/) | Власний MCP-сервер і клієнт, транспорти, advanced-можливості і безпека MCP | demos (3, runnable) |
 | [Module 9 — Collaboration](modules/9-collaboration/) | Git workflow, worktrees, merge/cleanup, PR, code review локально й на платформі, реліз і docs | demos (7, runnable) |
-| [Module 10 — Agent Teams](modules/10-agent-teams/) | Evals і регресії, agentic debugging, self-improving loop, managed agents | demos (4, runnable) |
-| [Module 11 — Production](modules/11-production/) | Аудит «MCP чи CLI»: фікстура `.mcp.json` | fixture |
+| [Module 10 — Agent Teams](modules/10-agent-teams/) | Evals і регресії, agentic debugging | demos (2, runnable) |
 
 Лекції та теорія всіх модулів — у LMS курсу; тут — код, що клонується і запускається.
 
@@ -156,18 +155,14 @@ make run                    # MCP-сервер на stdio; make run-http — Str
     │   ├── 9.5-code-review/         локальне рев'ю в сесії: /code-review, /security-review (9.5)
     │   ├── 9.6-github-platform/     рев'ю на платформі: GitHub App, екосистема рев'юерів (9.6)
     │   └── 9.7-release-docs/        локальні skills → CI release pipeline, docs (9.7)
-    ├── 10-agent-teams/              від агента до команд агентів (Module 10)
-    │   ├── 10.3-evals-regression/   golden-task evals для .claude/ (10.3)
-    │   ├── 10.5-agentic-debugging/  агентний дебаг, bisect (10.5)
-    │   ├── 10.6-self-improving-loop/  self-improvement loop, skill self-editor (10.6)
-    │   └── 10.7-managed-agents/     managed agents: агентний harness як API (10.7)
-    └── 11-production/               вихід у прод (Module 11)
-        └── 11.3-audit-config/       фікстура .mcp.json для аудиту «MCP чи CLI» (11.3)
+    └── 10-agent-teams/              від агента до команд агентів (Module 10)
+        ├── 10.3-evals-regression/   golden-task evals для .claude/ (10.3)
+        └── 10.5-agentic-debugging/  агентний дебаг, bisect (10.5)
 ```
 
 ## Курс
 
-Курс «Agentic Engineering з Claude» — 11 модулів. У public репо зараз — Modules 1 (LLM mechanics demos), 2 (ecosystem demos), 3 (starters), 4 (prompting demos), 5 (Claude Code extended), 6 (SDLC toolkit), 7 (execution & scale demos), 8 (MCP demos), 9 (collaboration demos), 10 (agent teams demos) і 11 (production fixture).
+Курс «Agentic Engineering з Claude» — 11 модулів. У public репо зараз — Modules 1 (LLM mechanics demos), 2 (ecosystem demos), 3 (starters), 4 (prompting demos), 5 (Claude Code extended), 6 (SDLC toolkit), 7 (execution & scale demos), 8 (MCP demos), 9 (collaboration demos) і 10 (agent teams demos).
 
 Деталі курсу: писати [@genkovich у Telegram](https://t.me/genkovich).
 

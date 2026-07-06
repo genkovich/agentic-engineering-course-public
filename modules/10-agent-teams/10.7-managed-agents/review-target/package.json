@@ -1,9 +1,0 @@
-{
-  "name": "billing-core",
-  "version": "0.3.0",
-  "description": "Invoice + discount math for the course-project billing service (review target for lecture 10.7).",
-  "private": true,
-  "scripts": {
-    "test": "node --test"
-  }
-}
