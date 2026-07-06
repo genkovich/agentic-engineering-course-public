@@ -1,0 +1,23 @@
+# Outer loop: the closer. On a schedule (nightly), wake the skill-improver
+# subagent to read held-out failures + human relabels, rewrite the triage skill,
+# and open a DRAFT PR. Never merges - a human is the gate. Teaching artifact: the
+# `claude -p` step is stubbed; the point is that the closer is a cron, not a
+# hot-path call, and its only output is a draft PR.
+name: outer-improve
+on:
+  schedule:
+    - cron: "0 3 * * *"   # nightly at 03:00 UTC
+  workflow_dispatch: {}
+permissions:
+  contents: write
+  pull-requests: write     # repo-scoped: may open a draft PR, may NOT deploy
+jobs:
+  improve:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run the skill-improver subagent (one cycle)
+        run: |
+          # In prod: claude -p with the skill-improver agent, then `gh pr create --draft`.
+          echo "would run: claude -p --agent skill-improver 'run one improvement cycle'"
+          echo "would run: gh pr create --draft --title 'triage: fix question-vs-bug' ..."

@@ -1,0 +1,20 @@
+{"id": "how-do-i-rotate-keys", "title": "How do I rotate API keys?", "body": "How do I rotate our API keys safely? I keep getting error 401 when I try the old key after rotation.", "gold": "question"}
+{"id": "how-to-enable-debug", "title": "How to enable debug logs?", "body": "How to enable verbose debug logging? Right now the app fails silently and I cannot see anything.", "gold": "question"}
+{"id": "how-do-i-configure-proxy", "title": "How do I configure an HTTP proxy?", "body": "How do I point the client at a corporate HTTP proxy? Requests crash behind the proxy otherwise.", "gold": "question"}
+{"id": "how-to-run-migrations", "title": "How to run DB migrations?", "body": "How to run the database migrations from scratch? The migration script throws an exception on a clean DB.", "gold": "question"}
+{"id": "how-do-i-increase-timeout", "title": "How do I increase the request timeout?", "body": "How do I raise the request timeout for long jobs? They error out at 30 seconds right now.", "gold": "question"}
+{"id": "is-it-possible-to-disable-cache", "title": "Is it possible to disable the cache?", "body": "Is it possible to turn the response cache off per request? I see stale errors sometimes and want to test without it.", "gold": "question"}
+{"id": "crash-on-empty-input", "title": "Crash on empty input", "body": "The app crashes with a null pointer exception when the name field is left empty on submit.", "gold": "bug"}
+{"id": "500-on-checkout", "title": "500 on checkout", "body": "Checkout returns a 500 and the server logs show an unhandled exception in the payment path.", "gold": "bug"}
+{"id": "login-fails-safari", "title": "Login fails in Safari", "body": "Authentication fails only in Safari; the same credentials work in Chrome and Firefox.", "gold": "bug"}
+{"id": "data-loss-on-refresh", "title": "Data loss on refresh", "body": "A validation error on submit wipes every field the user already entered, which is a real data loss.", "gold": "bug"}
+{"id": "memory-leak-worker", "title": "Memory leak in worker", "body": "The background worker crashes after a few hours; memory grows without bound until it dies.", "gold": "bug"}
+{"id": "invoice-rounding", "title": "Wrong invoice total", "body": "The invoice total fails to round the discounted amount correctly and is off by one cent.", "gold": "bug"}
+{"id": "race-condition-queue", "title": "Race condition in queue", "body": "Messages get processed twice under load; the consumer throws an exception and the item is requeued.", "gold": "bug"}
+{"id": "add-dark-mode", "title": "Add dark mode", "body": "Please add support for a dark theme that follows the system appearance setting.", "gold": "feature"}
+{"id": "add-csv-export", "title": "Add CSV export", "body": "Add ability to export any report table as a CSV file from the toolbar.", "gold": "feature"}
+{"id": "feature-request-sso", "title": "Feature request: SSO", "body": "Feature request for SAML single sign-on so teams can log in with their identity provider.", "gold": "feature"}
+{"id": "add-webhook-retries", "title": "Add webhook retries", "body": "Add support for retrying webhooks that time out, with a small backoff between attempts.", "gold": "feature"}
+{"id": "update-readme-install", "title": "Update README install steps", "body": "Update the readme; the install section is outdated and still references the old package name.", "gold": "docs"}
+{"id": "typo-in-api-docs", "title": "Typo in API docs", "body": "There is a typo in docs for the auth endpoint: the header name is spelled wrong.", "gold": "docs"}
+{"id": "document-env-vars", "title": "Document env vars", "body": "The documentation is missing a table of environment variables and their defaults.", "gold": "docs"}

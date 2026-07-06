@@ -1,0 +1,18 @@
+# Inner loop: the task running in prod. On every opened issue, run the triage
+# skill and apply its label. Teaching artifact - the actual `claude -p` step is
+# stubbed here; the point is WHEN the inner loop fires (per-issue, on event).
+name: inner-triage
+on:
+  issues:
+    types: [opened]
+jobs:
+  triage:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Label the new issue with the triage skill
+        run: |
+          # In prod this is a headless `claude -p` call that invokes /triage and
+          # applies the label via `gh issue edit`. Kept as an echo in the demo.
+          echo "would run: claude -p '/triage on issue #${{ github.event.issue.number }}'"
+          echo "would run: gh issue edit ${{ github.event.issue.number }} --add-label <label>"
