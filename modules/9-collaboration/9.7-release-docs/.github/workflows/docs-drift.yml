@@ -1,0 +1,67 @@
+name: docs-drift
+on:
+  pull_request:
+  push:
+    branches: ['main']
+
+# Docs live outside the test/lint gate, so they drift silently. This brings
+# them into CI: every PR (and every push to main) runs the deterministic
+# detector scripts/check-docs-drift.py — it parses the public NoteBook methods
+# and compares them to docs/api.md. The detector is free (no LLM). Only when it
+# finds a real gap does the job spend a few cents on `claude -p` to draft a
+# review comment naming the undocumented method and the doc row to add.
+jobs:
+  drift:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Detect drift (deterministic, no LLM)
+        id: detect
+        run: |
+          set +e
+          report="$(python3 scripts/check-docs-drift.py)"
+          code=$?
+          set -e
+          echo "$report"
+          {
+            echo "report<<EOF"
+            echo "$report"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+          echo "drifted=$([[ $code -eq 0 ]] && echo false || echo true)" >> "$GITHUB_OUTPUT"
+
+      - name: In sync — nothing to do
+        if: steps.detect.outputs.drifted == 'false'
+        run: echo "::notice::docs/api.md is in sync with the code"
+
+      - name: Install Claude Code CLI (stable)
+        if: steps.detect.outputs.drifted == 'true' && github.event_name == 'pull_request'
+        run: |
+          curl -fsSL https://claude.ai/install.sh | bash -s stable
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+
+      - name: Draft a PR comment about the drift
+        if: steps.detect.outputs.drifted == 'true' && github.event_name == 'pull_request'
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          DRIFT_REPORT: ${{ steps.detect.outputs.report }}
+        run: |
+          # The deterministic detector already found the gap. The agent only
+          # writes the human-facing comment (which method, which doc row).
+          comment="$(claude -p "$(cat .github/prompts/docs-drift.md)" \
+            --allowed-tools "Read(src/**)" "Read(docs/**)" \
+            --model claude-haiku-4-5 \
+            --max-turns 4)"
+          if [[ "$comment" == "NO_DRIFT" || -z "$comment" ]]; then
+            echo "::notice::agent reported no drift"
+            exit 0
+          fi
+          printf '%s\n' "$comment" > /tmp/drift-comment.md
+          gh pr comment "${{ github.event.pull_request.number }}" \
+            --body-file /tmp/drift-comment.md

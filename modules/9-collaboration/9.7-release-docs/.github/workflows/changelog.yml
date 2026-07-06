@@ -1,0 +1,91 @@
+name: changelog
+on:
+  push:
+    tags: ['v*']
+
+# Pushing a semver tag runs `claude -p` headless: it curates the [Unreleased]
+# section of docs/CHANGELOG.md from git history, promotes it into the tagged
+# version, and opens a Release-PR with the changelog diff. A human reviews and
+# applies — the agent never pushes to main.
+jobs:
+  changelog:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+
+      - name: Install Claude Code CLI (stable)
+        run: |
+          curl -fsSL https://claude.ai/install.sh | bash -s stable
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+
+      - name: Configure git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Create changelog branch
+        env:
+          TAG: ${{ github.ref_name }}
+        run: git checkout -B "changelog/$TAG"
+
+      - name: Curate the changelog
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          # The agent curates [Unreleased] in the working tree and returns the
+          # same bullets as schema'd JSON. It must not commit or push — a human does.
+          claude -p "$(cat .github/prompts/changelog.md)" \
+            --allowed-tools "Bash(git log *)" "Read(docs/**)" "Edit(docs/**)" \
+            --model claude-haiku-4-5 \
+            --max-turns 6 \
+            --output-format json \
+            --json-schema "$(cat .github/prompts/changelog.schema.json)" \
+            > /tmp/claude-resp.json
+
+          python3 .github/scripts/extract-structured.py \
+            /tmp/claude-resp.json /tmp/changelog.json
+
+      - name: Commit changelog edit
+        id: commit
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          git diff -- docs/CHANGELOG.md > /tmp/changelog.patch
+          if [[ ! -s /tmp/changelog.patch ]]; then
+            # Nothing to curate (e.g. the baseline tag, where HEAD == the tag).
+            # A clean no-op, not a failure — the live release tag has commits.
+            echo "::notice::no changelog changes for $TAG — nothing to release"
+            echo "released=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          git add docs/CHANGELOG.md
+          git commit -m "chore: changelog for $TAG"
+          git push -u origin "changelog/$TAG"
+          echo "released=true" >> "$GITHUB_OUTPUT"
+
+      - name: Open the Release-PR
+        if: steps.commit.outputs.released == 'true'
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          {
+            echo "Suggested changelog for \`$TAG\` (agent-generated, human applies):"
+            echo
+            echo '```diff'
+            cat /tmp/changelog.patch
+            echo '```'
+          } > /tmp/pr-body.md
+          gh pr create \
+            --title "chore: changelog for $TAG" \
+            --body-file /tmp/pr-body.md \
+            --base main \
+            --head "changelog/$TAG"

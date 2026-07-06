@@ -1,0 +1,8 @@
+{
+  "type": "object",
+  "properties": {
+    "version": {"type": "string"},
+    "notes": {"type": "string"}
+  },
+  "required": ["version", "notes"]
+}

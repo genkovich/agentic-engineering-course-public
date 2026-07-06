@@ -1,0 +1,21 @@
+# GitHub-native release notes skeleton.
+# When you click "Generate release notes" on a GitHub Release (or call the
+# API), GitHub builds the notes from MERGED PULL REQUESTS, mapping each PR's
+# label to one of the categories below. `*` is the catch-all.
+#
+# This is the deterministic skeleton from Slide 4 of the lecture: the platform
+# groups merged PRs into a dry list. The agentic step (release-notes.yml) is
+# what humanizes that list into a curated changelog + draft release.
+changelog:
+  exclude:
+    labels:
+      - chore
+      - test
+      - ci
+  categories:
+    - title: Нове
+      labels: [feature, enhancement]
+    - title: Виправлення
+      labels: [bug, fix]
+    - title: Інше
+      labels: ["*"] # catch-all for everything else

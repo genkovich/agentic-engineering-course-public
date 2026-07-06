@@ -1,0 +1,8 @@
+# Minimal project metadata. The single source of truth for the version is the
+# `version` field below — the `bump-version` skill edits exactly this line, and
+# the git tag `vX.Y.Z` is pushed to match it. Keep them in lock-step.
+[project]
+name = "notes"
+version = "0.1.0"
+description = "A tiny in-memory notebook — the demo subject for lecture 9.7."
+requires-python = ">=3.10"

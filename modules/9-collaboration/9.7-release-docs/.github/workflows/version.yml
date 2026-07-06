@@ -1,0 +1,49 @@
+name: version
+on:
+  pull_request:
+
+# Shows the version a change would release — before any tag exists. The
+# deterministic scripts/next-version.sh computes the number from the commit
+# types (free, no LLM); `claude -p` only explains it in a PR comment (which part
+# moved and why). Pure preview: it tags nothing and changes nothing.
+jobs:
+  version:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+
+      - name: Compute next version (deterministic, no LLM)
+        id: semver
+        run: |
+          last_tag="$(git tag --list 'v*' --sort=-v:refname | head -n1)"
+          next="$(./scripts/next-version.sh)"
+          echo "current=${last_tag#v}" >> "$GITHUB_OUTPUT"
+          echo "next=$next" >> "$GITHUB_OUTPUT"
+          echo "::notice::proposed version ${last_tag#v} -> $next"
+
+      - name: Install Claude Code CLI (stable)
+        run: |
+          curl -fsSL https://claude.ai/install.sh | bash -s stable
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+
+      - name: Explain the bump in a PR comment
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          NEXT_VERSION: ${{ steps.semver.outputs.next }}
+          CURRENT_VERSION: ${{ steps.semver.outputs.current }}
+        run: |
+          comment="$(claude -p "$(cat .github/prompts/version.md)" \
+            --allowed-tools "Bash(git log *)" \
+            --model claude-haiku-4-5 \
+            --max-turns 4)"
+          printf '%s\n' "$comment" > /tmp/version-comment.md
+          gh pr comment "${{ github.event.pull_request.number }}" \
+            --body-file /tmp/version-comment.md

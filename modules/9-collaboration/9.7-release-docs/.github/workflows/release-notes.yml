@@ -1,0 +1,56 @@
+name: release-notes
+on:
+  push:
+    tags: ['v*']
+
+# Pushing a semver tag also runs `claude -p` to write partner-facing release
+# notes from the same commits — a benefit-first narrative, not a categorized
+# list — and lands them as a DRAFT GitHub Release. A human reviews and
+# publishes; the agent never publishes the release itself.
+jobs:
+  release-notes:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+
+      - name: Install Claude Code CLI (stable)
+        run: |
+          curl -fsSL https://claude.ai/install.sh | bash -s stable
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+
+      - name: Draft release notes
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          claude -p "$(cat .github/prompts/release-notes.md)" \
+            --allowed-tools "Bash(git log *)" "Read(docs/**)" \
+            --model claude-haiku-4-5 \
+            --max-turns 6 \
+            --output-format json \
+            --json-schema "$(cat .github/prompts/release-notes.schema.json)" \
+            > /tmp/claude-resp.json
+
+          python3 .github/scripts/extract-structured.py \
+            /tmp/claude-resp.json /tmp/release-notes.json
+
+      - name: Create the draft GitHub Release
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          jq -r '.notes' /tmp/release-notes.json > /tmp/release-body.md
+          if [[ ! -s /tmp/release-body.md ]]; then
+            echo "::notice::no release notes for $TAG — nothing to draft"
+            exit 0
+          fi
+          gh release create "$TAG" \
+            --draft \
+            --title "$TAG" \
+            --notes-file /tmp/release-body.md
