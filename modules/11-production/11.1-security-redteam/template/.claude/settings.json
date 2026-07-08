@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "defaultMode": "acceptEdits",
+    "allow": [
+      "Read",
+      "Edit",
+      "Bash",
+      "WebFetch"
+    ],
+    "deny": []
+  }
+}
