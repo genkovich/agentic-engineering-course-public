@@ -1,5 +1,0 @@
-# NOTE: .env is intentionally NOT listed here — that is one of the red-team
-# findings the scan reports. In a hardened repo you would add:
-# .env
-.DS_Store
-__pycache__/

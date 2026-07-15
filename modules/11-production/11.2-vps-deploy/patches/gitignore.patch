@@ -1,0 +1,11 @@
+diff --git a/.gitignore b/.gitignore
+--- a/.gitignore
++++ b/.gitignore
+@@ -24,6 +24,7 @@ yarn-error.log*
+ # env files (can opt-in for committing if needed)
+ .env*
+ !.env.example
++!.env.vps.example
+ 
+ # vercel
+ .vercel

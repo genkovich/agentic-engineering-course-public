@@ -1,0 +1,4 @@
+interface:
+  display_name: "Prepare VPS Deploy"
+  short_description: "Build and verify the VPS deployment kit"
+  default_prompt: "Use $prepare-vps-deploy to add and verify the VPS deployment files for this project."

@@ -1,0 +1,12 @@
+diff --git a/lib/db.ts b/lib/db.ts
+--- a/lib/db.ts
++++ b/lib/db.ts
+@@ -27,7 +27,8 @@ export type MemeWithTemplate = Meme & {
+   template_image_path: string;
+ };
+ 
+-const DB_PATH = path.join(process.cwd(), "data.db");
++const DB_PATH =
++  process.env.DB_PATH ?? path.join(process.cwd(), "data.db");
+ 
+ let dbInstance: Database.Database | null = null;

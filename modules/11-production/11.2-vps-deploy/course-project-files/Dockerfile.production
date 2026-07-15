@@ -1,0 +1,29 @@
+FROM node:24.17.0-bookworm-slim AS build
+
+WORKDIR /app
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends python3 make g++ \
+  && rm -rf /var/lib/apt/lists/*
+
+COPY package.json package-lock.json ./
+RUN npm ci
+COPY . .
+RUN npm run build
+
+FROM node:24.17.0-bookworm-slim AS runtime
+
+ENV NODE_ENV=production \
+    PORT=3000 \
+    HOSTNAME=0.0.0.0
+
+WORKDIR /app
+RUN groupadd --system --gid 10001 app \
+  && useradd --system --uid 10001 --gid app app \
+  && mkdir -p /app/data \
+  && chown -R app:app /app
+
+COPY --from=build --chown=app:app /app ./
+
+USER app
+EXPOSE 3000
+CMD ["npm", "start"]
