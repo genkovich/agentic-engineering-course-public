@@ -1,0 +1,17 @@
+diff --git a/src/App.tsx b/src/App.tsx
+index 9e591b9..b377cb0 100644
+--- a/src/App.tsx
++++ b/src/App.tsx
+@@ -136,7 +136,11 @@ function ServiceCard({
+           size="sm"
+           disabled={service.status === "updating"}
+           onClick={() => onRestart(service.id)}
+-          className="shrink-0"
++          className={cn(
++            "shrink-0",
++            service.status === "down" &&
++              "border-[#e11d48] text-[#e11d48] hover:bg-[#e11d48]/10 hover:text-[#e11d48]"
++          )}
+           aria-label={`Перезапустити ${service.name}`}
+         >
+           <RotateCw

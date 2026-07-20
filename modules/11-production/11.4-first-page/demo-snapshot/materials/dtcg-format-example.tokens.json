@@ -1,0 +1,35 @@
+{
+  "$description": "Ілюстрація формату DTCG 2025.10 (designtokens.org/tr/2025.10/format) до Slide 5. Це НЕ рантайм-токени проєкту (той стек живе в src/index.css як CSS-змінні) — це індустріальний формат ОБМІНУ токенами між інструментами (Figma, Style Dictionary тощо). Показує два шари: примітивний (палітра) і семантичний (роль посилається на палітру через {reference}).",
+  "color": {
+    "$type": "color",
+    "zinc": {
+      "900": { "$value": "#18181b" },
+      "500": { "$value": "#71717a" }
+    },
+    "emerald": {
+      "500": { "$value": "#10b981" }
+    },
+    "red": {
+      "500": { "$value": "#ef4444" }
+    }
+  },
+  "semantic": {
+    "$type": "color",
+    "background": {
+      "$value": "{color.zinc.900}",
+      "$description": "тло сторінки"
+    },
+    "primary": {
+      "$value": "{color.emerald.500}",
+      "$description": "головний колір дій та здорового стану"
+    },
+    "destructive": {
+      "$value": "{color.red.500}",
+      "$description": "колір небезпечних дій та впалого стану"
+    },
+    "muted-foreground": {
+      "$value": "{color.zinc.500}",
+      "$description": "другорядний текст"
+    }
+  }
+}

@@ -1,0 +1,1 @@
+src/App.tsx(19,53): error TS2322: Type '"rebooting"' is not assignable to type 'ServiceStatus'.

@@ -1,0 +1,31 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry.json",
+  "name": "home-srv",
+  "homepage": "https://github.com/genkovich/11.4-first-page",
+  "items": [
+    {
+      "name": "button",
+      "type": "registry:ui",
+      "title": "Button",
+      "description": "Кнопка home-srv на семантичних токенах теми (variant/size, стани).",
+      "files": [
+        {
+          "path": "src/components/ui/button.tsx",
+          "type": "registry:ui"
+        }
+      ]
+    },
+    {
+      "name": "card",
+      "type": "registry:ui",
+      "title": "Card",
+      "description": "Картка-поверхня home-srv: тло --card, кільце замість важкої тіні.",
+      "files": [
+        {
+          "path": "src/components/ui/card.tsx",
+          "type": "registry:ui"
+        }
+      ]
+    }
+  ]
+}

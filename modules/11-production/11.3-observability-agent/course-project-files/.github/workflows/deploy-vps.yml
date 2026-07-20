@@ -1,0 +1,67 @@
+name: deploy-vps
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: production-vps
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: [self-hosted, linux, x64, course-vps]
+    environment:
+      name: production
+      url: ${{ vars.APP_URL }}
+    timeout-minutes: 20
+    steps:
+      - name: Check out the exact commit
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+
+      - name: Verify the VPS tools
+        run: |
+          docker version
+          docker compose version
+          python3 --version
+          jq --version
+
+      - name: Build and deploy app plus observability
+        env:
+          RELEASE_SHA: ${{ github.sha }}
+        run: |
+          docker compose \
+            --env-file "$HOME/.config/course-project/observability.env" \
+            -f compose.vps.yml \
+            -f compose.observability.yml \
+            up -d --build --remove-orphans
+
+      - name: Wait for the public health endpoint
+        run: |
+          for attempt in {1..30}; do
+            if curl --fail --silent --show-error \
+              http://127.0.0.1:80/api/health; then
+              exit 0
+            fi
+            echo "Healthcheck attempt $attempt/30 failed; waiting 2 seconds"
+            sleep 2
+          done
+          docker compose \
+            --env-file "$HOME/.config/course-project/observability.env" \
+            -f compose.vps.yml \
+            -f compose.observability.yml \
+            logs --tail=100 app
+          exit 1
+
+      - name: Show the final container state
+        if: always()
+        run: |
+          docker compose \
+            --env-file "$HOME/.config/course-project/observability.env" \
+            -f compose.vps.yml \
+            -f compose.observability.yml \
+            ps
