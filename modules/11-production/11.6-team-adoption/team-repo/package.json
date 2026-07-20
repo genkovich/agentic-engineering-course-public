@@ -1,0 +1,9 @@
+{
+  "name": "payments-service",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Знеособлений демо-сервіс компанії A для лекції 11.5",
+  "scripts": {
+    "test": "node --test"
+  }
+}

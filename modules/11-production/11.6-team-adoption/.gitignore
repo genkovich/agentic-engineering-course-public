@@ -1,0 +1,4 @@
+# згенеровані/локальні артефакти демо
+team-repo/node_modules/
+**/.DS_Store
+otel/.grafana-data/

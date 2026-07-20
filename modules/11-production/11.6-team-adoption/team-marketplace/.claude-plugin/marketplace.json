@@ -1,0 +1,15 @@
+{
+  "name": "team-standards",
+  "description": "Внутрішній marketplace команди для лекції 11.5: стандарти рев'ю і PR",
+  "owner": {
+    "name": "platform-team"
+  },
+  "plugins": [
+    {
+      "name": "team-standards",
+      "source": "./plugins/team-standards",
+      "description": "Командні стандарти рев'ю і PR для лекції 11.5: skill pr-checklist",
+      "version": "1.0.0"
+    }
+  ]
+}

@@ -1,0 +1,8 @@
+{
+  "name": "team-standards",
+  "version": "1.0.0",
+  "description": "Командні стандарти рев'ю і PR: skill pr-checklist, який роздається на всіх через marketplace",
+  "author": {
+    "name": "platform-team"
+  }
+}

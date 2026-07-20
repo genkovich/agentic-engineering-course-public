@@ -1,0 +1,26 @@
+{
+  "permissions": {
+    "allow": [
+      "Read",
+      "Edit",
+      "Bash(node --test:*)",
+      "Bash(git status:*)",
+      "Bash(git diff:*)"
+    ],
+    "deny": [
+      "Read(./.env)",
+      "Read(./secrets/**)",
+      "Bash(git push:*)",
+      "Bash(rm -rf:*)"
+    ]
+  },
+  "extraKnownMarketplaces": {
+    "team-standards": {
+      "source": "github",
+      "repo": "your-org/team-marketplace"
+    }
+  },
+  "enabledPlugins": {
+    "team-standards@team-standards": true
+  }
+}

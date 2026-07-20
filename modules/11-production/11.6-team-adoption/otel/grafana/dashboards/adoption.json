@@ -1,0 +1,56 @@
+{
+  "annotations": { "list": [] },
+  "editable": true,
+  "title": "Claude Code - Adoption & Cost (11.5)",
+  "uid": "cc-adoption-115",
+  "schemaVersion": 39,
+  "version": 1,
+  "time": { "from": "now-1h", "to": "now" },
+  "refresh": "10s",
+  "panels": [
+    {
+      "type": "stat",
+      "title": "Сесії (session.count) по командах",
+      "gridPos": { "h": 6, "w": 12, "x": 0, "y": 0 },
+      "targets": [
+        {
+          "expr": "sum by (team_id) (claude_code_session_count_total)",
+          "legendFormat": "{{team_id}}"
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Рядки коду (lines_of_code.count)",
+      "gridPos": { "h": 6, "w": 12, "x": 12, "y": 0 },
+      "targets": [
+        {
+          "expr": "sum by (team_id) (claude_code_lines_of_code_count_total)",
+          "legendFormat": "{{team_id}}"
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Вартість (cost.usage) по моделях",
+      "gridPos": { "h": 6, "w": 12, "x": 0, "y": 6 },
+      "targets": [
+        {
+          "expr": "sum by (model) (claude_code_cost_usage_USD_total)",
+          "legendFormat": "{{model}}"
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Рішення по правках (code_edit_tool.decision)",
+      "gridPos": { "h": 6, "w": 12, "x": 12, "y": 6 },
+      "targets": [
+        {
+          "expr": "sum by (decision) (claude_code_code_edit_tool_decision_total)",
+          "legendFormat": "{{decision}}"
+        }
+      ]
+    }
+  ]
+}
