@@ -8,8 +8,13 @@
 
 1. Клонуй repo або скопіюй цю директорію у свій проект:
    ```bash
+   # самостійний потік
+   git clone https://github.com/genkovich/agentic-engineering-course-public.git
+   cd agentic-engineering-course-public/modules/3-claude-code-setup/3.9-starters/python-fastapi
+
+   # груповий потік (потрібен доступ)
    git clone https://github.com/genkovich/agentic-engineering-course.git
-   cd agentic-engineering-course/starters/python-fastapi
+   cd agentic-engineering-course/modules/3-claude-code-setup/3.9-starters/python-fastapi
    ```
 2. Скопіюй `.env.example` у `.env` і заповни (як мінімум `ANTHROPIC_API_KEY`):
    ```bash
