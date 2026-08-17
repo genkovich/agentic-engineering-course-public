@@ -9,12 +9,12 @@
 
 ## Стек
 
-- Python 3.12
+- Python 3.12–3.14
 - FastAPI 0.110+ (async)
 - SQLAlchemy 2.x з **asyncpg** (async driver)
 - Alembic 1.13+ — 5 окремих revisions, по одній на BC, з префіксом таблиць
 - Postgres 18 у Docker
-- `passlib[bcrypt]` — паролі
+- `bcrypt` — паролі
 - `import-linter` v2 — архітектурні тести (independence + per-BC layers)
 - In-memory event bus у `app/shared/events.py` — cross-BC комунікація без брокера
 
@@ -28,7 +28,7 @@ stage-3-hexagonal/
 ├── README.md
 ├── .env.example
 ├── alembic.ini
-├── importlinter.ini             # contracts: independence + 5 layers contracts
+├── .importlinter                # contracts: independence + 5 layers contracts
 ├── CLAUDE.md                    # router-CLAUDE.md з BC structure rules
 ├── ARCHITECTURE.md              # mermaid BC Map (5 BC, 4 events)
 ├── .github/workflows/ci.yml     # py compile + arch-test у CI
@@ -79,14 +79,22 @@ stage-3-hexagonal/
 ## Швидкий старт
 
 ```bash
-pip install -e ".[arch]"
+python3 -m venv .venv
+source .venv/bin/activate     # Windows (Git Bash): source .venv/Scripts/activate
+make doctor                   # перевірка: docker, python, активний venv, вільні порти
+make install                  # залежності з requirements.lock.txt
 make db-up
 make db-migrate
-make run                      # окремий термінал
+make run                      # в ОКРЕМОМУ терміналі — процес не завершується
 make smoke                    # 6 endpoints → all 2xx
-make arch-test                # ✓ All contracts kept (Contracts: 6, Broken: 0)
+make arch-test                # Contracts: 6 kept, 0 broken
+make clean                    # зупинити базу і видалити том
 ```
 
+Порт 5432 або 8080 зайнятий? Візьми інші — `make db-up PGPORT=5433`, `make run HTTP_PORT=8081`
+(і тоді `make smoke BASE_URL=http://localhost:8081`). Постійний варіант — `cp .env.example .env`.
+
+Щось не сходиться — [`TROUBLESHOOTING.md`](../../TROUBLESHOOTING.md).
 ## Ендпоінти
 
 - `POST /auth/register`
@@ -106,7 +114,7 @@ billing.SubscriptionCreated   → notifications  (welcome letter)
 
 Жоден BC не імпортує іншого напряму — тільки через `app/shared/events.EventBus`.
 Виняток — `app/notifications/infra/events/subscriber.py`, який мусить знати
-domain types усіх відправників. Виняток задокументовано у `importlinter.ini`.
+domain types усіх відправників. Виняток задокументовано у `.importlinter`.
 
 ## Arch-test — як це працює
 
@@ -115,7 +123,7 @@ make arch-test
 ```
 
 `import-linter` парсить імпорти і перевіряє граф залежностей проти
-`importlinter.ini`:
+`.importlinter`:
 
 - `independence` контракт — `app.auth`, `app.catalog`, `app.commerce`,
   `app.billing`, `app.notifications` не імпортують одне одного (за винятком

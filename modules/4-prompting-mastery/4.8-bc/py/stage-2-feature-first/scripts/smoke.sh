@@ -4,6 +4,18 @@
 set -euo pipefail
 
 BASE_URL="${1:-http://localhost:8080}"
+
+# Пре-чек: без нього відсутній API виглядає як помилка бази — падає перший
+# же curl, і студент іде дебажити Postgres замість того, щоб просто
+# запустити застосунок.
+if ! curl -sS -o /dev/null --max-time 3 "${BASE_URL}/products" 2>/dev/null; then
+    echo "✗ API не відповідає на ${BASE_URL}"
+    echo "  Запусти його в сусідньому терміналі:  make run"
+    echo "  Якщо API слухає інший порт:"
+    echo "    make run HTTP_PORT=8081"
+    echo "    make smoke BASE_URL=http://localhost:8081"
+    exit 1
+fi
 EMAIL="smoke-$(date +%s)@example.com"
 PASSWORD="hunter2hunter2"
 

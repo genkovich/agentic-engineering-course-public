@@ -1,17 +1,24 @@
-name: CI (py stage-3)
+# Ілюстрація для лекції: як арх-тест виглядає в CI.
+#
+# GitHub читає workflow-файли ТІЛЬКИ з `.github/workflows/` у корені репозиторію,
+# тому цей файл тут не запускається — він лежить поруч із кодом як зразок,
+# який ти копіюєш у свій проєкт (звідти й шляхи `modules/...`).
+# Справжній прогін цього демо живе в кореневому `.github/workflows/4.8-bc.yml`.
+
+name: CI (Python stage-3-hexagonal)
 
 on:
   push:
     paths:
-      - '4.8-bc/py/stage-3-hexagonal/**'
+      - 'modules/4-prompting-mastery/4.8-bc/py/stage-3-hexagonal/**'
       - '.github/workflows/**'
   pull_request:
     paths:
-      - '4.8-bc/py/stage-3-hexagonal/**'
+      - 'modules/4-prompting-mastery/4.8-bc/py/stage-3-hexagonal/**'
 
 defaults:
   run:
-    working-directory: 4.8-bc/py/stage-3-hexagonal
+    working-directory: modules/4-prompting-mastery/4.8-bc/py/stage-3-hexagonal
 
 jobs:
   build-and-arch-test:
@@ -22,13 +29,15 @@ jobs:
         with:
           python-version: '3.12'
 
+      # Ставимо строго за лок-файлом — те саме, що робить `make install`.
       - name: Install
         run: |
           python -m pip install --upgrade pip
-          pip install -e ".[arch]"
+          pip install -r requirements.lock.txt
 
       - name: Compile check
         run: python -m compileall app
 
+      # Без прапорців: конфіг `.importlinter` import-linter знаходить сам.
       - name: Arch test
-        run: lint-imports --config importlinter.ini
+        run: lint-imports

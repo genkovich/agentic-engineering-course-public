@@ -8,12 +8,12 @@
 
 ## Стек
 
-- Python 3.12
+- Python 3.12–3.14
 - FastAPI 0.110+ (async)
 - SQLAlchemy 2.x з **asyncpg** (async driver)
 - Alembic 1.13+ — 5 окремих revisions, по одній на BC, з префіксом таблиць
 - Postgres 18 у Docker
-- `passlib[bcrypt]` — паролі
+- `bcrypt` — паролі
 - Pydantic v2 — request/response
 
 ## Структура
@@ -58,13 +58,21 @@ stage-2-feature-first/
 ## Швидкий старт
 
 ```bash
-pip install -e .
-make db-up
-make db-migrate
-make run                  # окремий термінал
-make smoke                # 6 endpoints → all 2xx
+python3 -m venv .venv
+source .venv/bin/activate     # Windows (Git Bash): source .venv/Scripts/activate
+make doctor                   # перевірка: docker, python, активний venv, вільні порти
+make install                  # залежності з requirements.lock.txt
+make db-up                    # postgres у docker, з таймаутом очікування
+make db-migrate               # міграції (db-up підтягнеться сам, якщо база не піднята)
+make run                      # в ОКРЕМОМУ терміналі — процес не завершується
+make smoke                    # 6 endpoints → all 2xx
+make clean                    # зупинити базу і видалити том
 ```
 
+Порт 5432 або 8080 зайнятий? Візьми інші — `make db-up PGPORT=5433`, `make run HTTP_PORT=8081`
+(і тоді `make smoke BASE_URL=http://localhost:8081`). Постійний варіант — `cp .env.example .env`.
+
+Щось не сходиться — [`TROUBLESHOOTING.md`](../../TROUBLESHOOTING.md).
 ## Ендпоінти
 
 - `POST /auth/register`, `POST /auth/login` — Auth feature

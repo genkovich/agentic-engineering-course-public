@@ -1,6 +1,16 @@
 version: 3
 workdir: .
 
+allow:
+  # Вимикаємо deep scan (аналіз викликів методів і DI).
+  # Він трасує потік типів і на wiring-шарі помилково звинувачує
+  # infra-postgres у залежності на app, коли module.go робить
+  # `app.New(postgresRepo, ...)`. Архітектурно це коректно: DI через інтерфейс.
+  # Базовий лінтер (component imports) лишається увімкненим — саме він
+  # ловить прямі cross-BC імпорти, заради яких цей файл і існує,
+  # і тепер він бачить у тому числі module.go.
+  deepScan: false
+
 # Allowed deps між компонентами.
 # Component patterns відображають hexagonal layers і BC isolation.
 components:
@@ -209,10 +219,10 @@ deps:
       - shared-server
     anyVendorDeps: true
 
+# Тека з негативним контролем (scripts/archlint-selftest) — окремий Go-модуль
+# із НАВМИСНИМ порушенням. Він не має потрапляти в аналіз цього проєкту.
+exclude:
+  - "scripts"
+
 excludeFiles:
   - ".*_test\\.go$"
-  # module.go файли — це wiring layer, який ЗАВЖДИ торкає i app, i infra.
-  # Виключаємо їх з аналізу, бо go-arch-lint v1.14 трасує type flow і помилково
-  # звинувачує infra-postgres у залежності на app, коли module.go робить
-  # `app.New(postgresRepo, ...)`. Архітектурно це коректно (DI через інтерфейс).
-  - "[^/]+/module\\.go$"

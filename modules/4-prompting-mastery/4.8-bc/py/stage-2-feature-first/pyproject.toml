@@ -2,16 +2,28 @@
 name = "stage-2-feature-first"
 version = "0.1.0"
 description = "Stage 2 (feature-first / vertical slice) — Bounded Contexts demo, Python edition"
-requires-python = ">=3.12"
+# Верхня межа свідома: під новішим Python частина залежностей
+# ще не має бінарних коліс.
+requires-python = ">=3.12,<3.15"
 dependencies = [
     "fastapi>=0.110.0",
-    "uvicorn[standard]>=0.27.0",
+    # uvicorn БЕЗ [standard]: цей extra тягне uvloop, який не має коліс
+    # під свіжий Python і ламає встановлення на рівному місці.
+    "uvicorn>=0.27.0",
     "sqlalchemy[asyncio]>=2.0.25",
+    # asyncpg — для застосунку (async), psycopg 3 — для alembic (sync).
+    # Синхронний драйвер названий явно: інакше SQLAlchemy вгадує psycopg2,
+    # якого тут немає, і міграції падають з ModuleNotFoundError.
     "asyncpg>=0.29.0",
+    "psycopg[binary]>=3.2.0",
     "alembic>=1.13.1",
-    "pydantic>=2.6.0",
-    "passlib[bcrypt]>=1.7.4",
-    "bcrypt==4.0.1",
+    # [email] обов'язковий: DTO використовують pydantic.EmailStr, а вона
+    # без email-validator падає при імпорті застосунку, а не при валідації.
+    "pydantic[email]>=2.6.0",
+    # bcrypt напряму, без passlib: passlib закинутий і чіпає стандартний
+    # модуль crypt, якого в Python 3.13+ уже немає. Формат хеша ($2b$)
+    # той самий, старі хеші лишаються валідними.
+    "bcrypt>=4.2.0",
 ]
 
 [build-system]

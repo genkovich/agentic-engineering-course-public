@@ -8,7 +8,7 @@
 
 ## Стек
 
-- Go 1.24
+- Go 1.25+ (на старішому Go з `GOTOOLCHAIN=auto` потрібний тулчейн доїде сам)
 - chi/v5 — роутинг
 - pgx/v5 — Postgres
 - Postgres 18 у Docker
@@ -54,12 +54,19 @@ stage-2-feature-first/
 ## Швидкий старт
 
 ```bash
-make db-up
-make db-migrate
-make run                  # окремий термінал
-make smoke                # 6 endpoints → all 2xx
+make doctor                   # перевірка: docker, go, вільні порти
+make install                  # завантажити залежності модуля
+make db-up                    # postgres у docker, з таймаутом очікування
+make db-migrate               # міграції (db-up підтягнеться сам, якщо база не піднята)
+make run                      # в ОКРЕМОМУ терміналі — процес не завершується
+make smoke                    # 6 endpoints → all 2xx
+make clean                    # зупинити базу і видалити том
 ```
 
+Порт 5432 або 8080 зайнятий? Візьми інші — `make db-up PGPORT=5433`, `make run HTTP_PORT=8081`
+(і тоді `make smoke BASE_URL=http://localhost:8081`). Постійний варіант — `cp .env.example .env`.
+
+Щось не сходиться — [`TROUBLESHOOTING.md`](../../TROUBLESHOOTING.md).
 ## Ендпоінти
 
 - `POST /auth/register`, `POST /auth/login` — Auth feature

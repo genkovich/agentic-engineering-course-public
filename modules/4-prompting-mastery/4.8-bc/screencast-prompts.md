@@ -165,26 +165,51 @@ notifications/
 
 ```bash
 cd 4.8-bc/go/stage-3-hexagonal
+make install     # один раз: залежності + прогрів лінтера
 ```
 
-Відкрий `notifications/domain/notification.go` і додай навмисне порушення — імпорт з чужого BC і з infra-шару:
+Відкрий `notifications/domain/notification.go` і додай навмисне порушення — імпорт з чужого BC і з infra-шару. **Важливо:** порушення має компілюватися, інакше замість архітектурної помилки отримаєш банальне `imported and not used` від компілятора, і скринкаст показуватиме не те. Тому імпорт одразу використовується:
 
 ```go
-import "github.com/genkovich/claude-course-demos/4.8-bc/go/stage-3-hexagonal/billing/infra/postgres"
+import (
+	"github.com/google/uuid"
+
+	billingpg "github.com/genkovich/claude-course-demos/4.8-bc/go/stage-3-hexagonal/billing/infra/postgres"
+)
+
+// НАВМИСНЕ порушення для демонстрації arch-test.
+var _ = billingpg.NewSubscriptionRepo
 ```
 
-Запусти:
+Спочатку покажи, що код валідний, і лише тоді запусти арх-тест:
+
 ```bash
-make arch-test
+go build ./...        # компілюється
+make arch-test; echo $?
 ```
 
-Очікуваний артефакт:
+Реальний вивід:
 ```
-✗ notifications/domain/notification.go:6
-  imports billing/infra/postgres
-  violation: domain cannot depend on infra
-  violation: cross-context import not allowed
+go-arch-lint v1.17.0
+module: github.com/genkovich/claude-course-demos/4.8-bc/go/stage-3-hexagonal
+linters:
+   On | Base: component imports # always on
+   On | Advanced: vendor imports
+  Off | Advanced: method calls and dependency injections
+
+Component notifications-domain shouldn't depend on
+github.com/genkovich/claude-course-demos/4.8-bc/go/stage-3-hexagonal/billing/infra/postgres
+in .../notifications/domain/notification.go:11
+
+--
+total notices: 1
+
+✗ go-arch-lint знайшов порушення меж (список вище).
+make: *** [arch-test] Error 2
+2
 ```
+
+Код виходу ненульовий — саме це і зупиняє CI. (`2` віддає make; сам `scripts/arch-test.sh`, який ганяє CI, віддає `1`.)
 
 Виправ через інверсію:
 1. Створи `notifications/domain/payment_status.go` з `interface PaymentStatusReader`
@@ -192,23 +217,74 @@ make arch-test
 3. Інжекти interface через DI у `notifications/app/service.go`
 4. Запусти `make arch-test` знову → `✓ No violations found`
 
+**Побічний кадр, який варто зняти:** зелений арх-тест сам по собі нічого не доводить — рівно так само виглядав зламаний лінтер, який взагалі не аналізував код. Тому поруч є негативний контроль:
+
+```bash
+make arch-test-selftest
+# Негативний контроль: лінтер має знайти навмисне порушення a → b
+# ✓ Лінтер коректно ловить порушення.
+```
+
 ### TS: dependency-cruiser
 
 ```bash
 cd 4.8-bc/ts/stage-3-hexagonal
-npm run arch:check
+make install
 ```
 
-Те саме порушення (cross-context import у `notifications/domain`) → `dependency-cruiser` падає з error на правилі `no-cross-context`.
+Те саме порушення у `src/notifications/domain/notification.ts`:
+
+```ts
+import { PgSubscriptionRepo } from "../../billing/infra/postgres/subscriptionRepo.js";
+export type BillingRepoAlias = PgSubscriptionRepo;
+```
+
+```bash
+make arch-test
+```
+
+Реальний вивід:
+```
+  error no-cross-context: src/notifications/domain/notification.ts → src/billing/infra/postgres/subscriptionRepo.ts
+  error domain-no-infra: src/notifications/domain/notification.ts → src/billing/infra/postgres/subscriptionRepo.ts
+
+x 2 dependency violations (2 errors, 0 warnings). 43 modules, 95 dependencies cruised.
+```
+
+Одне порушення ловиться двома правилами одразу: і як cross-BC імпорт, і як domain → infra.
 
 ### Python: import-linter
 
 ```bash
 cd 4.8-bc/py/stage-3-hexagonal
-lint-imports
+source .venv/bin/activate && make install
 ```
 
-Те саме порушення → `import-linter` падає на контракті `independence` між `notifications` і `billing`.
+Те саме порушення у `app/notifications/domain/notification.py`:
+
+```python
+from app.billing.infra.postgres.subscription_repo import PgSubscriptionRepo  # noqa: F401
+```
+
+```bash
+make arch-test
+```
+
+Реальний вивід:
+```
+Contracts: 5 kept, 1 broken.
+
+----------------
+Broken contracts
+----------------
+
+BCs are independent
+-------------------
+
+app.notifications is not allowed to import app.billing:
+
+- app.notifications.domain.notification -> app.billing.infra.postgres.subscription_repo (l.2)
+```
 
 **Висновок:** інструмент різний (`go-arch-lint`, `dependency-cruiser`, `import-linter`), формати повідомлень відрізняються — правило одне і ловиться автоматично у CI.
 

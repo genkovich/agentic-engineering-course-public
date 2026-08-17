@@ -32,7 +32,7 @@ app/notifications/
 - Domain does not import other BCs
 - ❗ EXCEPTION: `app/notifications/infra/events/` is allowed to import
   other BCs' `domain` packages for event subscription. Documented in
-  `importlinter.ini` (`independence` contract `ignore_imports`). Other
+  `.importlinter` (`independence` contract `ignore_imports`). Other
   parts of `app/notifications/infra/*` — not allowed
 - `Sender` — Protocol in `domain/`. Concrete implementations in
   `infra/<provider>/` (currently only `stub/`)

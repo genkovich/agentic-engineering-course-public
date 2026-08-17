@@ -36,7 +36,7 @@ main          → all <bc>/module, shared/*
 - `shared/` imports a specific BC
 
 **Exception:** `notifications/infra/events/` is allowed to import other BCs'
-`domain` modules for event subscription. Documented in `importlinter.ini`.
+`domain` modules for event subscription. Documented in `.importlinter`.
 
 ## Cross-BC communication
 
@@ -54,9 +54,9 @@ billing.SubscriptionCreated   → notifications subscribed
 - **Python 3.12** + FastAPI 0.110+
 - **SQLAlchemy 2.x async** + asyncpg (no sync drivers anywhere except Alembic env)
 - **Alembic 1.13+** — 5 revisions, one per BC, BC-prefixed tables
-- **import-linter v2** — `lint-imports --config importlinter.ini`
+- **import-linter v2** — `lint-imports` (конфіг `.importlinter` знаходиться автоматично)
 - **Postgres 18** in docker-compose
-- **passlib[bcrypt]** for passwords
+- **bcrypt** for passwords
 
 ## Workflow
 

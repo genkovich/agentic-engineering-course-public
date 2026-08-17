@@ -57,7 +57,7 @@ graph LR
 4. Add a row to the BC list at the top of this file
 5. Create `app/<new-bc>/module.py` with a `New(...)` builder
 6. Register `app/<new-bc>/module` in `app/main.py`
-7. Add the new module to `importlinter.ini` (in the `independence` contract
+7. Add the new module to `.importlinter` (in the `independence` contract
    modules list and a new `layers-<new-bc>` contract)
 8. Add `.claude/rules/<new-bc>.md` with scoped rules
 9. Run `make arch-test` — must pass

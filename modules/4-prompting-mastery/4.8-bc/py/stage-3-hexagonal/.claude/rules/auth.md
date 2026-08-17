@@ -27,7 +27,7 @@ app/auth/
 ## Rules
 
 - Domain does not import `fastapi`, `sqlalchemy`, or other BCs
-- Passwords — `passlib[bcrypt]`, never raw
+- Passwords — `bcrypt`, never raw
 - Sentinel exceptions in domain (`InvalidCredentialsError` etc), all
   inheriting from `AuthDomainError`
 - HTTP layer maps domain errors to `shared.apperr.AppError` via

@@ -26,7 +26,7 @@ notifications/
 ## Правила
 
 - Domain не імпортує інших BC
-- ❗ ВИНЯТОК: `notifications/infra/events/` має право імпортувати `<other-bc>/domain` для event subscription. Це задокументовано в `.arch-lint.yml`. Інші piece of `notifications/infra/*` — ні
+- ❗ ВИНЯТОК: `notifications/infra/events/` має право імпортувати `<other-bc>/domain` для event subscription. Це задокументовано в `.go-arch-lint.yml`. Інші piece of `notifications/infra/*` — ні
 - Sender — interface у `domain/`. Конкретні реалізації у `infra/<provider>/` (поки тільки `stub/`)
 - Production-варіант: `infra/email/` (SMTP), `infra/push/` (APNS/FCM), `infra/sms/` (Twilio etc)
 

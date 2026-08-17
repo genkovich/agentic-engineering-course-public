@@ -32,7 +32,7 @@ main          → all <bc>/module, shared/server, shared/events
 - BC `auth` імпортує BC `billing` напряму (порушує BC isolation — комунікація через `shared/events`)
 - `shared/` імпортує конкретний BC
 
-**Виняток:** `notifications/infra/events/` має право імпортувати `<other-bc>/domain` для event subscription. Це задокументовано в `.arch-lint.yml`.
+**Виняток:** `notifications/infra/events/` має право імпортувати `<other-bc>/domain` для event subscription. Це задокументовано в `.go-arch-lint.yml`.
 
 ## Cross-BC комунікація
 

@@ -14,7 +14,16 @@ if config.config_file_name is not None:
 
 db_url = os.getenv("DATABASE_URL")
 if db_url:
-    db_url = db_url.replace("+asyncpg", "").replace("+psycopg", "")
+    # Alembic ходить у базу синхронно, застосунок — асинхронно.
+    # Тому async-драйвер міняємо на psycopg 3 і НАЗИВАЄМО його явно:
+    # голий postgresql:// змушує SQLAlchemy вгадувати драйвер, а вгадує
+    # вона psycopg2, якого в залежностях немає —
+    # ModuleNotFoundError: No module named 'psycopg2'.
+    db_url = db_url.replace("+asyncpg", "+psycopg")
+    for prefix in ("postgresql://", "postgres://"):
+        if db_url.startswith(prefix):
+            db_url = "postgresql+psycopg://" + db_url[len(prefix):]
+            break
     config.set_main_option("sqlalchemy.url", db_url)
 
 target_metadata = None

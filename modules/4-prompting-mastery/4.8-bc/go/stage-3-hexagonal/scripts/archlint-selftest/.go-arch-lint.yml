@@ -1,0 +1,19 @@
+version: 3
+workdir: .
+
+allow:
+  deepScan: false
+
+components:
+  a:
+    in: a
+  b:
+    in: b
+
+deps:
+  # `a` не має права ні на що. У a/a.go імпорт `b` стоїть НАВМИСНЕ —
+  # саме його лінтер зобов'язаний знайти.
+  a:
+    mayDependOn: []
+  b:
+    mayDependOn: []

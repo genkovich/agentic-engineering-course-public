@@ -3,7 +3,7 @@
 This is the ONE place where we cross BC boundaries: Notifications listens
 to ``auth.UserRegistered``, ``commerce.OrderPlaced``,
 ``billing.SubscriptionCreated``. The cross-BC ``domain`` imports are
-allowed by ``importlinter.ini`` exactly here (and only here).
+allowed by ``.importlinter`` exactly here (and only here).
 """
 from __future__ import annotations
 

@@ -1,0 +1,13 @@
+# Локальні перевизначення портів і DSN — у кожного студента свої.
+.env
+
+# Залежності і артефакти збірки
+node_modules/
+.venv/
+venv/
+__pycache__/
+*.pyc
+bin/
+dist/
+.pytest_cache/
+.ruff_cache/

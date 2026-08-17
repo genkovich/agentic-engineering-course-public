@@ -1,17 +1,24 @@
+# Ілюстрація для лекції: як арх-тест виглядає в CI.
+#
+# GitHub читає workflow-файли ТІЛЬКИ з `.github/workflows/` у корені репозиторію,
+# тому цей файл тут не запускається — він лежить поруч із кодом як зразок,
+# який ти копіюєш у свій проєкт (звідти й шляхи `modules/...`).
+# Справжній прогін цього демо живе в кореневому `.github/workflows/4.8-bc.yml`.
+
 name: CI (TS stage-3-hexagonal)
 
 on:
   push:
     paths:
-      - '4.8-bc/ts/stage-3-hexagonal/**'
+      - 'modules/4-prompting-mastery/4.8-bc/ts/stage-3-hexagonal/**'
       - '.github/workflows/**'
   pull_request:
     paths:
-      - '4.8-bc/ts/stage-3-hexagonal/**'
+      - 'modules/4-prompting-mastery/4.8-bc/ts/stage-3-hexagonal/**'
 
 defaults:
   run:
-    working-directory: 4.8-bc/ts/stage-3-hexagonal
+    working-directory: modules/4-prompting-mastery/4.8-bc/ts/stage-3-hexagonal
 
 jobs:
   build-and-arch-test:
@@ -20,15 +27,17 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: '22'
+          node-version-file: modules/4-prompting-mastery/4.8-bc/ts/stage-3-hexagonal/.nvmrc
           cache: 'npm'
-          cache-dependency-path: 4.8-bc/ts/stage-3-hexagonal/package-lock.json
+          cache-dependency-path: modules/4-prompting-mastery/4.8-bc/ts/stage-3-hexagonal/package-lock.json
 
+      # Строго `npm ci`, без фолбеку на `npm install`: саме такий фолбек
+      # дозволяв відсутньому lockfile роками лишатися непоміченим.
       - name: Install
-        run: npm ci || npm install
+        run: npm ci
 
       - name: Typecheck
-        run: npx tsc --noEmit
+        run: ./node_modules/.bin/tsc --noEmit
 
       - name: Arch test
-        run: npx depcruise --config .dependency-cruiser.cjs src
+        run: ./node_modules/.bin/depcruise --config .dependency-cruiser.cjs src

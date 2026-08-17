@@ -1,29 +1,55 @@
-DATABASE_URL ?= postgres://demo:demo@localhost:5432/demo?sslmode=disable
-HTTP_ADDR    ?= :8080
-BASE_URL     ?= http://localhost:8080
+# Локальні перевизначення (порти) — у .env поруч із цим Makefile.
+# Той самий файл читає docker compose, тому порт міняється в одному місці.
+-include .env
+export
 
-.PHONY: help db-up db-down db-migrate run smoke clean
+PGPORT       ?= 5432
+HTTP_PORT    ?= 8080
+DATABASE_URL ?= postgres://demo:demo@localhost:$(PGPORT)/demo?sslmode=disable
+HTTP_ADDR    ?= :$(HTTP_PORT)
+BASE_URL     ?= http://localhost:$(HTTP_PORT)
+
+.PHONY: help doctor install db-up db-down db-migrate run smoke clean
 
 help:
 	@echo "Targets:"
-	@echo "  db-up       Start postgres via docker compose"
-	@echo "  db-down     Stop postgres and remove volume"
-	@echo "  db-migrate  Apply migrations/0001_init.sql"
-	@echo "  run         Run the API on $(HTTP_ADDR)"
-	@echo "  smoke       Hit 6 endpoints, expect all 2xx"
-	@echo "  clean       Stop docker, remove pgdata"
+	@echo "  doctor      Перевірити середовище (docker, go, порти)"
+	@echo "  install     doctor + завантажити залежності модуля"
+	@echo "  db-up       Підняти postgres через docker compose"
+	@echo "  db-down     Зупинити postgres і видалити том"
+	@echo "  db-migrate  Накотити migrations/*.sql по порядку"
+	@echo "  run         Запустити API на $(HTTP_ADDR)"
+	@echo "  smoke       Смикнути 6 ендпоінтів, чекати 2xx"
+	@echo "  clean       Зупинити docker, прибрати pgdata"
+
+doctor:
+	@bash ../../scripts/preflight.sh go 1
+
+install: doctor
+	go mod download
 
 db-up:
 	docker compose up -d
-	@echo "Waiting for postgres..."
-	@until docker compose exec -T postgres pg_isready -U demo > /dev/null 2>&1; do sleep 1; done
-	@echo "Postgres ready."
+	@printf 'Чекаю на postgres'
+	@for i in $$(seq 1 60); do \
+		if docker compose exec -T postgres pg_isready -U demo -d demo -h 127.0.0.1 >/dev/null 2>&1; then \
+			echo " готовий."; exit 0; \
+		fi; \
+		printf '.'; sleep 1; \
+	done; \
+	echo ""; \
+	echo "✗ Postgres не піднявся за 60 с. Останні рядки логу:"; \
+	docker compose logs --tail=40 postgres; \
+	exit 1
 
 db-down:
 	docker compose down -v
 
-db-migrate:
-	docker compose exec -T postgres psql -U demo -d demo < migrations/0001_init.sql
+db-migrate: db-up
+	@for f in migrations/*.sql; do \
+		echo "applying $$f"; \
+		docker compose exec -T postgres psql -v ON_ERROR_STOP=1 -U demo -d demo < "$$f" || exit 1; \
+	done
 
 run:
 	DATABASE_URL=$(DATABASE_URL) HTTP_ADDR=$(HTTP_ADDR) go run .

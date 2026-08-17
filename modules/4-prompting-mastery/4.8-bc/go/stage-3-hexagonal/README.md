@@ -6,12 +6,15 @@
 
 ## Стек
 
-- Go 1.24
+- Go 1.25+ (на старішому Go з `GOTOOLCHAIN=auto` потрібний тулчейн доїде сам)
 - chi/v5 — роутинг
 - pgx/v5 — Postgres
 - Postgres 18 у Docker
 - bcrypt — паролі
-- `go-arch-lint` v1.11.5 — архітектурні тести
+- `go-arch-lint` v1.17.0 — архітектурні тести (запускається через `go run`, ставити нічого не треба)
+
+> У відео лекції файл названо `.arch-lint.yml`. У репозиторії він `.go-arch-lint.yml` —
+> це стандартне ім'я, яке go-arch-lint знаходить сам, без прапорця `--arch-file`.
 - In-memory event bus у `shared/events/` — cross-BC комунікація без брокера
 
 ## Структура
@@ -23,7 +26,7 @@ stage-3-hexagonal/
 ├── docker-compose.yml
 ├── Makefile                     # smoke, arch-test, db-up, db-migrate, build
 ├── .env.example
-├── .arch-lint.yml               # contracts для go-arch-lint
+├── .go-arch-lint.yml            # contracts для go-arch-lint
 ├── .github/workflows/ci.yml     # build + arch-test у CI
 ├── ARCHITECTURE.md              # mermaid BC Map (5 BC, 4 events)
 ├── CLAUDE.md                    # router-CLAUDE.md з BC structure rules
@@ -70,14 +73,27 @@ stage-3-hexagonal/
 ## Швидкий старт
 
 ```bash
+make doctor                   # перевірка: docker, go, вільні порти
+make install                  # залежності + прогрів arch-lint (перший раз ~30 с)
 make db-up
 make db-migrate
-make run                      # окремий термінал
+make run                      # в ОКРЕМОМУ терміналі — процес не завершується
 make smoke                    # 6 endpoints → all 2xx
-make arch-lint-install        # одноразово, ~10 секунд
 make arch-test                # ✓ No violations found
+make clean                    # зупинити базу і видалити том
 ```
 
+Порт 5432 або 8080 зайнятий? Візьми інші — `make db-up PGPORT=5433`, `make run HTTP_PORT=8081`
+(і тоді `make smoke BASE_URL=http://localhost:8081`). Постійний варіант — `cp .env.example .env`.
+
+Додатково:
+
+```bash
+make arch-test-selftest       # довести, що лінтер узагалі ловить порушення
+make arch-test-docker         # запасний шлях, якщо локального Go немає
+```
+
+Щось не сходиться — [`TROUBLESHOOTING.md`](../../TROUBLESHOOTING.md).
 ## Ендпоінти
 
 - `POST /auth/register`
@@ -96,7 +112,7 @@ commerce.OrderPlaced         → billing        (create invoice — не реа�
 billing.SubscriptionCreated  → notifications  (welcome letter)
 ```
 
-Жоден BC не імпортує іншого напряму — тільки через `shared/events.Bus`. Виняток — `notifications/infra/events/subscriber.go`, який мусить знати domain types усіх відправників. Виняток задокументовано у `.arch-lint.yml`.
+Жоден BC не імпортує іншого напряму — тільки через `shared/events.Bus`. Виняток — `notifications/infra/events/subscriber.go`, який мусить знати domain types усіх відправників. Виняток задокументовано у `.go-arch-lint.yml`.
 
 ## Arch-test — як це працює
 
@@ -104,7 +120,7 @@ billing.SubscriptionCreated  → notifications  (welcome letter)
 make arch-test
 ```
 
-`go-arch-lint` парсить імпорти і перевіряє граф залежностей проти `.arch-lint.yml`. Якщо `auth/app/` починає імпортувати `billing/domain/` — падає з конкретним рядком.
+`go-arch-lint` парсить імпорти і перевіряє граф залежностей проти `.go-arch-lint.yml`. Якщо `auth/app/` починає імпортувати `billing/domain/` — падає з конкретним рядком.
 
 ### Спробуй зламати
 

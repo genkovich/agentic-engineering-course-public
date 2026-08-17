@@ -79,14 +79,20 @@ stage-3-hexagonal/
 ## Швидкий старт
 
 ```bash
-npm install
+make doctor                   # перевірка: docker, node, вільні порти
+make install                  # npm ci строго за package-lock.json
 make db-up
 make db-migrate
-make run                      # окремий термінал
+make run                      # в ОКРЕМОМУ терміналі — процес не завершується
 make smoke                    # 6 endpoints → all 2xx
 make arch-test                # ✓ no dependency violations found
+make clean                    # зупинити базу і видалити том
 ```
 
+Порт 5432 або 8080 зайнятий? Візьми інші — `make db-up PGPORT=5433`, `make run HTTP_PORT=8081`
+(і тоді `make smoke BASE_URL=http://localhost:8081`). Постійний варіант — `cp .env.example .env`.
+
+Щось не сходиться — [`TROUBLESHOOTING.md`](../../TROUBLESHOOTING.md).
 ## Ендпоінти
 
 - `POST /auth/register`

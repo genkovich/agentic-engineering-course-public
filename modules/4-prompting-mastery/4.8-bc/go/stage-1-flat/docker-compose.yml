@@ -1,19 +1,35 @@
+# Ім'я compose-проєкту фіксуємо явно. Без нього воно береться з назви теки,
+# і go/stage-1-flat, ts/stage-1-flat, py/stage-1-flat ділили б ОДИН контейнер
+# і ОДИН том — сусідній стейдж мовчки затирав би базу попереднього.
+name: bc48-go-s1
+
 services:
   postgres:
-    image: postgres:18
+    image: postgres:18-alpine
     environment:
       POSTGRES_USER: demo
       POSTGRES_PASSWORD: demo
       POSTGRES_DB: demo
     ports:
-      - "5432:5432"
+      # PGPORT читається з .env (див. .env.example) або з `make db-up PGPORT=5433`.
+      # Якщо на 5432 вже слухає локальний Postgres, він перехопить з'єднання
+      # і ти побачиш "password authentication failed for user demo".
+      - "${PGPORT:-5432}:5432"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U demo"]
+      # -h 127.0.0.1 змушує перевірку йти через TCP. Під час initdb сервер
+      # слухає лише unix-сокет, і сокетна перевірка дає хибне "готовий".
+      test: ["CMD-SHELL", "pg_isready -U demo -d demo -h 127.0.0.1"]
       interval: 2s
       timeout: 5s
-      retries: 10
+      retries: 15
+      start_period: 10s
     volumes:
-      - pgdata:/var/lib/postgresql/data
+      # Образ postgres:18 тримає кластер у /var/lib/postgresql/18/docker
+      # і оголошує VOLUME /var/lib/postgresql. Монтуємо БАТЬКІВСЬКУ теку:
+      # том на /var/lib/postgresql/data у 18-му вже нічого не тримає — дані
+      # лягають у шар контейнера, `down -v` виглядає як no-op, а після
+      # рестарту база порожня. Для образів ≤17 правильним був .../data.
+      - pgdata:/var/lib/postgresql
 
 volumes:
   pgdata:

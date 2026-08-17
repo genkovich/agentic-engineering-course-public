@@ -53,6 +53,6 @@ graph LR
 4. Додай рядок у список BC на початку цього файлу
 5. Додай `<new-bc>/module.go` з self-wiring
 6. Зареєструй `<new-bc>` у `main.go`
-7. Додай мапінги у `.arch-lint.yml` (components + deps)
+7. Додай мапінги у `.go-arch-lint.yml` (components + deps)
 8. Додай `.claude/rules/<new-bc>.md` зі scoped правилами
 9. Запусти `make arch-test` — має пройти

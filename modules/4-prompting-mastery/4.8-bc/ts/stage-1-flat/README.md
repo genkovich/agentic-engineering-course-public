@@ -58,18 +58,19 @@ stage-1-flat/
 ## Швидкий старт
 
 ```bash
-npm install
-make db-up
-make db-migrate
-make run                  # в окремому терміналі
-make smoke                # 6 endpoints → all 2xx
+make doctor                   # перевірка: docker, node, вільні порти
+make install                  # npm ci строго за package-lock.json
+make db-up                    # postgres у docker, з таймаутом очікування
+make db-migrate               # міграції (db-up підтягнеться сам, якщо база не піднята)
+make run                      # в ОКРЕМОМУ терміналі — процес не завершується
+make smoke                    # 6 endpoints → all 2xx
+make clean                    # зупинити базу і видалити том
 ```
 
-Після завершення:
-```bash
-make clean
-```
+Порт 5432 або 8080 зайнятий? Візьми інші — `make db-up PGPORT=5433`, `make run HTTP_PORT=8081`
+(і тоді `make smoke BASE_URL=http://localhost:8081`). Постійний варіант — `cp .env.example .env`.
 
+Щось не сходиться — [`TROUBLESHOOTING.md`](../../TROUBLESHOOTING.md).
 ## Ендпоінти
 
 - `POST /auth/register` — реєстрація користувача

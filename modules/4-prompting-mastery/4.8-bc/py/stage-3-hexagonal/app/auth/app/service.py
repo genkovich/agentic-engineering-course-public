@@ -8,7 +8,7 @@ from __future__ import annotations
 from datetime import UTC, datetime
 from uuid import uuid4
 
-from passlib.hash import bcrypt
+import bcrypt
 
 from app.auth.domain.errors import (
     EmailAlreadyExistsError,
@@ -20,13 +20,23 @@ from app.auth.domain.user import User, UserRegistered
 from app.shared.events import EventBus
 
 
+def _hash_password(password: str) -> str:
+    """Хешуємо bcrypt напряму, без passlib: той закинутий і тягне модуль
+    crypt, якого в Python 3.13+ уже немає. Формат ($2b$) той самий."""
+    return bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
+
+
+def _verify_password(password: str, password_hash: str) -> bool:
+    return bcrypt.checkpw(password.encode(), password_hash.encode())
+
+
 class Service:
     def __init__(self, repo: UserRepository, bus: EventBus) -> None:
         self._repo = repo
         self._bus = bus
 
     async def register(self, email: str, password: str) -> User:
-        password_hash = bcrypt.hash(password)
+        password_hash = _hash_password(password)
         u = User(
             id=uuid4(),
             email=email,
@@ -49,6 +59,6 @@ class Service:
             raise InvalidCredentialsError() from exc
         if u is None:
             raise InvalidCredentialsError()
-        if not bcrypt.verify(password, u.password_hash):
+        if not _verify_password(password, u.password_hash):
             raise InvalidCredentialsError()
         return u
