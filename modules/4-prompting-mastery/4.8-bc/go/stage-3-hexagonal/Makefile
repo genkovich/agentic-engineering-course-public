@@ -41,7 +41,7 @@ smoke:
 	@bash ./scripts/smoke.sh $(BASE_URL)
 
 arch-lint-install:
-	go install github.com/fe3dback/go-arch-lint@v1.11.5
+	go install github.com/fe3dback/go-arch-lint@v1.17.0
 
 arch-test:
 	@command -v go-arch-lint >/dev/null 2>&1 || { echo "go-arch-lint not installed; run: make arch-lint-install"; exit 1; }
