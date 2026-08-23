@@ -11,7 +11,7 @@
 - pgx/v5 — Postgres
 - Postgres 18 у Docker
 - bcrypt — паролі
-- `go-arch-lint` v1.11.5 — архітектурні тести
+- `go-arch-lint` v1.17.0 — архітектурні тести
 - In-memory event bus у `shared/events/` — cross-BC комунікація без брокера
 
 ## Структура
