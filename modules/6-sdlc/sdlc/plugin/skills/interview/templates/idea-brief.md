@@ -39,7 +39,7 @@ feasibility_state: proposed | confirmed
 - bullet
 
 ## 6. Competitive analysis
-| # | Product · URL | Features | Value (1-5) | Gap |
+| # | Product · URL | Features | Value per feature (1-5) | Gap |
 |---|---|---|---|---|
 | 1 | <name> · <url> | <features> | <ratings> | <gap> |
 

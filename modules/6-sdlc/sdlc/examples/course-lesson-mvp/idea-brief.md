@@ -54,7 +54,7 @@ Severity: обидва сегменти однаково страждають (a
 
 ## 6. Competitive analysis
 
-| # | Product · URL | Features | Value (1-5) | Gap |
+| # | Product · URL | Features | Value per feature (1-5) | Gap |
 |---|---|---|---|---|
 | 1 | Teachable · https://teachable.com | course bundles; drip content; payment | 4 / 3 / 5 | external SaaS; нема org-membership / mentorship інтеграції |
 | 2 | Thinkific · https://thinkific.com | course delivery; quizzes; certificates | 4 / 4 / 3 | external SaaS, без internal-team focus |

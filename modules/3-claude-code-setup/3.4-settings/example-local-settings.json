@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(go test ./...)",
+      "Bash(go build ./...)",
+      "Bash(make *)"
+    ]
+  },
+  "env": {
+    "CLAUDE_CODE_DISABLE_MOUSE": "1"
+  },
+  "enabledMcpjsonServers": ["playwright"],
+  "model": "opus"
+}
