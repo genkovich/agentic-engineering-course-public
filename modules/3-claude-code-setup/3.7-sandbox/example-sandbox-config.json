@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "permissions": {
+    "defaultMode": "acceptEdits",
+    "deny": [
+      "Read(**/.env)",
+      "Read(**/.env.*)",
+      "Read(**/*.pem)",
+      "Read(**/*.key)"
+    ]
+  },
+  "sandbox": {
+    "enabled": true,
+    "filesystem": {
+      "denyRead": [
+        "~/.ssh",
+        "~/.aws",
+        "~/.gnupg",
+        "~/.kube/config"
+      ],
+      "allowWrite": [
+        "/tmp/build",
+        "~/.kube/cache"
+      ]
+    },
+    "network": {
+      "allowedDomains": [
+        "registry.npmjs.org",
+        "github.com",
+        "api.github.com",
+        "api.anthropic.com",
+        "statsig.anthropic.com",
+        "sentry.io"
+      ],
+      "allowManagedDomainsOnly": false
+    },
+    "excludedCommands": [
+      "docker",
+      "watchman"
+    ],
+    "allowUnsandboxedCommands": true
+  }
+}
