@@ -7,7 +7,7 @@
 # Context7 (resolve-library-id, query-docs) - той самий ListTools.
 # Ключа не треба: Context7 публічний.
 inspect:
-	npx @modelcontextprotocol/inspector --cli npx -y @upstash/context7-mcp --method tools/list
+	npx -y @modelcontextprotocol/inspector --cli npx @upstash/context7-mcp --method tools/list
 
 help:
 	@echo "make inspect - tools/list публічного Context7 (без ключа), щоб побачити ListTools"
