@@ -23,6 +23,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     less \
     ca-certificates \
     gnupg \
+    bubblewrap \
+    socat \
     && rm -rf /var/lib/apt/lists/*
 
 # Встановлюємо Node.js 20 з NodeSource - потрібен щоб поставити Claude Code через npm
@@ -35,7 +37,10 @@ RUN groupadd --gid 1000 python \
     && useradd --uid 1000 --gid python --shell /bin/bash --create-home python
 
 # Дозволяємо python запускати тільки init-firewall.sh через sudo без пароля
-RUN echo "python ALL=(root) NOPASSWD: /usr/local/bin/init-firewall.sh" > /etc/sudoers.d/python-firewall \
+RUN printf '%s\n' \
+      "python ALL=(root) NOPASSWD: /usr/local/bin/init-firewall.sh" \
+      "python ALL=(root) NOPASSWD: /usr/sbin/iptables -L*, /usr/sbin/ip6tables -L*" \
+      > /etc/sudoers.d/python-firewall \
     && chmod 0440 /etc/sudoers.d/python-firewall
 
 COPY init-firewall.sh /usr/local/bin/init-firewall.sh
@@ -46,6 +51,11 @@ RUN chmod +x /usr/local/bin/init-firewall.sh
 RUN echo "${CLAUDE_CODE_VERSION}" | grep -qE '^(latest|[0-9a-zA-Z._-]+)$' || \
     (echo "ERROR: невалідний CLAUDE_CODE_VERSION='${CLAUDE_CODE_VERSION}'" && exit 1) \
     && npm install -g "@anthropic-ai/claude-code@${CLAUDE_CODE_VERSION}"
+
+# Готуємо каталоги під named volume-и, щоб non-root python мав права на запис
+# (свіжий named volume успадковує ownership із mount-point образу).
+RUN mkdir -p /home/python/.claude /commandhistory \
+    && chown -R python:python /home/python/.claude /commandhistory
 
 USER python
 WORKDIR /workspace
