@@ -26,6 +26,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     gnupg \
     && curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
     && apt-get install -y --no-install-recommends nodejs \
+    bubblewrap \
+    socat \
     && rm -rf /var/lib/apt/lists/*
 
 # Створюємо non-root користувача vscode (UID 1000) для devcontainer.
@@ -33,7 +35,10 @@ RUN groupadd --gid 1000 vscode \
     && useradd --uid 1000 --gid vscode --shell /bin/bash --create-home vscode
 
 # Sudoers - тільки init-firewall.sh без пароля, нічого більше.
-RUN echo "vscode ALL=(root) NOPASSWD: /usr/local/bin/init-firewall.sh" > /etc/sudoers.d/vscode-firewall \
+RUN printf '%s\n' \
+      "vscode ALL=(root) NOPASSWD: /usr/local/bin/init-firewall.sh" \
+      "vscode ALL=(root) NOPASSWD: /usr/sbin/iptables -L*, /usr/sbin/ip6tables -L*" \
+      > /etc/sudoers.d/vscode-firewall \
     && chmod 0440 /etc/sudoers.d/vscode-firewall
 
 COPY init-firewall.sh /usr/local/bin/init-firewall.sh
@@ -49,6 +54,11 @@ RUN echo "${CLAUDE_CODE_VERSION}" | grep -qE '^(latest|[0-9a-zA-Z._-]+)$' || \
 # Підготовка Cargo директорій з правильним owner.
 RUN mkdir -p /home/vscode/.cargo/registry /workspace/target \
     && chown -R vscode:vscode /home/vscode /workspace
+
+# Готуємо каталоги під named volume-и, щоб non-root vscode мав права на запис
+# (свіжий named volume успадковує ownership із mount-point образу).
+RUN mkdir -p /home/vscode/.claude /commandhistory \
+    && chown -R vscode:vscode /home/vscode/.claude /commandhistory
 
 USER vscode
 WORKDIR /workspace
