@@ -119,10 +119,10 @@ ip6tables -A OUTPUT -p tcp -m set --match-set claude-allowed-6 dst --dport 80  -
 # 8. Self-validation
 echo "=== Firewall self-validation ==="
 
-if curl -fsS --max-time 5 https://api.anthropic.com -o /dev/null; then
-  echo "OK: api.anthropic.com доступний"
+if curl -fsS --max-time 5 https://github.com -o /dev/null; then
+  echo "OK: whitelist пропускає дозволені домени (github.com)"
 else
-  echo "FAIL: api.anthropic.com має бути доступний - whitelist зламаний"
+  echo "FAIL: дозволений домен недоступний - whitelist зламаний"
   exit 1
 fi
 
