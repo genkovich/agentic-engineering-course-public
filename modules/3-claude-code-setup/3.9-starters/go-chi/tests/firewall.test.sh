@@ -12,7 +12,7 @@ if ! command -v iptables >/dev/null 2>&1; then
 fi
 
 # Перевірка чи init-firewall.sh уже виконався
-iptables_default=$(iptables -L OUTPUT --line-numbers 2>/dev/null | head -1 | grep -oE 'policy [A-Z]+' | awk '{print $2}' || echo "")
+iptables_default=$(sudo iptables -L OUTPUT --line-numbers 2>/dev/null | head -1 | grep -oE 'policy [A-Z]+' | awk '{print $2}' || echo "")
 if [ "$iptables_default" != "DROP" ]; then
   echo "SKIP: iptables OUTPUT default policy = $iptables_default, очікувалось DROP. Запусти 'sudo /usr/local/bin/init-firewall.sh'."
   exit 0
@@ -22,11 +22,11 @@ echo "=== Firewall behavior test ==="
 echo ""
 
 # 1. api.anthropic.com має бути доступний (whitelist)
-echo "Test 1: api.anthropic.com (whitelist) має пройти"
-if curl -fsS --max-time 5 https://api.anthropic.com -o /dev/null; then
-  echo "OK: api.anthropic.com доступний"
+echo "Test 1: github.com (whitelist) має пройти"
+if curl -fsS --max-time 5 https://github.com -o /dev/null; then
+  echo "OK: github.com доступний"
 else
-  echo "FAIL: api.anthropic.com заблокований - whitelist зламаний"
+  echo "FAIL: github.com заблокований - whitelist зламаний"
   exit 1
 fi
 echo ""
