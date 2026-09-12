@@ -22,6 +22,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     less \
     python3 \
     ca-certificates \
+    bubblewrap \
+    socat \
     && rm -rf /var/lib/apt/lists/*
 
 # Node.js 20 потрібен для встановлення Claude Code CLI через npm.
@@ -33,7 +35,10 @@ RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
 RUN groupadd --gid 1000 vscode \
     && useradd --uid 1000 --gid vscode --shell /bin/bash --create-home vscode
 
-RUN echo "vscode ALL=(root) NOPASSWD: /usr/local/bin/init-firewall.sh" > /etc/sudoers.d/vscode-firewall \
+RUN printf '%s\n' \
+      "vscode ALL=(root) NOPASSWD: /usr/local/bin/init-firewall.sh" \
+      "vscode ALL=(root) NOPASSWD: /usr/sbin/iptables -L*, /usr/sbin/ip6tables -L*" \
+      > /etc/sudoers.d/vscode-firewall \
     && chmod 0440 /etc/sudoers.d/vscode-firewall
 
 COPY init-firewall.sh /usr/local/bin/init-firewall.sh
@@ -44,6 +49,11 @@ RUN chmod +x /usr/local/bin/init-firewall.sh
 RUN echo "${CLAUDE_CODE_VERSION}" | grep -qE '^(latest|[0-9a-zA-Z._-]+)$' || \
     (echo "ERROR: невалідний CLAUDE_CODE_VERSION='${CLAUDE_CODE_VERSION}'" && exit 1) \
     && npm install -g "@anthropic-ai/claude-code@${CLAUDE_CODE_VERSION}"
+
+# Готуємо каталоги під named volume-и, щоб non-root vscode мав права на запис
+# (свіжий named volume успадковує ownership із mount-point образу).
+RUN mkdir -p /home/vscode/.claude /commandhistory \
+    && chown -R vscode:vscode /home/vscode/.claude /commandhistory
 
 USER vscode
 WORKDIR /workspace
