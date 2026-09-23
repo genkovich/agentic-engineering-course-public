@@ -6,6 +6,7 @@ updated_at: "<YYYY-MM-DD>"
 feature_size: M
 stage: "04-05"
 ticket: "<ticket-id>"
+target_surfaces: []  # filled in §4 — subset of: backend-service | web-frontend | mobile-app | desktop-app | cli | worker | library-sdk. Read (never re-derived) by api-forge/complete-sequence-diagrams/break-tasks/plan-tests/review-feature → _shared/surfaces.md
 ---
 
 # Software Architecture Document — <system / feature>
@@ -13,7 +14,9 @@ ticket: "<ticket-id>"
 <!-- Stages 04-05 → see sdlc/plugin/skills/architecture-design/SKILL.md -->
 <!-- 12 Arc42 sections. Empty sections — <!-- N/A: <one-line reason> -->. -->
 <!-- C4 Context (L1) lives inline in §3. C4 Container (L2) lives inline in §5. -->
-<!-- Заповнений приклад: див examples/course-lesson-mvp/sad.md у sdlc/ toolkit. -->
+<!-- §6 Runtime view seeds the primary flow(s) here; complete-sequence-diagrams (stage 06) then -->
+<!--    fills §6 with every critical flow / §5 AC — no cap. -->
+<!-- Numbers in §10 come VERBATIM from PRD §6 NFR — no inventing, no rounding. -->
 
 ## 1. Introduction and goals
 
@@ -37,6 +40,9 @@ ticket: "<ticket-id>"
 | <e.g. IC> | <feature usage> | No |
 | <e.g. EM> | <dashboard reads> | No |
 | <e.g. Tech Lead> | <SAD approval> | Yes |
+
+<!-- Decision overrides (¶4) — populated by the Step-7 critic resolution loop, empty otherwise.       -->
+<!-- Each: «Decision override: <headline> — rationale: <reason>» so downstream skills see the choice.  -->
 
 ## 2. Constraints
 
@@ -101,14 +107,25 @@ C4Context
 <!-- 🎯 Навіщо: 3-4 СТРАТЕГІЧНІ СТОВПИ, з яких потім ростуть усі ADR. Без §4 кожен ADR    -->
 <!--           виглядає випадковим — нема зонтика. ⭐ Найгустіша секція — тут ADR-gate    -->
 <!--           спрацьовує майже завжди (рішення незворотні + мульти-модульні).            -->
-<!-- 📋 Що писати: список з 3-4 виборів. На кожен — заголовок + 2-3 речення rationale.    -->
+<!-- 📋 Що писати: спершу Target surface(s), потім 3-4 стратегічні вибори.                -->
+<!--           На кожен — заголовок + 2-3 речення rationale.                              -->
+<!-- 📌 ПЕРШЕ рішення §4 — Target surface(s): ЩО САМЕ будуємо. Записується у frontmatter   -->
+<!--           target_surfaces: [...] і гейтить §5 (один контейнер на поверхню) + усі       -->
+<!--           наступні стадії. Деривиться з PRD §1 «для кого» + §4 ролей. → _shared/surfaces.md -->
 <!-- 📌 Приклад: «Зберігати урок як таблицю блоків» — стовп, з якого виросло ADR-0001.    -->
 
-**Top-3 strategic choices (the seeds for ADRs):**
+**Target surface(s) (the first decision — what's being built):** `<e.g. [backend-service, web-frontend]>`
+<!-- Mirror this list into the frontmatter `target_surfaces`. For each declared UI surface          -->
+<!-- (web-frontend / mobile-app / desktop-app) add a UI-architecture choice below (web → SSR/SPA/   -->
+<!-- hybrid; mobile → native/cross-platform). Multi-surface is usually an ADR (multi-module +       -->
+<!-- irreversible). The UI reuses the repo's existing design system / components / tokens from       -->
+<!-- architecture-map.md §Frontend — it does not design greenfield. → _shared/surfaces.md           -->
+
+**Top strategic choices (the seeds for ADRs):**
 
 1. **<e.g. Module isolation through events>** — <2-3 sentences rationale referencing Quality Goals and constraints>.
 2. **<e.g. Single-store persistence (Postgres)>** — <2-3 sentences>.
-3. **<e.g. Server-rendered dashboard>** — <2-3 sentences>.
+3. **<e.g. UI-architecture: SPA consuming the backend API>** — <per declared UI surface; 2-3 sentences>.
 
 Each tactical decision in later sections should be traceable to one of these strategic seeds. Tactical decisions that *contradict* a strategic choice are red flags — surface them in §11 Risks.
 
@@ -118,6 +135,10 @@ Each tactical decision in later sections should be traceable to one of these str
 <!--           хто з ким може говорити. Без §5 §6 (сценарії) не має словника учасників. -->
 <!-- 📋 Що писати: 1 абзац про стиль (шари/гексагональна/clean/на подіях) +            -->
 <!--           дерево папок + Mermaid C4Container.                                       -->
+<!-- 📌 ОДИН Container на кожну оголошену target_surface (frontmatter): fullstack        -->
+<!--           [backend-service, web-frontend] = backend-API container + web/SPA container; -->
+<!--           [backend-service, mobile-app] = API + mobile app. Container(web, …) нижче — -->
+<!--           лише приклад однієї поверхні; додай/заміни під оголошене у §4. → _shared/surfaces.md -->
 <!-- 📌 Приклад: «web-app, content-api, media-worker, postgres, s3, cdn».                -->
 
 <One paragraph: layered / hexagonal / clean / event-driven. Why.>
@@ -161,7 +182,10 @@ C4Container
 <!--           порядку говорить. Без §6 §5 — лише купа коробок без життя.                  -->
 <!-- 📋 Що писати: Mermaid sequenceDiagram. Учасники — імена з §5 (не вигадуй нові!).      -->
 <!--           Повідомлення семантичні («складає чорновик»), БЕЗ HTTP-методів/шляхів —     -->
-<!--           ендпоінт-рівневі sequence-діаграми зʼявляться у stage 06 (define-api).      -->
+<!--           ендпоінт-рівневі sequence-діаграми зʼявляться у stage 06 (api-forge).        -->
+<!-- ⏳ RESERVED FOR SEQUENCES: architecture-design сіє лише primary flow(s) тут.          -->
+<!--           complete-sequence-diagrams (stage 06) ДОПОВНЮЄ §6 кожним критичним flow /    -->
+<!--           кожним §5 AC — без обмеження. Не намагайся покрити все тут.                  -->
 <!-- 📌 Приклад: «methodist → web-app: складає чорновик → web-app → content-api: зберегти». -->
 
 **Critical flow 1: <flow name>**

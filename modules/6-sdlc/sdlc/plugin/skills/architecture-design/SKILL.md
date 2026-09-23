@@ -1,112 +1,128 @@
 ---
 name: architecture-design
-description: >
-  Use when user wants to produce a Software Architecture Document (SAD) with
-  Arc42 12 sections + ADRs for a feature, after PRD is closed. Triggers on
-  "architecture for {slug}", "design architecture for {feature}", "SAD for
-  {slug}", "arc42 for {slug}", "stage 04-05 for {slug}", "C4 context+container
-  for {slug}", "/sdlc-architecture-design {slug}", "/sdlc-arc {slug}". One
-  skill replaces draft-architecture + write-arc42 + draw-c4 + propose-adr.
-  Drafts §1-§12 in-memory, then per-section batch validates via AskUserQuestion
-  (4-state machine: Approve / Edit / Save as Open Question / Drop), spawns
-  ADRs only on blast-radius gate (irreversible / multi-module / has legitimate
-  alternatives), writes the section + commits atomically. Clean-context critic
-  on the post-Socratic SAD before the finalization commit. C4 levels 1-2 inline
-  (Context in §3, Container in §5); no L3/L4. Brownfield: dispatches Explore
-  subagent to map the repo before drafting. Prerequisite: docs/features/{slug}/PRD.md
-  — hard refuse if missing. GATE stage 🚪.
+model: opus
+effort: high
+agents: [explorer, critic]
+description: >-
+  Use to produce a Software Architecture Document for a feature — Arc42 12 sections + C4 L1/L2
+  inline + ADRs spawned on a blast-radius gate — once PRD.md and CONTEXT.md exist. The feature's
+  target surface(s) are chosen here (the first §4 decision → SAD frontmatter target_surfaces, read by
+  every downstream stage). Drafts §1–§12 in-memory, batch-validates each section Socratically
+  (4-state machine), spawns an ADR only when a decision crosses the blast-radius threshold
+  (irreversible / multi-module / has legitimate alternatives), writes each resolved section + its
+  ADRs atomically, then runs a clean-context critic before finalizing. Brownfield: reads
+  docs/architecture-map.md (re-scans only if absent/stale). Triggers on "architecture for {slug}",
+  "design architecture for {slug}", "SAD for {slug}", "arc42 for {slug}", "C4 context+container for
+  {slug}", "/sdlc-architecture-design {slug}", "спроектуй архітектуру {slug}", "SAD для {slug}",
+  "архітектурний документ {slug}". Hard-refuse if docs/features/{slug}/PRD.md is missing.
+  Triggers: /sdlc-architecture-design {slug}. Output: docs/features/{slug}/sad.md + adr/NNNN-*.md.
+triggers:
+  - /sdlc-architecture-design
+  - "architecture for"
+  - "design architecture for"
+  - "SAD for"
+  - "arc42 for"
+  - "C4 context+container for"
+  - "SAD для"
+  - "архітектурний документ"
 stage: "04-05"
 ---
 
 # Skill: architecture-design (SDLC stages 04-05 🚪 GATE)
 
-Generator of the Software Architecture Document (SAD) + supporting ADRs. Replaces the chain `draft-architecture → write-arc42 → draw-c4 → propose-adr`. Per-section batch validation through 12 Arc42 sections, asking the user via `AskUserQuestion` on every architectural decision, writing each resolved section to `docs/features/<slug>/sad.md` atomically, spawning ADRs only when a decision crosses the **blast-radius** threshold (*масштаб удару* — наскільки боляче буде передумати рішення). Detail per Protocol step lives in `references/`; this file is the backbone.
+Generator of the **Software Architecture Document** (`docs/features/<slug>/sad.md` — Arc42 12 sections, C4 Context inline in §3 and C4 Container inline in §5) plus supporting ADRs (`docs/features/<slug>/adr/NNNN-*.md`). It drafts all 12 sections in memory, walks them Socratically one section at a time, spawns an ADR only when a decision's *blast radius* (масштаб удару — how painful it is to reverse the decision later) crosses the gate, writes each resolved section and its ADRs as one atomic commit, and runs a clean-context critic over the finished SAD. The document itself is the state — resuming after an interrupt is free. L3 Component / L4 Code are out of scope. This file is the spine; detail lives in `references/`.
 
-The output is a growing document — the document itself is the state, resuming after Ctrl-C is free. C4 Context (L1) and Container (L2) live inline in §3 and §5 as Mermaid blocks. L3 Component is out of scope of high-level design — request a separate diagramming pass for it.
+The Socratic machine, the critic, the size matrix, and the ask-style are **shared** — this skill keeps only its deltas:
+→ [`../_shared/socratic-loop.md`](../_shared/socratic-loop.md) · [`../_shared/critic.md`](../_shared/critic.md) · [`../_shared/size-matrix.md`](../_shared/size-matrix.md) · [`../_shared/ask-style.md`](../_shared/ask-style.md)
+
+Depth governs the per-section question volume + autonomy → [`../_shared/interview-depth.md`](../_shared/interview-depth.md). C4 diagrams are confirmed in prose, never as raw source → [`../_shared/diagram-presentation.md`](../_shared/diagram-presentation.md). architecture-design is also where the feature's **target surface(s)** are chosen — the first §4 decision, written to `sad.md` frontmatter `target_surfaces` and read (never re-derived) by every downstream stage → [`../_shared/surfaces.md`](../_shared/surfaces.md).
 
 ## Як це читати (короткий вступ)
 
-Це інструкція для агента, який запускає skill. У ній є **8-крокова процедура** (Protocol нижче) — крок за кроком, як з PRD дістатися до готового sad.md з 5-12 ADR.
+Це інструкція для агента, який запускає skill. У ній **7-крокова процедура** (Protocol нижче) — крок за кроком, як з PRD дістатися до готового `sad.md` з 5-12 ADR.
 
-Якщо вперше відкриваєш цей файл — почни з:
-
-1. **`## When to use`** і **`## Inputs`** — щоб зрозуміти, коли цей skill застосовний.
-2. **`## Protocol`** — 8 кроків, які skill робить послідовно.
-3. **References** у списку нижче — детальні правила на кожен крок (як драфтити чорновики, як питати, як спавнити ADR).
-4. **`## Self-check`** — список того, що має бути виконано до завершення.
+Якщо вперше відкриваєш файл — почни з: **`## When to use`** + **`## Inputs`** (коли skill застосовний), потім **`## Protocol`** (7 кроків), потім References (деталі на кожен крок), і **`## Definition of Done`** (що має бути виконано до завершення).
 
 **Словничок термінів** (англо-термін → що означає UA одним рядком):
 
+- *target surface* — таргет-сёрфейс: *що саме ми будуємо* (бекенд-сервіс / веб-фронт / мобільний застосунок / CLI / worker / library-sdk). Обирається тут, у §4, і записується у `target_surfaces:` frontmatter SAD → [`../_shared/surfaces.md`](../_shared/surfaces.md).
+- *depth dial* — депт-діал: регулятор easy/medium/hard на запуск — скільки skill питає vs вирішує сам → [`../_shared/interview-depth.md`](../_shared/interview-depth.md).
 - *blast radius* — масштаб удару: наскільки боляче буде передумати рішення.
 - *Socratic loop* — режим діалогу з користувачем питаннями про рішення (одна `AskUserQuestion` за раз).
-- *ADR-gate* — три питання, на яких рішення стає вартим окремого ADR-файлу (а не рядка inline).
-- *MADR* — формат файлу ADR (markdown з заголовком, контекстом, опціями, наслідками).
+- *blast-radius gate* — перевірка з 3 критеріями: незворотнє (≥3 днів переробки), зачіпає ≥2 модулі, є чесна альтернатива. **2 з 3 → ADR.**
 - *4-state machine* — 4 можливі дії з рішенням: **Прийняти** / **Виправити** / **Винести у відкрите питання** / **Викинути**.
-- *blast-radius gate* — перевірка з 3 критеріями: незворотнє (≥3 днів переробки), зачіпає ≥2 модулі, є чесна альтернатива.
-- *Save-as-OQ* — Save as Open Question: рішення не приймається зараз, переноситься у §11 SAD як відкрите питання з власником і дедлайном.
-- *clean-context critic* — окремий subagent, який бачить лише фінальний файл (а не діалог), і шукає внутрішні протиріччя.
+- *Save-as-OQ* — рішення не приймається зараз, переноситься у §11 SAD як відкрите питання з власником і дедлайном.
+- *MADR* — формат файлу ADR (markdown з заголовком, контекстом, опціями, наслідками).
+- *clean-context critic* — окремий subagent (`sdlc:critic`), який бачить лише фінальний файл (а не діалог), і шукає внутрішні протиріччя.
 
 ## Owner
 
-Architect / Tech Lead. PM stays consulted on Quality Goals (§10) and §11 Risk severities.
+Architect / Tech Lead (drives everything). PM is consulted only on §10 Quality goals and §11 Risk severities.
 
 ## When to use
 
-- After `sdlc:write-prd` produced `docs/features/<slug>/PRD.md`.
-- Brownfield repo (existing code the feature changes) OR greenfield with PRD only.
+- After `sdlc:write-prd` produced `docs/features/<slug>/PRD.md` (ideally after `sdlc:clarify-prd` tightened it).
+- Brownfield repo (existing code the feature changes) OR greenfield with a PRD only.
 - `/sdlc-architecture-design <slug>` as explicit invocation.
-- Replaces standalone calls to `draft-architecture`, `write-arc42`, `draw-c4`, `propose-adr` — those skills no longer exist.
-- Skip if `docs/features/<slug>/sad.md` already exists with 12 sections filled (content or `<!-- N/A: reason -->`) AND `adr/` has ≥1 file — suggest review instead.
+- Skip if `docs/features/<slug>/sad.md` already has all 12 sections filled (content or `<!-- N/A: reason -->`) AND `adr/` has ≥1 file — suggest review instead.
 
-## Inputs (HARD REFUSE if missing)
+## Inputs
 
-- `<slug>` — feature slug used in previous stages.
-- `docs/features/<slug>/PRD.md` — must exist, with §2 Goals + §6 NFR filled. If missing → refuse + suggest `sdlc:write-prd <slug>`.
-- Git repo (so the Step 3 Explore subagent can read code on brownfield).
+- `<slug>` — same feature slug used by every earlier stage.
+- **Gate (hard-refuse if missing):** `docs/features/<slug>/PRD.md`. If absent → STOP and point: «run `/sdlc-write-prd <slug>` first — architecture-design reads the PRD's goals/NFRs as canonical». `CONTEXT.md` (`## Glossary`) is read when present — it wins over anything that contradicts; absent → derive roles from PRD §4 and note it.
+- (Optional) `docs/features/<slug>/.size` — depth hint (MVP vs Full + expected ADR count per the size matrix). Absent → default to M (full set) and say so loudly in the handoff.
+- (Optional) `docs/architecture-map.md` — the current-architecture source (produced by `sdlc:map-architecture`). Read it; re-scan only if absent/stale.
+- A git repo — so the Step-3 brownfield scan can read code when the map is missing.
 
 ## Protocol
 
-1. **Prereq check (hard refuse).** `test -f docs/features/<slug>/PRD.md` → exit ≠ 0 = refuse + suggest `sdlc:write-prd <slug>`. Also read `docs/features/<slug>/.size` if it exists (size class shapes ADR count + §6 flow count expectations — see [./references/checklist.md](./references/checklist.md)).
-2. **Read required inputs.** `PRD.md` (§2 Goals, §3 Non-goals, §6 NFR with numeric targets + measurement sources, §6.1 Security/privacy + abuse cases, §7 KPIs, §8 Open questions, §13 Recommendation, §1 ¶4 «Decision overrides» if any); `CONTEXT.md` `## Glossary` (canonical role names + domain terms — wins over anything that contradicts).
-3. **Brownfield scan.** Dispatch one `Agent` (`subagent_type: "Explore"`) with this brief: «Map this repo for an architecture document. Report: (a) primary language + frameworks + versions, (b) top-level module layout, (c) ports/adapters or layering conventions, (d) data stores in use, (e) inter-module communication style (direct call / events / HTTP), (f) anything that constrains the feature `<slug>` (existing tables, existing endpoints, conventions in CLAUDE.md). Under 400 words.» Greenfield (no source files) → skip, note `<!-- brownfield: N/A — greenfield repo -->` in §3.
-4. **Bootstrap.** Copy `./templates/sad-template.md` → `docs/features/<slug>/sad.md`. Patch frontmatter (`updated_at`, `ticket`, `feature_size` from `.size`). Initial commit `feat(<slug>): bootstrap sad.md from PRD + repo scan`. This is the **only** file write between Steps 4 and 7 — Step 6 drafts in-memory only.
-5. **Read own templates.** `./templates/sad-template.md` (each section has `<!-- … -->` inline comments that are the per-section generation contract) + `./templates/adr-template.md` (MADR shape — Status / Context / Decision drivers / Considered options / Decision outcome / Consequences / Links).
-6. **Per-section batch draft (in-memory only).** For each section §1 → §12: draft proposed content + identify the decisions the section contains + bundle trivial defaults (CLAUDE.md conventions per [./references/socratic-cadence.md](./references/socratic-cadence.md) Rule 1). Per-section sources, item-banks per §1-§12, pre-Socratic hygiene checks → see [./references/draft-generation.md](./references/draft-generation.md). Do NOT write to `sad.md` here — Step 7e writes per section.
-7. **Socratic validation — batch-per-section + ADR-gate, per-section file write.** For each section §1 → §12: (a) render the full proposed section + numbered list of decisions in one message (big picture); (b) per-decision `AskUserQuestion` with 4-state machine `Approve` / `Edit` / `Save as Open Question` / `Drop`; (c) apply transitions in-memory; (d) for each Approved decision run the blast-radius gate (irreversible / multi-module / has legitimate alternatives — see [./references/blast-radius-heuristic.md](./references/blast-radius-heuristic.md)); spawn an ADR if ≥1 criterion fires; (e) write the resolved section to `sad.md` + ADR files spawned in 7d + commit `feat(<slug>): sad §N — <decisions summary>`; (f) move to next section. The skill never returns to a previously-written section (cross-section drift is the Step 8 critic's job). State transitions + edits-log schema + Save-as-OQ landing zone → see [./references/socratic-loop.md](./references/socratic-loop.md). Question shape + option `description` field → see [./references/ask-examples.md](./references/ask-examples.md). Cadence (mini-recap every 5, question budget per section) → see [./references/socratic-cadence.md](./references/socratic-cadence.md). C4 syntax for §3 + §5 Mermaid blocks → see [./references/c4-mermaid-syntax.md](./references/c4-mermaid-syntax.md).
-8. **Critic stress-test + finalization commit.** Single `Agent` call (`subagent_type: "general-purpose"`, clean context) with the final `sad.md` + Step-7 edits-log + Step-7 ADR-spawns log + paths to `PRD.md` / `CONTEXT.md` / `docs/features/<slug>/adr/`. Resolve findings via `AskUserQuestion` with options `Accept revert/amendment` / `Accept amendment (different wording)` / `Override (rationale)` — `Override` emits a §1 ¶4 «Decision overrides» bullet. Then run the pre-write regex backup (Mermaid sanity + ADR title format + §9 orphan scan) as F5 backup; run Self-check below; on pass write any amendments to `sad.md` + commit `feat(<slug>): sad finalization (critic pass)`. Dispatch + resolution loop + pre-write regex scans → see [./references/critic-phase.md](./references/critic-phase.md); agent prompt body → see [./references/critic-prompt.md](./references/critic-prompt.md). Next owner: Architect signs → `sdlc:draw-sequence <slug>` (stage 06).
+1. **Gate + size + set interview depth.** `test -f docs/features/<slug>/PRD.md` → missing = refuse with the pointer above. Read `.size` if present (shapes ADR count + §6 flow count — see the size matrix; absent → default M). **Then set the interview depth (the opening question):** read `interview_depth` from `.claude/sdlc.local.md` if present (else default medium), and — unless a `--depth=easy|medium|hard` arg was passed — ask ONE depth-selection `AskUserQuestion` phrased per [`../_shared/ask-style.md`](../_shared/ask-style.md), with the saved/medium value as the «(Recommended)» first option. The level governs the step-6 per-section question volume (easy: decide convention-defaults itself + an assumptions ledger, ask only blast-radius decisions; medium: walk every real decision; hard: walk every decision, foreground each trade-off) and the C4 diagram confirmation → [`../_shared/interview-depth.md`](../_shared/interview-depth.md). (The blast-radius → ADR gate and the §11 owner+due rule are floors — enforced at every depth.)
+2. **Read upstream.** `PRD.md` (§2 Goals, §3 Non-goals, §6 NFR with numeric targets + measurement, §6.1 Security/privacy + abuse cases, §7 KPIs, §8 Open questions, §13 Recommendation, any §1 ¶4 «Decision override» bullets); `CONTEXT.md` `## Glossary` (canonical roles + domain terms — wins over anything that contradicts).
+3. **Current architecture — read the map, don't re-scan.** Prefer `docs/architecture-map.md` (produced by `sdlc:map-architecture`): if it exists and is fresh (its `reflects_commit` ≈ current HEAD), read it — that IS the brownfield context (module layout, layering, datastores, conventions, the §Frontend / UI foundation, the C4 of what exists). Re-scan only if the map is **absent or stale**: dispatch the [`explorer`](../../agents/explorer.md) agent — `subagent_type: "sdlc:explorer"` (`model: haiku` + `effort: low`, clean-isolated per [`../_shared/agent-roster.md`](../_shared/agent-roster.md)) — for «primary language + frameworks + versions, module layout, layering/ports conventions, datastores, inter-module comms, the existing design system / component library / tokens (§Frontend), anything that constrains `<slug>`», and suggest the user run `/sdlc-map-architecture` to persist it. Greenfield (no source + no map) → note `<!-- brownfield: N/A — greenfield repo -->` in §3. (Fallback to a `subagent_type: "Explore"` Agent if `sdlc:explorer` is unavailable.)
+4. **Bootstrap + read template.** Copy [`./templates/sad-template.md`](./templates/sad-template.md) → `docs/features/<slug>/sad.md`; patch frontmatter (`updated_at`, `ticket`, `feature_size` from `.size`; leave `target_surfaces: []` empty — it's filled when §4's Target-surface decision resolves in step 6). Commit `feat(<slug>): bootstrap sad.md from PRD + architecture-map`. Read the template's `<!-- … -->` comments (the per-section contract) + [`./templates/adr-template.md`](./templates/adr-template.md) (MADR shape). This is the only file write between Step 4 and Step 6 — Step 5 drafts in-memory.
+5. **Per-section draft (in-memory).** For each §1 → §12, draft proposed content + the decisions it contains, bundling trivial convention defaults into one question. Per-section sourcing, item-banks, the question budget, and pre-Socratic hygiene → [`./references/draft-generation.md`](./references/draft-generation.md). Do NOT write `sad.md` here.
+6. **Socratic walk + blast-radius gate, per-section write.** For each §1 → §12: render the full section + its numbered decisions (big picture), walk one `AskUserQuestion` per decision with the shared 4-state machine (per-section question volume scales with the depth dial — at easy, decide convention-defaults yourself and ladder them into the assumptions ledger, asking only blast-radius decisions), apply transitions in-memory, run the blast-radius gate on each **Approved** decision (spawn an ADR on 2-of-3), then write the resolved section + its spawned ADRs + commit `feat(<slug>): sad §N — <summary>`. Never return to a written section. **§4's first decision is the Target-surface selection** — *what's being built* (a multiSelect over `backend-service` / `web-frontend` / `mobile-app` / `desktop-app` / `cli` / `worker` / `library-sdk`, derived from PRD §1 «for whom» + §4 roles; the PRD itself names no surface), gated by the blast-radius gate (multi-surface is multi-module + irreversible ⇒ usually an ADR). On resolution, **write `target_surfaces: [...]` to the `sad.md` frontmatter** — it draws one §5 C4 container per surface and is read (never re-derived) by `api-forge` / `complete-sequence-diagrams` / `break-tasks` / `plan-tests` / `review-feature`. For each declared **UI surface** (`web-frontend` / `mobile-app` / `desktop-app`), walk the follow-on **UI-architecture decision** (web → SSR/SPA/hybrid; mobile → native/cross-platform; + state/routing if warranted), gated to an ADR like any §4 strategic choice; the UI **reuses** the existing design system / components / tokens from `architecture-map.md` §Frontend → [`../_shared/surfaces.md`](../_shared/surfaces.md). **For the §3 C4Context and §5 C4Container sections, confirm the diagram per [`../_shared/diagram-presentation.md`](../_shared/diagram-presentation.md)** — write the block into `sad.md`, validate it per [`../_shared/mermaid-check.md`](../_shared/mermaid-check.md), then **describe the context / containers in prose** (who talks to what, which systems it depends on) and confirm by prose; **never paste the raw C4 source as the question**. At `easy`, write + a one-line summary and proceed (no per-diagram question). architecture-design delta → [`./references/socratic-loop.md`](./references/socratic-loop.md) (section list, decision-types, the gate); gate scoring → [`./references/blast-radius-heuristic.md`](./references/blast-radius-heuristic.md); C4 syntax for §3/§5 → [`./references/c4-mermaid-syntax.md`](./references/c4-mermaid-syntax.md); cadence → [`./references/socratic-cadence.md`](./references/socratic-cadence.md); question shapes → [`./references/ask-examples.md`](./references/ask-examples.md). Maintain the edits-log + an adjacent ADR-spawns log.
+7. **Critic + finalize.** Dispatch the [`critic`](../../agents/critic.md) agent — `subagent_type: "sdlc:critic"` (carries `model: opus` + `effort: high`, clean-isolated per [`../_shared/agent-roster.md`](../_shared/agent-roster.md); fallback `general-purpose` if unavailable) — with the architecture-design delta in [`./references/critic-phase.md`](./references/critic-phase.md) + the agent prompt body in [`./references/critic-prompt.md`](./references/critic-prompt.md) (over [`../_shared/critic.md`](../_shared/critic.md)) on the final `sad.md` + edits-log + ADR-spawns log; resolve each finding via `AskUserQuestion` (Accept revert / Accept amendment / Override-with-rationale → §1 ¶4 bullet). Run the pre-write backstop scans: **validate every Mermaid block in `sad.md` per [`../_shared/mermaid-check.md`](../_shared/mermaid-check.md)** (render-parse with `mmdc` if available, else the structural lint — fix any that don't parse, never commit a broken diagram); ADR title in decision-form kebab-case + Status `Accepted`; §9 closed against `adr/`; no `<placeholder>` stubs. On pass, write any amendments + commit `feat(<slug>): sad finalization (critic pass)`. Then **emit the stage-handoff block** per [`../_shared/handoff.md`](../_shared/handoff.md) — *What I did* + *Review* (`sad.md` C4 §3/§5 + `target_surfaces`, `adr/`) + *Run next* (`/clear`, then `/sdlc-complete-sequence-diagrams <slug>`, which writes flows into §6).
 
-## Self-check
+## Definition of Done
 
-Full DoD + anti-patterns + N/A logic → [./references/checklist.md](./references/checklist.md). Inline non-negotiables:
+- `docs/features/<slug>/sad.md` exists with all 12 Arc42 sections filled OR marked `<!-- N/A: <reason> -->`.
+- §3 has a real `C4Context` block and §5 a real `C4Container` block — real names from CONTEXT + the map/scan, no `<placeholder>` stubs, no `Container_Bondary` typos. §6 has ≥1 `sequenceDiagram` (the `complete-sequence-diagrams` stage then covers every critical flow / §5 AC — no cap).
+- Frontmatter `target_surfaces: [...]` is non-empty (the Target-surface decision was made in §4) and §5 draws **one C4 container per declared surface**; each declared UI surface (`web-frontend` / `mobile-app` / `desktop-app`) carries a UI-architecture decision — an ADR, or an inline §4 note if it didn't cross the gate. → [`../_shared/surfaces.md`](../_shared/surfaces.md).
+- §9 ADR table is closed against `adr/` (every file has a row, every row a file). 2–4 ADRs for XS/S, 5–12 for M, 10–15 for L/XL; every ADR Status = `Accepted`, title in decision-form (`0003-sliding-window-with-redis.md` ✓ vs `0003-rate-limiting.md` ✗), no strawman options.
+- §10 scenarios are testable (When / Then / How-verify) and cite PRD §6 NFR numbers verbatim (no inventing, no rounding).
+- §11 carries a row for every `save_as_oq` decision with both owner AND due (severity literal `Open question`); never N/A.
+- §1 Stakeholders + §3 actors match the CONTEXT glossary exactly (no invented `user`/`admin`).
+- Step-3 read the map (or the explorer scan ran on a brownfield, or §3 has the greenfield note). Edits-log maintained. The critic ran on the post-Socratic SAD; every finding resolved or overridden.
 
-- Step 3 Explore subagent ran on brownfield (or §3 has `<!-- brownfield: N/A — greenfield repo -->`).
-- Step 7 edits-log maintained: each `Edit` / `Drop` / `Save as Open Question` has one entry with verbatim `before` / `after` / `user_reason` (action enum `edit|drop|save_as_oq`). `Approve` decisions absent (baseline).
-- §11 Risks contains every `save_as_oq`-migrated decision from Step 7 with **both** owner AND due filled (no lone owner, no lone due — missing either downgraded the migration to `Drop` with a warning).
-- Step 8 critic ran on post-Socratic `sad.md` + edits-log + ADR-spawns log; every finding resolved via `AskUserQuestion` or `Override` (with §1 ¶4 bullet).
-- §3 has a `C4Context` Mermaid block AND §5 has a `C4Container` Mermaid block — both with real names from CONTEXT + Explore (no `<placeholder>` template stubs).
-- §6 has ≥1 `sequenceDiagram` Mermaid block (3-5 for M+ size).
-- §9 Architecture decisions table references every file in `docs/features/<slug>/adr/` (no orphans, no missing rows).
-- Roles in §1 Stakeholders + §3 actors match CONTEXT glossary exactly (no inventing `user`/`admin` when glossary defines specific roles).
-- Every ADR has Status = `Accepted` (this skill is synchronous); every ADR title is decision-form imperative kebab-case (`0003-sliding-window-with-redis.md` ✓ vs `0003-rate-limiting.md` ✗).
+Full DoD + anti-patterns + N/A logic per section + ADR-count expectations → [`./references/checklist.md`](./references/checklist.md). Any check fails → re-open the relevant `AskUserQuestion`, then re-check.
 
-Any check fails → re-open the relevant `AskUserQuestion`, then re-check.
+## Anti-patterns
 
-## References
+- **An ADR for every decision** — kills the genre. Only blast-radius decisions become ADRs (5–12 for M, not 25). Conversely, missing an irreversibility under-ADRs the feature.
+- **ADR `Status: Proposed` from this skill** — it is synchronous (you decide with the user now), so Status is `Accepted`. Use `sdlc:decide-adr` for an async Proposed → Accepted flow.
+- **ADR title in problem-form** (`0003-rate-limiting.md`) or with a **strawman option** (an alternative an existing constraint already excludes) — both dilute the ADR genre and trigger the critic's F6.
+- **Inventing §10 numbers** the PRD never agreed to — cite PRD §6 NFR verbatim. **Naming a concrete stack in §2** that contradicts the repo's conventions without an Override note pointing at §11.
+- **Re-deriving the surface downstream.** architecture-design declares `target_surfaces` once; `api-forge` / `complete-sequence-diagrams` / `break-tasks` / `plan-tests` / `review-feature` read it. A skill that re-infers the surface when the SAD already declared it is the anti-pattern surfaces.md kills.
+- **Skipping the brownfield context** — guessing the layout produces a fictional §5 Container view and invented §2 Constraints. Read `architecture-map.md`; scan with `sdlc:explorer` only if it's missing/stale.
+- **Returning to a written section** — each section commits atomically; cross-section drift is the critic's job, not a re-walk. Re-opening §4 after writing §10 means you don't trust the per-section batch.
+- **Save-as-OQ without owner+due** — capture both in the follow-up; missing either downgrades to Drop with a warning, never a half-filled §11 row.
+- **Resolving critic findings unilaterally** (without `AskUserQuestion`) or **one giant end-of-pass commit** — both defeat the per-section, user-in-the-loop contract.
+- **Spilling into C4 L3/L4** — out of scope; suggest a separate diagramming pass.
 
-- [./references/draft-generation.md](./references/draft-generation.md) — Step 6: per-section sources, item-banks per §1-§12, pre-Socratic hygiene.
-- [./references/socratic-loop.md](./references/socratic-loop.md) — Step 7: batch-per-section flow, 4-state machine, edits-log + ADR-spawns log schemas, Save-as-OQ landing zone in §11.
-- [./references/ask-examples.md](./references/ask-examples.md) — `AskUserQuestion` shape per decision-type (Strategic / Building-block / Crosscutting bundle / Quality scenario) + ADR-gate shape + critic-finding resolution shape.
-- [./references/critic-phase.md](./references/critic-phase.md) — Step 8: critic dispatch, resolution loop, pre-write regex backup (Mermaid + ADR title + §9 orphan), failure modes.
-- [./references/critic-prompt.md](./references/critic-prompt.md) — canonical agent prompt body for the Step 8 sub-agent. 6 failure classes adapted for SAD (F1 strategic-vector drift / F2 size-class creep / F3 defer vs PRD vector / F4 silent edits / F5 coverage regression / F6 constraint/quality leak).
-- [./references/checklist.md](./references/checklist.md) — full Definition of Done + anti-patterns + N/A logic per section + ADR count expectations.
-- [./references/blast-radius-heuristic.md](./references/blast-radius-heuristic.md) — when a decision becomes ADR-worthy (irreversible / multi-module / has alternatives), how to score borderline cases.
-- [./references/socratic-cadence.md](./references/socratic-cadence.md) — how to avoid question fatigue (mini-recap every 5, 1-line WHY per option, bundle trivial defaults).
-- [./references/c4-mermaid-syntax.md](./references/c4-mermaid-syntax.md) — Mermaid C4Context + C4Container quick reference with worked examples.
+## References & templates
 
-## Templates
-
-- [./templates/sad-template.md](./templates/sad-template.md) — 12 Arc42 sections + Mermaid C4 L1/L2 placeholders + frontmatter + §11 row pattern for Open-Decisions.
-- [./templates/adr-template.md](./templates/adr-template.md) — MADR format (status, context, drivers, options, decision, consequences, links). Also pulled by the `decide-adr` skill cross-skill.
-- [./templates/c4-context.md](./templates/c4-context.md) — standalone L1 C4Context Mermaid snippet (embedded inline in SAD §3).
-- [./templates/c4-container.md](./templates/c4-container.md) — standalone L2 C4Container Mermaid snippet (embedded inline in SAD §5).
-- [./templates/deployment.md](./templates/deployment.md) — deployment diagram skeleton for §7 (Deployment View).
+- [`./references/draft-generation.md`](./references/draft-generation.md) — Step 5: per-section sourcing for §1–§12, item-banks, the question budget, pre-Socratic hygiene.
+- [`./references/socratic-loop.md`](./references/socratic-loop.md) — architecture-design's delta over the shared Socratic loop (section list, decision-types incl. Surface + UI-architecture, the blast-radius gate, the §11 OQ table).
+- [`./references/socratic-cadence.md`](./references/socratic-cadence.md) — how to avoid question fatigue (mini-recap every 5, Recommended-first, bundle trivial defaults).
+- [`./references/blast-radius-heuristic.md`](./references/blast-radius-heuristic.md) — the 3-criteria ADR gate (irreversible / multi-module / legitimate alternatives), scoring, target counts.
+- [`./references/critic-phase.md`](./references/critic-phase.md) — Step 7 dispatch + resolution loop + pre-write backstop scans; architecture-design's delta over the shared critic (F5 floor, F6 = NFR-leak + strawman-ADR + §2-vs-repo, F1 = strategic-vector drift).
+- [`./references/critic-prompt.md`](./references/critic-prompt.md) — canonical agent prompt body for the Step 7 critic. 6 failure classes adapted for the SAD.
+- [`./references/c4-mermaid-syntax.md`](./references/c4-mermaid-syntax.md) — C4Context + C4Container Mermaid cheatsheet for §3/§5.
+- [`./references/ask-examples.md`](./references/ask-examples.md) — architecture-design-specific question shapes (Surface, UI-architecture, strategic-with-ADR-spawn, blast-radius gate, Save-as-OQ follow-up, critic-finding resolution).
+- [`./references/checklist.md`](./references/checklist.md) — full Definition of Done + anti-patterns + N/A logic + ADR count expectations.
+- [`../_shared/interview-depth.md`](../_shared/interview-depth.md) — the easy/medium/hard dial set in step 1 (per-section question volume + autonomy).
+- [`../_shared/diagram-presentation.md`](../_shared/diagram-presentation.md) — how the §3/§5 C4 diagrams are confirmed in prose (write → validate → describe), never as raw source.
+- [`../_shared/mermaid-check.md`](../_shared/mermaid-check.md) — validate every C4 block after writing it.
+- [`../_shared/surfaces.md`](../_shared/surfaces.md) — the target-surface taxonomy (C4-container-grounded); architecture-design owns the selection (§4 first decision → frontmatter `target_surfaces`), downstream reads it.
+- [`./templates/sad-template.md`](./templates/sad-template.md) · [`./templates/adr-template.md`](./templates/adr-template.md) · [`./templates/c4-context.md`](./templates/c4-context.md) · [`./templates/c4-container.md`](./templates/c4-container.md) · [`./templates/deployment.md`](./templates/deployment.md) — output scaffolds; inline comments are the per-section generation contract. (C4 syntax → [`./references/c4-mermaid-syntax.md`](./references/c4-mermaid-syntax.md).)

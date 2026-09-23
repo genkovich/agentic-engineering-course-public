@@ -16,14 +16,14 @@
 
 | Toolkit | Що показує |
 |---|---|
-| [sdlc/](./sdlc/) | Lean SDLC pipeline: 11 skills + document templates + наскрізний example. Клонуй, підключи як plugin, або тягни шаблони у свій репо |
+| [sdlc/](./sdlc/) | SDLC-плагін v4.5.1: 21 skill + 11 агентів, шаблони документів і наскрізний example. Клонуй, підключи як plugin, або тягни шаблони у свій репо |
 
 ## Як використовувати
 
 ```bash
 cd modules/6-sdlc/sdlc
 claude --plugin-dir ./plugin
-# далі в Claude Code: /sdlc-interview <slug>
+# далі в Claude Code: /sdlc:interview <slug>
 ```
 
 Детальний розбір — у [`sdlc/README.md`](./sdlc/README.md) з мапою лекцій до файлів і трьома способами використання (plugin / шаблони у свій репо / reference для ДЗ).

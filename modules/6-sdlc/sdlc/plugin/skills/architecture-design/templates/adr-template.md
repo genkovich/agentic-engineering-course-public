@@ -1,5 +1,4 @@
 <!-- Format: MADR (Markdown Any Decision Record — формат запису архітектурних рішень). -->
-<!-- Заповнений приклад: див ~/sources/beer-lms/docs/features/course-lesson-mvp/adr/0001-content-storage-strategy.md -->
 
 ---
 status: Accepted                                # Proposed → Accepted → Superseded by NNNN. Цей skill пише Accepted одразу.

@@ -14,6 +14,8 @@
 
 A linear pass through 12 Arc42 sections plus ADR decisions can easily hit 30-60 questions if every uncertainty becomes a separate `AskUserQuestion`. That's the fatigue threshold — users start picking the first option blindly to escape, which defeats the whole point of asking. This file describes the cadence patterns that keep the user engaged.
 
+The **depth dial** ([`../../_shared/interview-depth.md`](../../_shared/interview-depth.md)) tunes how many questions get asked at all: at `easy` the skill decides the convention-defaults itself and lists them in an assumptions ledger (asking only blast-radius decisions), at `hard` it walks every decision. The cadence rules below apply at every level — depth scales the *count*, not the *explanatory quality*.
+
 ## Three rules
 
 ### Rule 1 — One question per uncertainty, not per parameter

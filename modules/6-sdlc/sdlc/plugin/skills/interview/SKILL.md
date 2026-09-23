@@ -8,7 +8,11 @@ description: >
   Produces idea-brief.md (15 sections, ≤5 pages). Triggers on "raw idea",
   "capture an idea", "interview a feature X", "brief for X", "new feature X",
   "idea brief", "intake feature X", "start new feature", "ideation for {slug}",
-  "/sdlc-interview {slug}". Replaces the prior intake + brainstorm + interview
+  "/sdlc-interview {slug}". Also runs project-level in an empty folder
+  (greenfield mode): "new project idea", "greenfield brief", "інтерв'ю нового
+  проєкту", "/sdlc-interview" without slug outside a repo — writes docs/idea-brief.md
+  for the whole product. Has a depth regulator (easy / medium / hard; easy =
+  3-4 checkpoints for a quick pass). Replaces the prior intake + brainstorm + interview
   trio. ADRs are no longer part of this skill — they are spawned inline by
   the architecture-design skill at gate 04-05. Not to be confused with the global `interview` skill
   (stress-testing ideas) — this one is bound to SDLC ideation phase and
@@ -33,6 +37,7 @@ Idea author (PM / Eng / CTO / anyone). Tech Lead joins at multi-perspective revi
 - «interview a feature <slug>», «ideation for <slug>», «brief for <feature>».
 - «intake feature <slug>», «start new feature with CONTEXT», «full intake for <slug>».
 - `/sdlc-interview <slug>` as explicit invocation.
+- **Greenfield**: user is in an empty folder (no `.git`, no `docs/`) with a new product idea — «new project idea», «бриф нового продукту». Runs project-level, see «Greenfield mode» below.
 - User drops a raw idea in prose and asks «format this per SDLC» / «run ideation for <slug>».
 - Glossary-aware: on start the skill reads `CONTEXT.md` if it exists (repo root or `docs/features/<slug>/`), keeps the glossary as session state, and triggers `sdlc:fix-term` inline for new domain terms.
 - Skip if `docs/features/<slug>/idea-brief.md` already exists with `status: Confirmed` and is fresh (≤2 weeks) — update it first, don't rewrite.
@@ -41,6 +46,27 @@ Idea author (PM / Eng / CTO / anyone). Tech Lead joins at multi-perspective revi
 
 - `<slug>` — kebab-case, short (`rate-limiting`, `goals-tracking`). If the user didn't give one — suggest 2-3 options based on the idea.
 - (Optional) prior notes / links / ticket the user already has.
+
+## Depth regulator (first checkpoint)
+
+Перше AskUserQuestion кожного запуску — глибина інтерв'ю. Записується у frontmatter brief-а (`depth:`).
+
+- **easy** — 3–4 чекпойнти, швидкий прохід: Phase 1 (ідея), Phase 2 одним батчем (2–3 питання: користувач/біль · критерій успіху · скоуп), Phases 9–11 злиті в один підсумковий confirm (Claude пропонує RICE + рекомендацію разом). Phases 4–8 Claude проходить сам без sub-agents: 1–2 швидкі пошуки для §6, три approaches по одному абзацу, devil's advocate — власний список з 3–5 ризиків. Всі 15 секцій заповнюються, але компактно.
+- **medium** (default) — повний 14-фазний протокол нижче, як є.
+- **hard** — повний протокол + додатковий Socratic-батч у Phase 2 і ширший §6 (5+ конкурентів).
+
+Easy не скасовує чесність чекпойнтів: його 3–4 AskUserQuestion — справжні, фабрикація відповідей недопустима так само, як у medium/hard.
+
+## Greenfield mode (project-level brief)
+
+**Детект:** поточна тека порожня, або без `.git` і без `docs/` — це новий проєкт, не фіча в наявному репо. Інакше — feature mode (протокол нижче без змін).
+
+Відмінності greenfield від feature mode:
+
+- **Артефакт:** `docs/idea-brief.md` у корені теки (без `docs/features/<slug>/`). Той самий 15-секційний шаблон; `<slug>` всюди означає назву продукту (kebab-case — стане slug-ом скафолда).
+- **Phase 10 Feasibility:** репо ще нема — сканувати нічого. Claude чесно базує ☑/☐ на відповідях про команду/стек («greenfield — оцінка від команди, не від репо») і питає користувача, як завжди.
+- **Phase 14 handoff:** наступний крок не `sdlc:write-prd`, а **`sdlc:scaffold`** — матеріалізація проєкту з темплейта; brief поїде в нове репо разом зі скафолдом. Commit не пропонується (git-репо ще не існує — його створить scaffold).
+- **CONTEXT.md / glossary:** якщо файлу нема — pending-терміни лишаються в brief §15 Open questions, fix-term не викликається.
 
 ## Mode handling
 
@@ -87,6 +113,10 @@ Idea author (PM / Eng / CTO / anyone). Tech Lead joins at multi-perspective revi
 - **Read** `CONTEXT.md` (root and `docs/features/<slug>/` if exists) — завантажити `## Glossary` у session state.
 - **Verify** `docs/features/<slug>/idea-brief.md` does not exist with `status: Confirmed` (else: skip, update existing).
 - **NO Write / Edit / mkdir.** Setup стає одним з steps плану, який буде виконано у Phase 12.
+
+### 0.25. Depth checkpoint (AskUserQuestion — mandatory)
+
+Одне питання: глибина (див. «Depth regulator»). easy → скорочений маршрут фаз; medium/hard → повний. У greenfield mode це ж питання підтверджує назву продукту (kebab-case), якщо користувач її ще не дав.
 
 ### 1. Idea capture (AskUserQuestion — mandatory)
 
@@ -236,6 +266,8 @@ Suggest commit (do not auto-execute):
 ```
 
 Next owner: PM + Tech Lead → `sdlc:write-prd <slug>` (gate тепер з idea-brief.md `status: Confirmed`).
+
+**Greenfield mode:** замість write-prd наступний крок — `sdlc:scaffold` (матеріалізує проєкт з темплейта і забирає `docs/idea-brief.md` у нове репо); commit не пропонується, git-репо створить scaffold.
 
 ADR (`sdlc:architecture-design`) НЕ викликається на gate 1 — це gate 3 concern (after sad.md (architecture-design) §Trade-offs). Якщо рекомендація з §13 виглядає як hard-to-reverse technical choice — note that у §15 Open questions, але don't open ADR thread here.
 

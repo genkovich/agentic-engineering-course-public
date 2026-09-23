@@ -6,7 +6,7 @@
 #   1. GATE skills have "GATE" or "🚪" in the "# Skill: ..." H1 line.
 #   2. Prereqs are extracted from the "**Gate (hard refuse):**" or
 #      "**Prereq (hard):**" line in the body (## Inputs section). This avoids
-#      grabbing the OUTPUT artefact from "Output: delivery/<slug>/X.md".
+#      grabbing the OUTPUT artefact from "Output: docs/features/<slug>/X.md".
 #   3. Stage number from "stage NN" in H1.
 #
 # Usage:
@@ -25,7 +25,7 @@ END_MARKER="<!-- generate-gates:end -->"
 extract_prereq() {
   local file="$1"
   # Find the "Gate (hard refuse)" / "Prereq (hard)" line — extract only
-  # `delivery/<slug>/...` backtick paths (skip suggestion-cmd backticks like
+  # `docs/features/<slug>/...` backtick paths (skip suggestion-cmd backticks like
   # `sdlc:brainstorm <slug>`).
   local line
   line="$(grep -m1 -E '\*\*(Gate \(hard refuse\)|Prereq \(hard\)|Prereq \(hard refuse\))' "$file" || true)"
@@ -33,11 +33,11 @@ extract_prereq() {
     echo "see SKILL.md Inputs"
     return
   fi
-  # Extract backticked strings that look like file paths (contain `delivery/`
+  # Extract backticked strings that look like file paths (contain `docs/features/`
   # or `.md` or `adr/`). Drop suggestion commands containing `:` or `<slug>`
   # at start.
   echo "$line" | grep -oE '`[^`]+`' \
-    | grep -E '(delivery/|\.md|adr/)' \
+    | grep -E '(docs/features/|\.md|adr/)' \
     | grep -vE '^`sdlc:' \
     | tr '\n' '|' | sed 's/|$//' | sed 's/|/ + /g'
 }

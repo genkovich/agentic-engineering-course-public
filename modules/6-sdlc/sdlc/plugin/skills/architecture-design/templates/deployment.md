@@ -10,7 +10,8 @@ ticket: "<ticket-id>"
 
 # Deployment
 
-<!-- Stage 07 → see SDLC/plugin/skills/draw-sequence/SKILL.md -->
+<!-- Deployment-diagram scaffold for SAD §7 (Deployment view) → see sdlc/plugin/skills/architecture-design/SKILL.md -->
+<!-- N/A allowed for XS/S that reuses an existing deployment unit with no change. -->
 
 ```mermaid
 flowchart TB

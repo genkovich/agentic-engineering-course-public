@@ -13,7 +13,7 @@ Public repository for the **Agentic Engineering з Claude** course. Contains han
 | [Module 3 — Claude Code Setup](modules/3-claude-code-setup/) | Встановлення, settings, permissions, sandbox, devcontainer | starters (4 стеки) |
 | [Module 4 — Prompting Mastery](modules/4-prompting-mastery/) | Промпти, контекст, `.claude/`, `CLAUDE.md`, rules, Plan/Think, BC, legacy refactor | demos (text + runnable) |
 | [Module 5 — Claude Code Extended](modules/5-claude-code-extended/) | Slash commands, custom skills, subagents, hooks, output styles, plan mode, plugins | demos (~7 production-ready) |
-| [Module 6 — SDLC через артефакти](modules/6-sdlc/) | Idea → CONTEXT/PRD/SAD/data-model/OpenAPI/tasks через 11 skills і шаблони | SDLC toolkit + наскрізний example |
+| [Module 6 — SDLC через артефакти](modules/6-sdlc/) | Idea → CONTEXT/PRD/SAD/data-model/OpenAPI/tasks через 21 skill, 11 агентів і шаблони | SDLC toolkit + наскрізний example |
 | [Module 7 - Execution & Scale](modules/7-execution-scale/) | Патерни виконання: Ralph, /goal, dynamic workflows, фон/розклад, feedback loops, TDD | demos (7, runnable) |
 | [Module 8 - MCP](modules/8-mcp/) | Власний MCP-сервер і клієнт, транспорти, advanced-можливості і безпека MCP | demos (3, runnable) |
 | [Module 9 — Collaboration](modules/9-collaboration/) | Git workflow, worktrees, merge/cleanup, PR, code review локально й на платформі, реліз і docs | demos (7, runnable) |
@@ -61,10 +61,10 @@ make demo  # прогнати end-to-end
 ```bash
 cd modules/6-sdlc/sdlc
 claude --plugin-dir ./plugin
-# далі в Claude Code: /sdlc-interview <your-slug>
+# далі в Claude Code: /sdlc:interview <your-slug>
 ```
 
-Toolkit з 11 skills (interview, write-prd, architecture-design, …) і шаблонами артефактів. Можна підключити як plugin, скопіювати шаблони у свій репо рукою, або взяти за reference для домашки Module 6. Детально — у [`modules/6-sdlc/sdlc/README.md`](modules/6-sdlc/sdlc/README.md) з мапою лекцій до файлів.
+Toolkit з 21 skill і 11 агентами (interview, write-prd, architecture-design, …) і шаблонами артефактів. Можна підключити як plugin, скопіювати шаблони у свій репо рукою, або взяти за reference для домашки Module 6. Детально — у [`modules/6-sdlc/sdlc/README.md`](modules/6-sdlc/sdlc/README.md) з мапою лекцій до файлів.
 
 ### Module 8 demos
 
@@ -125,11 +125,11 @@ make run                    # MCP-сервер на stdio; make run-http — Str
     │   └── 5.7-sdk/                 release-notes via claude -p (5.7)
     ├── 6-sdlc/
     │   ├── README.md
-    │   └── sdlc/                    SDLC toolkit (Module 6 freeze)
+    │   └── sdlc/                    SDLC toolkit (знімок v4.5.1)
     │       ├── README.md            мапа лекцій → файлів, способи використання
     │       ├── 00-overview/         DoR / DoD / process map / MVP-vs-Full
     │       ├── document-templates/  cross-feature / legacy / manual snippets
-    │       ├── plugin/              Claude Code plugin: 11 skills (sdlc-*)
+    │       ├── plugin/              Claude Code plugin: 21 skill + 11 агентів (sdlc:*)
     │       ├── examples/            course-lesson-mvp / goals-tracking / rate-limiting
     │       └── scripts/             generate-gates.sh, sdlc_lint.py
     ├── 7-execution-scale/           патерни виконання, 7 runnable демо (Module 7)

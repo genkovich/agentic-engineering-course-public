@@ -1,4 +1,4 @@
-# Critic Sub-Agent Prompt — Step 8 of `sdlc:architecture-design`
+# Critic Sub-Agent Prompt — Step 7 of `sdlc:architecture-design`
 
 ## TL;DR (короткий вступ українською)
 
@@ -21,9 +21,9 @@
 
 ---
 
-This file holds the canonical prompt body for the post-Socratic critic. The skill (`SKILL.md` Protocol Step 8) reads this file, then dispatches a single `Agent` call (`subagent_type: "general-purpose"`) with **clean context**. The critic has not seen the Socratic conversation — it sees only the inputs the skill inlines into the prompt + the upstream files it re-reads itself.
+This file holds the canonical prompt body for the post-Socratic critic. The skill (`SKILL.md` Protocol Step 7) reads this file, then dispatches a single `Agent` call (`subagent_type: "sdlc:critic"`, fallback `general-purpose`) with **clean context**. The critic has not seen the Socratic conversation — it sees only the inputs the skill inlines into the prompt + the upstream files it re-reads itself.
 
-The critic exists to catch upstream-coherence damage caused by user edits during Step 7 Socratic loop (which a per-section loop cannot see — the skill never returns to a previous section after writing it) and structural problems (Mermaid stubs, ADR/§9 orphans, NFR-number leaks) that the author may not notice after self-editing.
+The critic exists to catch upstream-coherence damage caused by user edits during the Step 6 Socratic loop (which a per-section loop cannot see — the skill never returns to a previous section after writing it) and structural problems (Mermaid stubs, ADR/§9 orphans, NFR-number leaks) that the author may not notice after self-editing.
 
 ## How the skill uses this file
 
@@ -86,9 +86,10 @@ Read `PRD.md`, `CONTEXT.md`, and inspect `{{ADR_DIR_PATH}}` first. Then probe th
 **F5 — Coverage regression.** Structural checks:
 
 - All 12 Arc42 sections filled (real content) OR marked `<!-- N/A: <one-line reason> -->`? Empty sections without N/A note → finding.
+- Frontmatter `target_surfaces` non-empty (the §4 Target-surface decision was made) AND §5 draws one C4 container per declared surface? Each declared UI surface (`web-frontend` / `mobile-app` / `desktop-app`) carries a UI-architecture decision (an ADR, or an inline §4 note)?
 - §3 has a `C4Context` Mermaid block (NOT template stub with `<placeholder>` substrings)?
 - §5 has a `C4Container` Mermaid block (NOT template stub)?
-- §6 has ≥1 `sequenceDiagram` Mermaid block (3-5 for M+ size class)?
+- §6 has ≥1 `sequenceDiagram` Mermaid block (architecture-design seeds the primary flow(s); `complete-sequence-diagrams` covers the rest — no cap, so a missing seed is the only F5 hit here)?
 - §9 ADR table references every file in `{{ADR_DIR_PATH}}` (no orphan files; no §9 row without a file)?
 - §11 contains a row for every `save_as_oq` entry in the edits-log with owner + due filled?
 
@@ -98,7 +99,7 @@ Each gap = one finding. List exactly what's missing.
 
 - **NFR-number leak**: §10 Quality scenarios reference numbers NOT present in PRD §6 NFR (invented targets like «p99 ≤ 100ms» when PRD only specifies p95). Cite the §10 scenario + PRD line that's missing the target.
 - **Strawman in ADR**: Any ADR in `{{ADR_DIR_PATH}}` has a `Considered options` line that's a non-serious alternative (excluded by an existing constraint — e.g. «MongoDB» when CLAUDE.md or §2 Constraints pin Postgres as the only store; «Redis» when there's no Redis in the stack and no §4 strategic seed for a cache tier). Strawman options dilute the ADR genre.
-- **§2 Constraint contradiction**: §2 Constraints contradicts CLAUDE.md (read it via the Explore-reported path if known; otherwise just flag the inconsistency between §2 declarations and the Step-3 brownfield scan if observable) without an Override note pointing to §11 Risks or §1 ¶4 «Decision overrides».
+- **§2 Constraint contradiction**: §2 Constraints contradicts the repo's conventions (read the convention file / `docs/architecture-map.md` via the path if known; otherwise just flag the inconsistency between §2 declarations and the Step-3 brownfield scan if observable) without an Override note pointing to §11 Risks or §1 ¶4 «Decision overrides».
 
 For each F6 sub-probe hit: cite the offending line + the upstream source it contradicts.
 
@@ -113,7 +114,7 @@ NO_CONTESTED_DECISIONS
 Otherwise, one bullet per finding in this exact shape:
 
 ```
-- **[F{n}] {one-line headline}** — caused by: {edits-log ref or sad-line ref or adr-file ref}; contradicts: {§ref in sad + §ref in PRD / CONTEXT line / ADR Status}; suggested: {action — amend §6 flow 1 / regenerate §3 C4 block / move detail to stage 10 (`decide-adr`) / add §11 row / rename ADR / etc.}.
+- **[F{n}] {one-line headline}** — caused by: {edits-log ref or sad-line ref or adr-file ref}; contradicts: {§ref in sad + §ref in PRD / CONTEXT line / ADR Status}; suggested: {action — amend §6 flow 1 / regenerate §3 C4 block / move detail to `sdlc:decide-adr` / add §11 row / rename ADR / etc.}.
 ```
 
 Each finding ≤2 lines after wrapping. **Cite-mode is required**: every finding must cite at least one sad-§ AND at least one PRD-§ / CONTEXT line / ADR file. A finding without citations is invalid — drop it rather than ship it uncited.

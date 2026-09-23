@@ -2,10 +2,13 @@
 status: Draft
 owner: genkovich
 reviewers: ["Tech Lead", "Security Lead", "Privacy Engineer"]
-updated_at: "2026-05-23"
+updated_at: "2026-05-30"
 feature_size: M
 stage: "04-05"
 ticket: "beerlms-#1042"
+target_surfaces:
+  - backend-service   # BeerLMS API — REST endpoints for course/lesson/completion/comments/preferences
+  - web-frontend            # BeerLMS SPA — methodist authoring view + learner reader view
 ---
 
 # Software Architecture Document — course-lesson-mvp
@@ -162,36 +165,42 @@ C4Container
 
 ### US-01: createCourse (draft)
 
+<!-- Participants: <ui>=SPA, <service>=BeerLMS API, <cache>=Redis, <data-store>=primary DB -->
+
 ```mermaid
 sequenceDiagram
     autonumber
     actor M as methodist
-    participant API as content-api (handler)
-    participant RL as Redis (rate-limit bucket)
-    participant OMC as OrgMemberChecker
-    participant DB as Postgres
+    participant UI as <ui>
+    participant SVC as <service>
+    participant CACHE as <cache>
+    participant DS as <data-store>
 
-    %% TODO: align with openapi.yaml — POST /courses not yet in contract
-    M->>API: POST /courses {title, description?, cover_image_url?}
-    API->>RL: INCR user:{user_id}:courses-per-min (TTL 60s)
+    M->>UI: fill "New Course" form {title, description?, cover_image_url?}
+    UI->>SVC: POST /courses {title, description?, cover_image_url?}
+    SVC->>CACHE: INCR rate-limit key (user, window=60s)
     alt count > 30
-        RL-->>API: limit exceeded
-        API-->>M: 429 {code:"rate_limited"}
+        CACHE-->>SVC: limit exceeded
+        SVC-->>UI: 429 {code:"rate_limited"}
+        UI-->>M: error toast
     else within limit
-        RL-->>API: ok
-        API->>API: validate description length ≤ 500
+        CACHE-->>SVC: ok
+        SVC->>SVC: validate description length ≤ 500
         alt description > 500 chars
-            API-->>M: 400 {code:"validation.description_too_long"}
+            SVC-->>UI: 400 {code:"validation.description_too_long"}
+            UI-->>M: inline field error
         else valid
-            API->>OMC: IsMethodist(org_id, user_id)
+            SVC->>DS: lookup org_members role flags for caller
             alt not methodist
-                OMC-->>API: false
-                API-->>M: 403 {code:"course.not_methodist"}
+                DS-->>SVC: is_methodist=false
+                SVC-->>UI: 403 {code:"course.not_methodist"}
+                UI-->>M: permission error
             else methodist
-                OMC-->>API: true
-                API->>DB: INSERT courses(id, org_id, course_owner_id, title, description, status='draft')
-                DB-->>API: row created
-                API-->>M: 201 {id, status:"draft", course_owner_id, org_id, created_at}
+                DS-->>SVC: is_methodist=true
+                SVC->>DS: INSERT courses(id, org_id, course_owner_id, title, description, status='draft')
+                DS-->>SVC: row created
+                SVC-->>UI: 201 {id, status:"draft", course_owner_id, org_id, created_at}
+                UI-->>M: navigate to course editor
             end
         end
     end
@@ -199,276 +208,326 @@ sequenceDiagram
 
 ### US-02: addLesson (block-based)
 
+<!-- Participants: <ui>=SPA editor, <service>=BeerLMS API, <data-store>=primary DB, <external-system>=outbox consumers -->
+
 ```mermaid
 sequenceDiagram
     autonumber
     actor M as methodist
-    participant API as content-api (handler)
-    participant DB as Postgres
-    participant OUT as outbox poller
-    participant CON as search/analytics consumers
+    participant UI as <ui>
+    participant SVC as <service>
+    participant DS as <data-store>
+    participant EXT as <external-system>
 
-    M->>API: POST /courses/{course_id}/lessons {title, body[], sequence?}
-    API->>DB: SELECT courses WHERE id=$1 AND org_id=$2
+    M->>UI: add lesson {title, blocks[], sequence?}
+    UI->>SVC: POST /courses/{course_id}/lessons {title, body[], sequence?}
+    SVC->>DS: SELECT courses WHERE id=$1 AND org_id=$2
     alt course in different org
-        DB-->>API: 0 rows
-        API-->>M: 404 {code:"course.not_found"}
+        DS-->>SVC: 0 rows
+        SVC-->>UI: 404 {code:"course.not_found"}
+        UI-->>M: not found
     else course found
-        DB-->>API: course row
-        API->>DB: BEGIN tx
-        API->>DB: INSERT lessons(id, course_id, sequence, body, status='draft')
-        API->>DB: INSERT outbox event_type='lesson.created'
-        Note over API, DB: UNIQUE(course_id, sequence) constraint<br/>concurrent INSERT with same sequence → pq.unique_violation
+        DS-->>SVC: course row
+        SVC->>DS: BEGIN tx
+        SVC->>DS: INSERT lessons(id, course_id, sequence, body, status='draft')
+        SVC->>DS: INSERT outbox event_type='lesson.created'
+        Note over SVC, DS: UNIQUE(course_id, sequence) constraint<br/>concurrent INSERT with same sequence → unique_violation
         alt unique violation on (course_id, sequence)
-            DB-->>API: 23505 unique_violation
-            API->>DB: ROLLBACK
-            API-->>M: 409 {code:"lesson.sequence_conflict"}
+            DS-->>SVC: 23505 unique_violation
+            SVC->>DS: ROLLBACK
+            SVC-->>UI: 409 {code:"lesson.sequence_conflict"}
+            UI-->>M: sequence already taken
         else commit ok
-            DB-->>API: lesson row + outbox row
-            API->>DB: COMMIT
-            API-->>M: 201 {id, status:"draft", sequence, body}
-            Note over OUT, CON: poller picks lesson.created event<br/>idempotent via event_id (UUID v7)
-            OUT->>CON: deliver lesson.created
+            DS-->>SVC: lesson row + outbox row
+            SVC->>DS: COMMIT
+            SVC-->>UI: 201 {id, status:"draft", sequence, body}
+            UI-->>M: lesson added to course outline
+            Note over EXT: outbox poller picks lesson.created<br/>idempotent via event_id (UUID v7)
+            EXT->>EXT: deliver lesson.created to consumers
         end
     end
 ```
 
 ### US-03: publishCourse
 
+<!-- Participants: <ui>=SPA, <service>=BeerLMS API, <data-store>=primary DB, <external-system>=notification/downstream service -->
+
 ```mermaid
 sequenceDiagram
     autonumber
     actor M as methodist
-    participant API as content-api (handler)
-    participant DB as Postgres
-    participant OUT as outbox poller
-    participant NS as notification-service
+    participant UI as <ui>
+    participant SVC as <service>
+    participant DS as <data-store>
+    participant EXT as <external-system>
 
-    %% TODO: align with openapi.yaml — POST /courses/{id}/publish not yet in contract (only POST /lessons/{id}/publish exists)
-    M->>API: POST /courses/{id}/publish
-    API->>DB: SELECT courses WHERE id=$1 AND org_id=$2 AND course_owner_id=$3
+    M->>UI: click "Publish course"
+    UI->>SVC: POST /courses/{id}/publish (Idempotency-Key header)
+    SVC->>DS: SELECT courses WHERE id=$1 AND org_id=$2 AND course_owner_id=$3
     alt not found / not owner
-        DB-->>API: 0 rows
-        API-->>M: 404 {code:"course.not_found"}
+        DS-->>SVC: 0 rows
+        SVC-->>UI: 404 {code:"course.not_found"}
+        UI-->>M: not found
     else owner ok, already published
-        DB-->>API: course row (status='published')
-        API-->>M: 200 {status:"published", published_at} (idempotent, no DB write)
+        DS-->>SVC: course row (status='published')
+        SVC-->>UI: 200 {status:"published", published_at} (idempotent, no DB write)
+        UI-->>M: already live
     else owner ok, draft
-        DB-->>API: course row (status='draft')
-        API->>DB: SELECT COUNT(*) FROM lessons WHERE course_id=$1 AND status='published'
+        DS-->>SVC: course row (status='draft')
+        SVC->>DS: SELECT COUNT(*) FROM lessons WHERE course_id=$1 AND status='published'
         alt count = 0
-            DB-->>API: 0
-            API-->>M: 409 {code:"course.no_published_lessons"}
-        else count ≥ 1
-            DB-->>API: ≥1
-            API->>DB: BEGIN tx
-            API->>DB: UPDATE courses SET status='published', published_at=now() WHERE id=$1
-            API->>DB: INSERT outbox event_type='course.published'
-            API->>DB: COMMIT
-            API-->>M: 200 {status:"published", published_at}
-            Note over OUT, NS: poller picks course.published event<br/>retry budget per events.md (1s → 30min, DLQ after 5)
-            OUT->>NS: deliver course.published
+            DS-->>SVC: 0
+            SVC-->>UI: 409 {code:"course.no_published_lessons"}
+            UI-->>M: publish blocked — add a published lesson first
+        else count >= 1
+            DS-->>SVC: >=1
+            SVC->>DS: BEGIN tx
+            SVC->>DS: UPDATE courses SET status='published', published_at=now() WHERE id=$1
+            SVC->>DS: INSERT outbox event_type='course.published'
+            SVC->>DS: COMMIT
+            SVC-->>UI: 200 {status:"published", published_at}
+            UI-->>M: course is now live
+            Note over EXT: outbox poller picks course.published<br/>retry budget per events.md (1s → 30min, DLQ after 5)
+            EXT->>EXT: deliver course.published to subscribers
         end
     end
 ```
 
 ### US-04: viewCourse (cross-org 404)
 
+<!-- Participants: <ui>=SPA, <service>=BeerLMS API, <data-store>=primary DB -->
+
 ```mermaid
 sequenceDiagram
     autonumber
     actor U as member / methodist / admin
-    participant API as content-api (handler)
-    participant OMC as OrgMemberChecker
-    participant DB as Postgres
+    participant UI as <ui>
+    participant SVC as <service>
+    participant DS as <data-store>
 
-    U->>API: GET /courses/{id}
-    API->>DB: SELECT courses WHERE id=$1
+    U->>UI: open course URL
+    UI->>SVC: GET /courses/{id}
+    SVC->>DS: SELECT courses WHERE id=$1
     alt course not exists
-        DB-->>API: 0 rows
-        API-->>U: 404 {code:"course.not_found"}
+        DS-->>SVC: 0 rows
+        SVC-->>UI: 404 {code:"course.not_found"}
+        UI-->>U: not found page
     else course exists
-        DB-->>API: course row {org_id, status, course_owner_id}
-        API->>OMC: GetOrgRole(caller_user_id, course.org_id)
+        DS-->>SVC: course row {org_id, status, course_owner_id}
+        SVC->>DS: lookup caller org membership for course.org_id
         alt published & same org
-            OMC-->>API: member
-            API-->>U: 200 {course details}
+            DS-->>SVC: member
+            SVC-->>UI: 200 {course details}
+            UI-->>U: course page
         else published & different org
-            OMC-->>API: not_a_member
-            Note over API: AC-07 deviation — existence-hiding<br/>NOT 403 org_mismatch (would leak cross-org membership)
-            API-->>U: 404 {code:"course.not_found"}
-        else draft & caller ≠ owner ∧ caller ≠ admin
-            OMC-->>API: same-org member, but not owner / admin
-            Note over API: AC-08 — drafts visible only to course_owner + admin
-            API-->>U: 404 {code:"course.not_found"}
+            DS-->>SVC: not_a_member
+            Note over SVC: AC-07 deviation — existence-hiding<br/>NOT 403 org_mismatch (would leak cross-org membership)
+            SVC-->>UI: 404 {code:"course.not_found"}
+            UI-->>U: not found page
+        else draft & caller != owner and caller != admin
+            DS-->>SVC: same-org member, but not owner / admin
+            Note over SVC: AC-08 — drafts visible only to course_owner + admin
+            SVC-->>UI: 404 {code:"course.not_found"}
+            UI-->>U: not found page
         else draft & caller = owner or admin
-            OMC-->>API: owner or admin
-            API-->>U: 200 {course details, status:"draft"}
+            DS-->>SVC: owner or admin
+            SVC-->>UI: 200 {course details, status:"draft"}
+            UI-->>U: draft preview with publish banner
         end
     end
 ```
 
 ### US-05: reorderLessons
 
+<!-- Participants: <ui>=SPA lesson-outline editor, <service>=BeerLMS API, <data-store>=primary DB -->
+
 ```mermaid
 sequenceDiagram
     autonumber
     actor M as methodist
-    participant API as content-api (handler)
-    participant DB as Postgres
+    participant UI as <ui>
+    participant SVC as <service>
+    participant DS as <data-store>
 
-    %% TODO: align with openapi.yaml — PATCH /courses/{id}/lessons/reorder not yet in contract
-    M->>API: PATCH /courses/{id}/lessons/reorder {items:[{lesson_id, sequence}, ...]}
+    M->>UI: drag-and-drop lesson reorder
+    UI->>SVC: PATCH /courses/{id}/lessons/reorder {items:[{lesson_id, sequence}, ...]}
     alt len(items) > 50
-        API-->>M: 400 {code:"validation.reorder_payload_too_large"}
-    else len(items) ≤ 50
-        API->>DB: SELECT courses WHERE id=$1 AND org_id=$2 AND course_owner_id=$3
+        SVC-->>UI: 400 {code:"validation.reorder_payload_too_large"}
+        UI-->>M: payload too large error
+    else len(items) <= 50
+        SVC->>DS: SELECT courses WHERE id=$1 AND org_id=$2 AND course_owner_id=$3
         alt not owner / wrong org
-            DB-->>API: 0 rows
-            API-->>M: 404 {code:"course.not_found"}
+            DS-->>SVC: 0 rows
+            SVC-->>UI: 404 {code:"course.not_found"}
+            UI-->>M: not found
         else owner ok, course already published
-            DB-->>API: course row (status='published')
-            Note over API: invariant — reorder allowed only on draft course
-            API-->>M: 409 {code:"course.already_published"}
+            DS-->>SVC: course row (status='published')
+            Note over SVC: invariant — reorder allowed only on draft course
+            SVC-->>UI: 409 {code:"course.already_published"}
+            UI-->>M: cannot reorder published course
         else owner ok, draft
-            DB-->>API: course row (status='draft')
-            API->>DB: BEGIN tx
-            API->>DB: UPDATE lessons SET sequence=$N WHERE id=$id AND course_id=$cid (batch)
-            Note over API, DB: tx commit guards UNIQUE(course_id, sequence)<br/>any violation → ROLLBACK
-            API->>DB: COMMIT
-            API-->>M: 200 {items:[{lesson_id, sequence}, ...]}
+            DS-->>SVC: course row (status='draft')
+            SVC->>DS: BEGIN tx
+            SVC->>DS: UPDATE lessons SET sequence=$N WHERE id=$id AND course_id=$cid (batch)
+            Note over SVC, DS: tx commit guards UNIQUE(course_id, sequence)<br/>any violation → ROLLBACK
+            SVC->>DS: COMMIT
+            SVC-->>UI: 200 {items:[{lesson_id, sequence}, ...]}
+            UI-->>M: outline reflects new order
         end
     end
 ```
 
 ### US-06: markLessonComplete (idempotent)
 
+<!-- Participants: <ui>=SPA lesson reader, <service>=BeerLMS API, <data-store>=primary DB -->
+
 ```mermaid
 sequenceDiagram
     autonumber
     actor LRN as member (learner)
-    participant API as content-api (handler)
-    participant DB as Postgres
+    participant UI as <ui>
+    participant SVC as <service>
+    participant DS as <data-store>
 
-    %% TODO: align with openapi.yaml — POST /lessons/{id}/completion not yet in contract
-    LRN->>API: POST /lessons/{id}/completion
-    API->>DB: SELECT lessons l JOIN courses c ON c.id=l.course_id WHERE l.id=$1 AND l.status='published' AND c.org_id=$2
+    LRN->>UI: click "Mark complete"
+    UI->>SVC: POST /lessons/{id}/completion
+    SVC->>DS: SELECT lessons l JOIN courses c WHERE l.id=$1 AND l.status='published' AND c.org_id=$2
     alt draft lesson OR cross-org
-        DB-->>API: 0 rows
-        API-->>LRN: 404 {code:"lesson.not_found"}
+        DS-->>SVC: 0 rows
+        SVC-->>UI: 404 {code:"lesson.not_found"}
+        UI-->>LRN: not found
     else published lesson, same org
-        DB-->>API: lesson row
-        API->>DB: INSERT lesson_completions(user_id, lesson_id, org_id, completed_at) -- UNIQUE(user_id, lesson_id)
+        DS-->>SVC: lesson row
+        SVC->>DS: INSERT lesson_completions(user_id, lesson_id, org_id, completed_at) -- UNIQUE(user_id, lesson_id)
         alt first completion
-            DB-->>API: row inserted
-            API-->>LRN: 201 {lesson_id, completed_at}
+            DS-->>SVC: row inserted
+            SVC-->>UI: 201 {lesson_id, completed_at}
+            UI-->>LRN: checkmark + peer signal updates
         else duplicate (unique_violation)
-            DB-->>API: 23505 unique_violation
-            Note over API, DB: idempotent — re-read existing row,<br/>do NOT overwrite completed_at
-            API->>DB: SELECT completed_at FROM lesson_completions WHERE user_id=$1 AND lesson_id=$2
-            DB-->>API: existing row
-            API-->>LRN: 200 {lesson_id, completed_at} (idempotent)
+            DS-->>SVC: 23505 unique_violation
+            Note over SVC, DS: idempotent — re-read existing row,<br/>do NOT overwrite completed_at
+            SVC->>DS: SELECT completed_at FROM lesson_completions WHERE user_id=$1 AND lesson_id=$2
+            DS-->>SVC: existing row
+            SVC-->>UI: 200 {lesson_id, completed_at} (idempotent)
+            UI-->>LRN: already marked complete
         end
     end
 ```
 
 ### US-07: setPeerVisibilityPreference
 
+<!-- Participants: <ui>=SPA settings page, <service>=BeerLMS API, <data-store>=primary DB (includes audit table) -->
+
 ```mermaid
 sequenceDiagram
     autonumber
     actor U as member
-    participant API as content-api (handler)
-    participant DB as Postgres
-    participant AUD as user_preference_audit (Postgres table)
+    participant UI as <ui>
+    participant SVC as <service>
+    participant DS as <data-store>
 
-    %% TODO: align with openapi.yaml — PATCH /me/preferences not yet in contract
-    U->>API: PATCH /me/preferences {peer_visibility:"public"|"private"}
-    Note over API: new user default = "private" (GDPR-friendly opt-in, AC-13)
+    U->>UI: toggle peer visibility setting
+    UI->>SVC: PATCH /me/preferences {peer_visibility:"public"|"private"}
+    Note over SVC: new user default = "private" (GDPR-friendly opt-in, AC-13)
     alt invalid value
-        API-->>U: 400 {code:"validation.invalid_preference"}
+        SVC-->>UI: 400 {code:"validation.invalid_preference"}
+        UI-->>U: inline validation error
     else valid value
-        API->>DB: BEGIN tx
-        API->>DB: SELECT current peer_visibility FROM user_preferences WHERE user_id=$1
-        DB-->>API: previous value (or null if first set)
-        API->>DB: UPSERT user_preferences SET peer_visibility=$new WHERE user_id=$1
-        API->>AUD: INSERT user_preference_audit(user_id, field='peer_visibility', old, new, changed_at)
-        Note over API, AUD: both writes in single tx —<br/>compliance trail for GDPR recall
-        API->>DB: COMMIT
-        API-->>U: 200 {peer_visibility:$new}
+        SVC->>DS: BEGIN tx
+        SVC->>DS: SELECT current peer_visibility FROM user_preferences WHERE user_id=$1
+        DS-->>SVC: previous value (or null if first set)
+        SVC->>DS: UPSERT user_preferences SET peer_visibility=$new WHERE user_id=$1
+        SVC->>DS: INSERT user_preference_audit(user_id, field='peer_visibility', old, new, changed_at)
+        Note over SVC, DS: both writes in single tx —<br/>compliance trail for GDPR recall (AC-13)
+        SVC->>DS: COMMIT
+        SVC-->>UI: 200 {peer_visibility:$new}
+        UI-->>U: preference saved
     end
 ```
 
 ### US-08: viewLessonWithPeerSignal
 
+<!-- Participants: <ui>=SPA lesson reader, <service>=BeerLMS API, <cache>=Redis peer-blob, <data-store>=primary DB -->
+
 ```mermaid
 sequenceDiagram
     autonumber
     actor LRN as member (learner)
-    participant API as content-api (handler)
-    participant RDS as Redis (peer-blob cache)
-    participant DB as Postgres
+    participant UI as <ui>
+    participant SVC as <service>
+    participant CACHE as <cache>
+    participant DS as <data-store>
 
-    LRN->>API: GET /lessons/{id}
-    API->>DB: SELECT lessons l JOIN courses c ON c.id=l.course_id WHERE l.id=$1 AND c.org_id=$2
-    alt lesson not found / cross-org / draft (caller ≠ owner)
-        DB-->>API: 0 rows
-        API-->>LRN: 404 {code:"lesson.not_found"}
+    LRN->>UI: open lesson page
+    UI->>SVC: GET /lessons/{id}
+    SVC->>DS: SELECT lessons l JOIN courses c WHERE l.id=$1 AND c.org_id=$2
+    alt lesson not found / cross-org / draft (caller != owner)
+        DS-->>SVC: 0 rows
+        SVC-->>UI: 404 {code:"lesson.not_found"}
+        UI-->>LRN: not found page
     else lesson visible
-        DB-->>API: lesson row + blocks
-        API->>RDS: GET peer-blob:lesson:{lesson_id}:org:{org_id}
-        Note over API, RDS: peer-blob cached with 60s TTL per (lesson_id, org_id) — ADR-0002
+        DS-->>SVC: lesson row + blocks
+        SVC->>CACHE: GET peer-blob key (lesson_id, org_id)
+        Note over SVC, CACHE: peer-blob cached with 60s TTL per (lesson_id, org_id) — ADR-0002
         alt cache hit
-            RDS-->>API: cached blob {count, recent_completers[]}
+            CACHE-->>SVC: cached blob {count, recent_completers[]}
         else cache miss
-            RDS-->>API: nil
-            API->>DB: SELECT COUNT(*), recent 5 FROM lesson_completions lc JOIN user_preferences up ON up.user_id=lc.user_id WHERE lc.lesson_id=$1 AND lc.org_id=$2 AND up.peer_visibility='public'
-            DB-->>API: aggregated counts
-            API->>RDS: SET peer-blob:... EX 60
+            CACHE-->>SVC: nil
+            SVC->>DS: SELECT COUNT(*), recent 5 completers WHERE visibility='public' AND lesson=$1 AND org=$2
+            DS-->>SVC: aggregated counts
+            SVC->>CACHE: SET peer-blob EX 60
         end
-        API->>DB: SELECT 1 FROM lesson_completions WHERE user_id=$caller AND lesson_id=$1 -- my_completed flag
-        DB-->>API: bool
+        SVC->>DS: SELECT 1 FROM lesson_completions WHERE user_id=$caller AND lesson_id=$1
+        DS-->>SVC: my_completed bool
         alt count < 3 (AC-15 anti-fingerprinting threshold)
-            Note over API: small-org de-anonymization guard —<br/>hide count and completer list
-            API-->>LRN: 200 {lesson, peer_completion:{count:null, recent_completers:[], my_completed}}
-        else count ≥ 3
-            API-->>LRN: 200 {lesson, peer_completion:{count, recent_completers[], my_completed}}
+            Note over SVC: small-org de-anonymization guard —<br/>hide count and completer list
+            SVC-->>UI: 200 {lesson, peer_completion:{count:null, recent_completers:[], my_completed}}
+        else count >= 3
+            SVC-->>UI: 200 {lesson, peer_completion:{count, recent_completers[], my_completed}}
         end
+        UI-->>LRN: lesson content + peer signal widget
     end
 ```
 
 ### US-09: createComment
 
+<!-- Participants: <ui>=SPA lesson reader, <service>=BeerLMS API, <cache>=Redis rate-limit, <data-store>=primary DB -->
+
 ```mermaid
 sequenceDiagram
     autonumber
     actor LRN as member (learner)
-    participant API as content-api (handler)
-    participant RDS as Redis (rate-limit token-bucket)
-    participant DB as Postgres
+    participant UI as <ui>
+    participant SVC as <service>
+    participant CACHE as <cache>
+    participant DS as <data-store>
 
-    %% TODO: align with openapi.yaml — POST /lessons/{id}/comments not yet in contract
-    LRN->>API: POST /lessons/{id}/comments {content}
+    LRN->>UI: type and submit comment
+    UI->>SVC: POST /lessons/{id}/comments {content}
     alt content > 2000 chars
-        API-->>LRN: 400 {code:"validation.comment_too_long"}
+        SVC-->>UI: 400 {code:"validation.comment_too_long"}
+        UI-->>LRN: inline length error
     else content length ok
-        API->>RDS: token-bucket consume key=user:{user_id}:comments-per-hour (limit 10/h)
-        Note over API, RDS: bucket key = user_id (per-user, not per-instance)<br/>AC-17 / abuse case #8
+        SVC->>CACHE: token-bucket consume key=user:{user_id}:comments-per-hour (limit 10/h)
+        Note over SVC, CACHE: bucket key = user_id (per-user, not per-instance)<br/>AC-17 / abuse case #8
         alt bucket exhausted
-            RDS-->>API: rate exceeded
-            API-->>LRN: 429 {code:"rate_limited"}
+            CACHE-->>SVC: rate exceeded
+            SVC-->>UI: 429 {code:"rate_limited"}
+            UI-->>LRN: rate limit toast
         else token granted
-            RDS-->>API: ok
-            API->>DB: SELECT lessons l JOIN courses c ON c.id=l.course_id WHERE l.id=$1 AND l.status='published' AND c.org_id=$2
+            CACHE-->>SVC: ok
+            SVC->>DS: SELECT lessons l JOIN courses c WHERE l.id=$1 AND l.status='published' AND c.org_id=$2
             alt lesson not visible (draft / cross-org)
-                DB-->>API: 0 rows
-                API-->>LRN: 404 {code:"lesson.not_found"}
+                DS-->>SVC: 0 rows
+                SVC-->>UI: 404 {code:"lesson.not_found"}
+                UI-->>LRN: not found
             else lesson visible
-                DB-->>API: lesson row
-                Note over API: server-side HTML-escape content<br/>before persist — XSS mitigation (§6.1 #7)
-                API->>DB: INSERT comments(id, lesson_id, author_id, content, status='visible', created_at)
-                DB-->>API: row created
-                API-->>LRN: 201 {id, author_id, lesson_id, content, status:"visible", created_at}
+                DS-->>SVC: lesson row
+                Note over SVC: server-side HTML-escape content<br/>before persist — XSS mitigation (§6.1 #7)
+                SVC->>DS: INSERT comments(id, lesson_id, author_id, content, status='visible', created_at)
+                DS-->>SVC: row created
+                SVC-->>UI: 201 {id, author_id, lesson_id, content, status:"visible", created_at}
+                UI-->>LRN: comment appears in thread
             end
         end
     end
@@ -476,35 +535,39 @@ sequenceDiagram
 
 ### US-10: hideComment (moderation)
 
+<!-- Participants: <ui>=SPA moderation panel, <service>=BeerLMS API, <data-store>=primary DB (includes audit table) -->
+
 ```mermaid
 sequenceDiagram
     autonumber
     actor A as admin
-    participant API as content-api (handler)
-    participant OMC as OrgMemberChecker
-    participant DB as Postgres
-    participant AUD as comment_audit (Postgres table)
+    participant UI as <ui>
+    participant SVC as <service>
+    participant DS as <data-store>
 
-    %% TODO: align with openapi.yaml — POST /comments/{id}/hide not yet in contract
-    A->>API: POST /comments/{id}/hide
-    API->>DB: SELECT comments cm JOIN lessons l ON l.id=cm.lesson_id JOIN courses c ON c.id=l.course_id WHERE cm.id=$1 AND c.org_id=$2
+    A->>UI: click "Hide comment"
+    UI->>SVC: POST /comments/{id}/hide
+    SVC->>DS: SELECT comments cm JOIN lessons l JOIN courses c WHERE cm.id=$1 AND c.org_id=$2
     alt comment not found / cross-org
-        DB-->>API: 0 rows
-        API-->>A: 404 {code:"comment.not_found"}
+        DS-->>SVC: 0 rows
+        SVC-->>UI: 404 {code:"comment.not_found"}
+        UI-->>A: not found
     else comment found
-        DB-->>API: comment row + org_id
-        API->>OMC: IsAdmin(org_id, caller_user_id)
+        DS-->>SVC: comment row + org_id
+        SVC->>DS: lookup caller is_admin flag for org_id
         alt not admin
-            OMC-->>API: false
-            API-->>A: 403 {code:"comment.not_moderator"}
+            DS-->>SVC: is_admin=false
+            SVC-->>UI: 403 {code:"comment.not_moderator"}
+            UI-->>A: permission denied
         else admin
-            OMC-->>API: true
-            API->>DB: BEGIN tx
-            API->>DB: UPDATE comments SET status='hidden', content='[hidden by moderator]' WHERE id=$1
-            API->>AUD: INSERT comment_audit(comment_id, original_content, moderator_id, hidden_at)
-            Note over API, AUD: original content preserved in audit table —<br/>compliance recall (AC-18)
-            API->>DB: COMMIT
-            API-->>A: 200 {id, status:"hidden", content:"[hidden by moderator]"}
+            DS-->>SVC: is_admin=true
+            SVC->>DS: BEGIN tx
+            SVC->>DS: UPDATE comments SET status='hidden', content='[hidden by moderator]' WHERE id=$1
+            SVC->>DS: INSERT comment_audit(comment_id, original_content, moderator_id, hidden_at)
+            Note over SVC, DS: original content preserved in audit table —<br/>compliance recall (AC-18)
+            SVC->>DS: COMMIT
+            SVC-->>UI: 200 {id, status:"hidden", content:"[hidden by moderator]"}
+            UI-->>A: comment hidden (placeholder shown to members)
         end
     end
 ```
@@ -513,34 +576,31 @@ sequenceDiagram
 
 Двошарова дисципліна: контейнерний рівень (`US-NN` вище) лишається без HTTP verbs, а endpoint-level нижче розгортає той самий flow з конкретним контрактом — який код повертає сервер при cross-methodist publish, де закінчується транзакція, коли outbox poller підхоплює подію. Це той самий рівень деталі, що `openapi.yaml` для `publishLesson` operationId, тільки розгорнутий у часі.
 
+<!-- Participants: <client>=SPA, <service>=BeerLMS API, <data-store>=primary DB, <external-system>=CDN/media worker -->
+
 ```mermaid
 sequenceDiagram
     autonumber
-    participant C as Client (web-app)
-    participant API as content-api (handler)
-    participant SVC as Lesson Service
-    participant DB as Postgres
-    participant W as media-worker
-    participant CDN as CDN
+    participant C as <client>
+    participant SVC as <service>
+    participant DS as <data-store>
+    participant EXT as <external-system>
 
-    C->>API: POST /lessons/{id}/publish
-    API->>SVC: PublishLesson(id, methodist_id)
-    SVC->>DB: SELECT lesson WHERE id=? AND methodist_id=?
+    C->>SVC: POST /lessons/{id}/publish (Idempotency-Key header)
+    SVC->>DS: SELECT lesson WHERE id=? AND course_owner_id=?
     alt lesson not found OR not owned
-        DB-->>SVC: 0 rows
-        SVC-->>API: lesson.not_found / lesson.forbidden
-        API-->>C: 404 / 403 {code, message}
+        DS-->>SVC: 0 rows
+        SVC-->>C: 404 / 403 {code, message}
     else lesson found, draft status
-        DB-->>SVC: lesson row
-        SVC->>DB: SELECT blocks WHERE lesson_id=? ORDER BY sequence
-        DB-->>SVC: ordered blocks
-        SVC->>DB: BEGIN; UPDATE lessons SET status='published', published_at=now() WHERE id=?
-        SVC->>DB: INSERT INTO lesson_events (event_type='lesson.published', payload=...)
-        SVC->>DB: COMMIT
-        SVC-->>API: published lesson
-        API-->>C: 200 {lesson with status=published}
-        Note over W: outbox poller picks event
-        W->>CDN: invalidate cache for /courses/.../lessons/<slug>
+        DS-->>SVC: lesson row
+        SVC->>DS: SELECT blocks WHERE lesson_id=? ORDER BY sequence
+        DS-->>SVC: ordered blocks
+        SVC->>DS: BEGIN; UPDATE lessons SET status='published', published_at=now() WHERE id=?
+        SVC->>DS: INSERT outbox (event_type='lesson.published', payload=...)
+        SVC->>DS: COMMIT
+        SVC-->>C: 200 {lesson with status=published}
+        Note over EXT: outbox poller picks event
+        EXT->>EXT: invalidate cache for lesson path
     end
 ```
 

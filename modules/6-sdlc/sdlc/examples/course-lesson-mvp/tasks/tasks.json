@@ -1,0 +1,272 @@
+[
+  {
+    "id": "MIG-1",
+    "title": "Migrations 000020-000022 (historic — already merged)",
+    "layer": "data",
+    "deps": [],
+    "acs": [],
+    "dod": "Schema for all 5 aggregates live in DB (commit 931deca). No new work — placeholder for traceability.",
+    "files_hint": ["migrations/000020_add_is_methodist_to_org_members.up.sql", "migrations/000021_create_course_lesson_tables.up.sql", "migrations/000022_add_course_lesson_indexes.up.sql"]
+  },
+  {
+    "id": "F-1",
+    "title": "OrgMemberChecker.IsMethodist + IsAdmin Go funcs",
+    "layer": "service",
+    "deps": [],
+    "acs": ["AC-09", "AC-18"],
+    "dod": "IsMethodist(ctx, orgID, userID) and IsAdmin(ctx, orgID, userID) implemented, unit-tested (>=90% coverage), wired into DI.",
+    "files_hint": ["internal/modules/org/domain/checker.go", "internal/modules/org/infra/member_checker.go", "internal/modules/org/infra/member_checker_test.go"]
+  },
+  {
+    "id": "F-2",
+    "title": "Outbox infrastructure (migration 000023 + Go pkg)",
+    "layer": "service",
+    "deps": [],
+    "acs": [],
+    "dod": "outbox_events table created via migration 000023; Go package for insert-in-tx and poller stub; integration test validates idempotent dispatch.",
+    "files_hint": ["migrations/000023_create_outbox_events.up.sql", "migrations/000023_create_outbox_events.down.sql", "internal/pkg/outbox/outbox.go", "internal/pkg/outbox/outbox_test.go"]
+  },
+  {
+    "id": "F-3",
+    "title": "Redis token-bucket rate-limit helper",
+    "layer": "service",
+    "deps": [],
+    "acs": ["AC-17"],
+    "dod": "RateLimiter interface with Redis token-bucket implementation; unit-tested with mock Redis; reusable across POST /courses and POST /comments.",
+    "files_hint": ["internal/pkg/ratelimit/ratelimit.go", "internal/pkg/ratelimit/ratelimit_test.go"]
+  },
+  {
+    "id": "F-4",
+    "title": "Redis Idempotency-Key dedup helper",
+    "layer": "service",
+    "deps": [],
+    "acs": ["AC-06", "AC-11"],
+    "dod": "IdempotencyStore interface with Redis SET NX / 24h TTL; unit-tested; used by publish endpoints.",
+    "files_hint": ["internal/pkg/idempotency/idempotency.go", "internal/pkg/idempotency/idempotency_test.go"]
+  },
+  {
+    "id": "C-1",
+    "title": "Course domain entity + factory",
+    "layer": "service",
+    "deps": ["F-1"],
+    "acs": ["AC-01", "AC-02", "AC-05", "AC-06"],
+    "dod": "Course struct with sentinel errors (course.not_found, course.no_published_lessons, course.not_methodist, course.already_published); factory func; unit tests.",
+    "files_hint": ["internal/modules/course/domain/course.go", "internal/modules/course/domain/errors.go", "internal/modules/course/domain/course_test.go"]
+  },
+  {
+    "id": "C-2",
+    "title": "PostgresCourseRepository (5 methods) + integration tests",
+    "layer": "data",
+    "deps": ["F-1", "C-1"],
+    "acs": ["AC-01", "AC-06", "AC-07", "AC-08", "AC-09", "AC-10"],
+    "dod": "Create, FindByID, FindAllByOrg, UpdateStatus, CountPublishedLessons implemented; org_id filter invariant; integration tests cover cross-org draft-leak scenario.",
+    "files_hint": ["internal/modules/course/infra/course_repo.go", "internal/modules/course/infra/course_repo_test.go"]
+  },
+  {
+    "id": "L-1",
+    "title": "Lesson + LessonBlock domain + factory",
+    "layer": "service",
+    "deps": ["F-1"],
+    "acs": ["AC-03", "AC-04", "AC-04b"],
+    "dod": "Lesson and LessonBlock structs with sentinel errors (lesson.not_found, lesson.sequence_conflict, block.invalid_type, block.sequence_conflict); factories; unit tests.",
+    "files_hint": ["internal/modules/lesson/domain/lesson.go", "internal/modules/lesson/domain/block.go", "internal/modules/lesson/domain/errors.go", "internal/modules/lesson/domain/lesson_test.go"]
+  },
+  {
+    "id": "L-2",
+    "title": "PostgresLessonRepository (7 methods) + UNIQUE translation",
+    "layer": "data",
+    "deps": ["F-1", "L-1"],
+    "acs": ["AC-03", "AC-04", "AC-04b", "AC-05", "AC-12"],
+    "dod": "Create, FindByID, FindAllByCourse, AddBlock, UpdateSequence, Publish, CountForCourse; pq.unique_violation translated to domain error; integration tests.",
+    "files_hint": ["internal/modules/lesson/infra/lesson_repo.go", "internal/modules/lesson/infra/lesson_repo_test.go"]
+  },
+  {
+    "id": "C-3",
+    "title": "POST /courses (createCourse + rate-limit)",
+    "layer": "service",
+    "deps": ["C-2", "F-3"],
+    "acs": ["AC-01", "AC-02", "AC-09"],
+    "dod": "Handler: validate description length, IsMethodist gate, rate-limit 30 req/min, INSERT course, 201/400/403/429 responses; handler unit tests.",
+    "files_hint": ["internal/modules/course/ports/handler.go", "internal/modules/course/ports/dto.go", "internal/modules/course/ports/errors.go", "internal/modules/course/ports/handler_test.go"]
+  },
+  {
+    "id": "C-4",
+    "title": "GET /courses + GET /courses/{id} (existence-hiding)",
+    "layer": "service",
+    "deps": ["C-2"],
+    "acs": ["AC-07", "AC-08"],
+    "dod": "List returns published + owner-draft; GetByID applies cross-org 404 (AC-07) and draft-leak 404 (AC-08); handler unit tests.",
+    "files_hint": ["internal/modules/course/ports/handler.go"]
+  },
+  {
+    "id": "C-5",
+    "title": "POST /courses/{id}/publish (outbox + idempotency)",
+    "layer": "service",
+    "deps": ["C-2", "L-2", "F-2", "F-4"],
+    "acs": ["AC-05", "AC-06"],
+    "dod": "Handler: CountPublishedLessons gate, UPDATE+outbox in single tx, Idempotency-Key dedup, idempotent re-publish returns 200; handler unit tests.",
+    "files_hint": ["internal/modules/course/ports/handler.go", "internal/modules/course/app/course_service.go"]
+  },
+  {
+    "id": "C-6",
+    "title": "PATCH /courses/{id}/lessons/reorder",
+    "layer": "service",
+    "deps": ["C-2", "L-2"],
+    "acs": ["AC-04b"],
+    "dod": "Handler: len<=50 check, draft-only gate, batch UPDATE in tx, UNIQUE violation rolled back; handler unit tests.",
+    "files_hint": ["internal/modules/course/ports/handler.go"]
+  },
+  {
+    "id": "L-3",
+    "title": "POST /courses/{id}/lessons (createCourseLesson)",
+    "layer": "service",
+    "deps": ["L-2", "C-2"],
+    "acs": ["AC-03", "AC-04", "AC-04b", "AC-10"],
+    "dod": "Handler: parent course org-filter (AC-10), sequence auto-assign, INSERT+outbox in tx, 201/404/409 responses; handler unit tests.",
+    "files_hint": ["internal/modules/lesson/ports/handler.go", "internal/modules/lesson/ports/dto.go", "internal/modules/lesson/ports/errors.go"]
+  },
+  {
+    "id": "L-4",
+    "title": "GET /lessons + GET /lessons/{id} (no peer-signal yet)",
+    "layer": "service",
+    "deps": ["L-2"],
+    "acs": ["AC-12"],
+    "dod": "List with course_id filter + cursor; GetByID with existence-hiding for draft/cross-org; blocks in response; handler unit tests.",
+    "files_hint": ["internal/modules/lesson/ports/handler.go"]
+  },
+  {
+    "id": "L-5",
+    "title": "POST /lessons/{id}/blocks (polymorphic payload)",
+    "layer": "service",
+    "deps": ["L-2"],
+    "acs": ["AC-03"],
+    "dod": "Handler validates block_type enum (4 types per ADR-0001), inserts block row, 201/400/404/409 responses; handler unit tests.",
+    "files_hint": ["internal/modules/lesson/ports/handler.go"]
+  },
+  {
+    "id": "L-6",
+    "title": "POST /lessons/{id}/publish (outbox + idempotency)",
+    "layer": "service",
+    "deps": ["L-2", "F-2", "F-4"],
+    "acs": ["AC-06"],
+    "dod": "Handler: course-owner check, UPDATE+outbox in single tx, Idempotency-Key dedup, idempotent re-publish returns 200; handler unit tests.",
+    "files_hint": ["internal/modules/lesson/ports/handler.go"]
+  },
+  {
+    "id": "CMP-1",
+    "title": "LessonCompletion domain + repo + tests",
+    "layer": "data",
+    "deps": ["L-2"],
+    "acs": ["AC-11", "AC-12"],
+    "dod": "LessonCompletion struct; PostgresCompletionRepository with Create (UNIQUE idempotent), FindByUserLesson; org_id filter invariant; integration tests.",
+    "files_hint": ["internal/modules/completion/domain/completion.go", "internal/modules/completion/infra/completion_repo.go", "internal/modules/completion/infra/completion_repo_test.go"]
+  },
+  {
+    "id": "CMP-2",
+    "title": "POST /lessons/{id}/completion (idempotent via UNIQUE)",
+    "layer": "service",
+    "deps": ["CMP-1"],
+    "acs": ["AC-11", "AC-12"],
+    "dod": "Handler: published-lesson gate (AC-12), INSERT with UNIQUE idempotent path (201 first / 200 repeat); handler unit tests.",
+    "files_hint": ["internal/modules/completion/ports/handler.go", "internal/modules/completion/ports/dto.go", "internal/modules/completion/ports/errors.go"]
+  },
+  {
+    "id": "CMP-3",
+    "title": "Peer-blob aggregation + Redis cache (60s TTL)",
+    "layer": "service",
+    "deps": ["CMP-1", "P-1"],
+    "acs": ["AC-14", "AC-15"],
+    "dod": "PeerBlobService: aggregate COUNT + recent 5 public completers, write-through Redis cache 60s TTL; anti-fingerprinting threshold count<3 returns null; cache-miss fallback to DB; unit tests.",
+    "files_hint": ["internal/modules/completion/app/peer_blob.go", "internal/modules/completion/app/peer_blob_test.go"]
+  },
+  {
+    "id": "CMP-4",
+    "title": "Extend GET /lessons/{id} with peer_completion field",
+    "layer": "service",
+    "deps": ["CMP-3", "L-4"],
+    "acs": ["AC-14", "AC-15"],
+    "dod": "Lesson GET handler enriched with PeerBlobService result; peer_completion embedded in response; my_completed flag correct; handler unit tests.",
+    "files_hint": ["internal/modules/lesson/ports/handler.go"]
+  },
+  {
+    "id": "P-1",
+    "title": "UserPreference + audit domain + repo",
+    "layer": "data",
+    "deps": ["F-1"],
+    "acs": ["AC-13"],
+    "dod": "UserPreference struct; PostgresPreferenceRepository with UPSERT + audit INSERT in tx; default private on no-row; integration tests.",
+    "files_hint": ["internal/modules/preference/domain/preference.go", "internal/modules/preference/infra/preference_repo.go", "internal/modules/preference/infra/preference_repo_test.go"]
+  },
+  {
+    "id": "P-2",
+    "title": "GET /me/preferences + PATCH /me/preferences handlers",
+    "layer": "service",
+    "deps": ["P-1"],
+    "acs": ["AC-13"],
+    "dod": "GET returns default private on no-row (lazy default); PATCH upserts + audit in tx; 400 on invalid enum; handler unit tests.",
+    "files_hint": ["internal/modules/preference/ports/handler.go", "internal/modules/preference/ports/dto.go", "internal/modules/preference/ports/errors.go"]
+  },
+  {
+    "id": "CMT-1",
+    "title": "Comment + CommentAudit domain + repo",
+    "layer": "data",
+    "deps": ["L-2"],
+    "acs": ["AC-16", "AC-18"],
+    "dod": "Comment struct with sentinel errors (comment.not_found, comment.not_moderator); PostgresCommentRepository Create, FindByID, ListByLesson, Hide+audit in tx; integration tests.",
+    "files_hint": ["internal/modules/comment/domain/comment.go", "internal/modules/comment/domain/errors.go", "internal/modules/comment/infra/comment_repo.go", "internal/modules/comment/infra/comment_repo_test.go"]
+  },
+  {
+    "id": "CMT-2",
+    "title": "POST /lessons/{id}/comments (rate-limit + HTML escape)",
+    "layer": "service",
+    "deps": ["CMT-1", "F-3"],
+    "acs": ["AC-16", "AC-17"],
+    "dod": "Handler: length check (2000 chars), rate-limit 10/h/user, published-lesson gate, server-side HTML-escape before INSERT, 201/400/404/429 responses; handler unit tests.",
+    "files_hint": ["internal/modules/comment/ports/handler.go", "internal/modules/comment/ports/dto.go", "internal/modules/comment/ports/errors.go"]
+  },
+  {
+    "id": "CMT-3",
+    "title": "GET /lessons/{id}/comments (cursor pagination + placeholder)",
+    "layer": "service",
+    "deps": ["CMT-1"],
+    "acs": ["AC-16"],
+    "dod": "List with keyset cursor on (created_at DESC, id), default page_size=20, hidden comments show placeholder; handler unit tests.",
+    "files_hint": ["internal/modules/comment/ports/handler.go"]
+  },
+  {
+    "id": "CMT-4",
+    "title": "POST /comments/{id}/hide (admin + audit trail)",
+    "layer": "service",
+    "deps": ["CMT-1", "F-1"],
+    "acs": ["AC-18"],
+    "dod": "Handler: IsAdmin gate, UPDATE+audit INSERT in tx (original content preserved), 200/403/404 responses; handler unit tests.",
+    "files_hint": ["internal/modules/comment/ports/handler.go"]
+  },
+  {
+    "id": "E-1",
+    "title": "E2E: course-lesson lifecycle + cross-org 404",
+    "layer": "service",
+    "deps": ["C-3", "C-4", "C-5", "L-3", "L-4", "L-5", "L-6"],
+    "acs": ["AC-01", "AC-03", "AC-05", "AC-06", "AC-07", "AC-08", "AC-09", "AC-10"],
+    "dod": "HTTP E2E: create course, add block-based lesson, publish lesson, publish course, verify visibility matrix (same-org member sees 200, cross-org 404, draft non-owner 404).",
+    "files_hint": ["internal/modules/course/ports/e2e_test.go"]
+  },
+  {
+    "id": "E-2",
+    "title": "E2E: peer-signal + preferences + anti-fingerprinting",
+    "layer": "service",
+    "deps": ["CMP-4", "P-2"],
+    "acs": ["AC-11", "AC-13", "AC-14", "AC-15"],
+    "dod": "HTTP E2E: mark completion (idempotent 201/200), set peer_visibility=public, GET lesson verifies peer_completion field, verifies count<3 threshold returns null.",
+    "files_hint": ["internal/modules/completion/ports/e2e_test.go"]
+  },
+  {
+    "id": "E-3",
+    "title": "E2E: comments + moderation + audit preservation",
+    "layer": "service",
+    "deps": ["CMT-2", "CMT-3", "CMT-4"],
+    "acs": ["AC-16", "AC-17", "AC-18"],
+    "dod": "HTTP E2E: post comment, list comments, admin hides comment (original preserved in audit), non-admin hide returns 403.",
+    "files_hint": ["internal/modules/comment/ports/e2e_test.go"]
+  }
+]

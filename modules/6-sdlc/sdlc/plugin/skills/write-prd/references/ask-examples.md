@@ -1,6 +1,6 @@
 # `AskUserQuestion` examples — explanatory pattern for write-prd
 
-How step 7 (Socratic batch loop) and step 7.5 (critic resolution) phrase questions and options. The contract from [socratic-loop.md](./socratic-loop.md) and [critic-phase.md](./critic-phase.md) is normative; this file shows the **shape** of the dialogue so options *describe what the skill will do*, not just *what they're labelled*.
+How step 7 (Socratic batch loop) and step 8 (critic resolution) phrase questions and options. The contract from [socratic-loop.md](./socratic-loop.md) and [critic.md](./critic.md) is normative; this file shows the **shape** of the dialogue so options *describe what the skill will do*, not just *what they're labelled*.
 
 ## Shape
 
@@ -132,7 +132,7 @@ Question:
   /articles/{id}/publish, Then API returns 409 with code article.no_sections».
   Hits: `POST`, `/articles/{id}/publish`, `409`, `article.no_sections`.
   Suggested: rewrite into business form (actor-observable outcome) — the
-  HTTP/error/schema detail moves to stage 09 `sdlc:define-api`.
+  HTTP/error/schema detail moves to stage 09 `sdlc:api-forge`.
   How do you want to resolve it?
 
 Options:

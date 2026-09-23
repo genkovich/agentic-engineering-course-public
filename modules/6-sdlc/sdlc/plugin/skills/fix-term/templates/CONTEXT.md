@@ -1,31 +1,40 @@
 ---
 status: Living
-updated_at: "<YYYY-MM-DD>"
+updated_at: "<today YYYY-MM-DD>"
 ---
 
-# Domain Context
+# Domain Context — <slug or repo>
 
 <!--
-CONTEXT.md = domain glossary, not SPEC and not a scratch pad. NO implementation details
-(no Redis vs Postgres, no library names, no API contracts) — only domain words
-and the boundaries between them. The rest lives in SPEC.md, architecture-brief.md, ADR.
+CONTEXT.md is the domain glossary — not a PRD and not a scratch pad. NO implementation
+detail here (no datastore/broker/framework names, no API contracts) — only domain words
+and the boundaries between them. Implementation choices live in the SAD and ADRs;
+behaviour lives in PRD.md.
 
-Terms resolving during interview/brainstorm/decide go here inline,
-not batched "I'll consolidate later". MP rule: empty H2 — delete before commit;
-in CONTEXT.md keep only sections that have real content.
+Multi-context repos: each bounded context has its own CONTEXT.md at its root path
+(registered in CONTEXT-MAP.md). System-wide terms that span all contexts live in the
+repo-root CONTEXT.md. Never duplicate a term across files — pick one owner.
+
+Terms get fixed inline, the moment they surface in an interview / PRD / review — never
+batched «I'll consolidate later». Empty H2 → prune before commit; keep only the sections
+that carry real content. ## Glossary is mandatory; the other two are optional.
 -->
 
 ## Glossary
 
-<!-- term · 1-sentence canonical definition · 1-sentence boundary (what it is NOT / what it gets confused with). -->
-- <term> — <definition in 1 sentence>. NOT <concept it gets confused with>.
+<!-- One line per term: name · one-sentence canonical definition · one-sentence boundary
+     (what it is NOT / the concept it gets confused with). Alphabetical once there are a few. -->
+- <term> — <one-sentence definition>. NOT <concept it's confused with + how it differs>.
 
 ## Invariants
 
-<!-- Domain rules that hold across the entire codebase. Not SPEC AC — rules above. -->
-- <invariant in the form "X always must / can never">
+<!-- Domain rules that hold across the whole feature/codebase — phrased «X always must / can
+     never». These are rules ABOVE any single acceptance criterion, not PRD AC. Prune the
+     section if there are none. -->
+- <invariant in the form «X always must / can never»>
 
 ## Out of scope
 
-<!-- Concepts the user explicitly said are "not our context". So we don't revisit in 6 months. -->
-- <out-of-scope concept · reason>
+<!-- Concepts the author explicitly placed outside this domain, with a one-line reason — so
+     nobody re-litigates them in six months. Prune the section if there are none. -->
+- <out-of-scope concept · reason it's excluded>

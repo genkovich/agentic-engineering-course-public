@@ -5,6 +5,7 @@ reviewers: []
 updated_at: "<YYYY-MM-DD>"
 feature_size: <XS|S|M|L|XL>     # set by sdlc:classify-size, not here
 stage: "01"
+depth: easy | medium | hard   # interview depth used
 ticket: "<ticket-id>"
 value_score:
   rice: <number>                 # computed by Claude

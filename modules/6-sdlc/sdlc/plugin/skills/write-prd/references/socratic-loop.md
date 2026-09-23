@@ -1,45 +1,35 @@
-# Socratic loop — batch propose-all-then-validate for write-prd Protocol step 7
+# write-prd — delta over the shared Socratic loop
 
-Goes between the draft (step 6) and the Phase 7.5 critic (step 7.5). Per-section batch validation via `AskUserQuestion` over the in-memory draft. The skill renders the full proposed list for a section first (so the user sees the big picture), then walks per-item resolutions. Don't write the file until step 7.5 + Self-check pass.
+Read [`../../_shared/socratic-loop.md`](../../_shared/socratic-loop.md) for the canonical 4-state machine, edits-log, and disk-write discipline. write-prd supplies only the deltas below.
 
-For concrete question wording + option `description` fields, see [ask-examples.md](./ask-examples.md).
+## Sections walked (in order)
 
-## Contract
+§4 User stories → §5 Acceptance criteria → §6 NFR → §7 KPIs. §1–§3 are drafted and shown but not per-item walked (they have no decision set — the user edits them inline if needed).
 
-**Per-section batch, not per-item-across-sections.** For each of the 4 item-sections in order — §4 US → §5 AC → §6 NFR → §7 KPI — the skill:
+## Decision-types
 
-1. **7a. Renders the full proposed list** in one message (e.g. all 12 proposed AC sequentially, numbered, with coverage-type tag in parentheses for §5). This gives the user the big picture before any resolution is requested — they can spot duplicates, gaps, or drop-the-whole-list problems before committing to per-item decisions.
-2. **7b. Walks per-item resolutions** — one `AskUserQuestion` per item in the just-rendered section, using the 4-state machine below (5-state for §5 AC).
-3. **7c. Applies transitions** to the in-memory draft as each resolution arrives.
-4. **7d. Runs the coverage gate** (only for §5 AC) — after all resolutions in §5, verify ≥1 AC of each of the 5 coverage types remains. If broken, skill regenerates a replacement AC of the missing type, appends it, and runs a mini-batch on the new AC. Loop until coverage holds OR user `Save as Open Question`-s the regenerated AC (then F5 critic handles it downstream — user provides rationale).
-5. **7e. Repeats 7a-7d for the next section**. The skill never returns to a previous section once it has moved on.
+- **User story** (§4) — Approve / Edit / Drop / Save-as-OQ. Dropping a US that owned the only AC of a coverage type triggers the §5 coverage gate (a). Dropping the **entire** US is a legitimate de-scope and does not fire the use-case floor (b) — only a retained US losing its last AC does.
+- **Acceptance criterion** (§5) — the 4-state machine **plus a 5th option «Add another AC»** (user dictates a new AC; skill drafts it in business form and runs a one-question mini-batch on it). Dropping / OQ-migrating the **last AC of a retained §4 user story** fires the use-case floor below (regenerate an AC for that US).
+- **NFR row** (§6) — Approve / Edit (change the number or measurement) / Save-as-OQ (number is TBD, owner+due mandatory). A bare adjective («fast») is never Approvable — force a number or an OQ.
+- **KPI** (§7) — Approve / Edit / Drop. baseline=TBD forces an inline measurement plan or an OQ.
 
-## Options by item-type
+## Per-skill gate — §5 coverage floors (two, both re-checked after every resolution)
 
-All four item-types share a 4-state machine; AC has one extra optional state.
+After every §5 resolution, re-check **both** floors below (OQ-migrated AC do NOT count toward either — they live in §8 now). Both hold at every interview depth.
 
-- **For each US** — `Approve as-is` / `Reword` / `Save as Open Question` / `Drop`.
-- **For each AC** — `Approve as-is` / `Reword GWT` / `Save as Open Question` / `Drop` / `Add another AC` (5th option — generates one more AC for the same US in a coverage type not yet present).
-- **For each NFR row** — `Approve as-is` / `Edit target` / `Save as Open Question` / `Drop`.
-- **For each KPI** — `Approve as-is` / `Edit baseline/target` / `Save as Open Question` / `Drop`.
+1. **Coverage-type floor.** At least one AC of each of the 5 coverage types (happy / error / authorization / domain invariant / cross-context) still stands after drops + OQ-migrations. If a type is empty, regenerate a replacement AC of that type and run a one-question mini-batch.
 
-Each option label must be paired with a `description` explaining the next mechanical step the skill will take after that choice — see [ask-examples.md](./ask-examples.md) for the canonical wording.
+2. **Use-case floor (§4 US → at least one §5 AC).** **Every *retained* §4 user story still has at least one acceptance criterion.** If a Drop / OQ-migration leaves a retained US with no AC, regenerate (or use the «Add another AC» option) an AC for that US and run a one-question mini-batch — a user story with no AC is incomplete and silently breaks the downstream `complete-sequence-diagrams` use-case coverage and `review-feature` end-to-end trace. (Dropping the **whole** US is a legitimate de-scope and does not fire this floor — only a retained US losing its last AC does.) This also applies at **draft time**: if the initial §5 draft gave some §4 US no AC, add one before the walk begins.
 
-`Cancel` and `Reject` are synonyms for `Drop` — same transition, same edits-log action.
+## Open-Questions table
 
-## State transitions
+`save_as_oq` rows land in **§8 Open questions** as a checkbox line:
+```
+- [ ] <headline>? Default now: <default-if-known>. — owner: <name/role>, due: <YYYY-MM-DD or stage trigger like "before /sdlc-break-tasks">
+```
+Owner + due are **mandatory** — skill issues a follow-up `AskUserQuestion` immediately after the user picks `Save-as-OQ` to capture both. Missing either downgrades to `Drop` with an explicit warning.
 
-- **`Approve`** → no draft change. No edits-log entry. Move to next item.
-- **`Edit` / `Reword`** → regenerate that item with the new constraint, then loop back on that item once. The user's **second** answer per item is final (single-iteration cap).
-- **`Drop`** → delete the item, decrement subsequent numbering (US-03 → US-02, AC-04 → AC-03 etc.). For AC: if the dropped AC was the only one of its coverage type, the coverage gate in 7d regenerates a replacement of the same type.
-- **`Save as Open Question`** → remove the item from its native section AND append an entry to §8 Open Questions in this exact shape: `- [ ] <item-id> (<verbatim text>) — чи цей <item-type> валідний? <inline rationale from user>. — owner: <user-typed>, due: <user-typed YYYY-MM-DD or stage trigger>`. Owner + due are **mandatory** — skill issues a follow-up `AskUserQuestion` immediately after the user picks this option to capture them. If the user leaves owner OR due blank, the resolution is **downgraded to `Drop`** with a warning surfaced to the user.
-- **`Add another AC`** (AC only, 5th option) → generate one additional AC for that US, picking a coverage type not yet present on that US, then loop on the new AC with the same 4-state machine.
-
-Persist edits into the in-memory draft after each resolution. The on-disk file is **not** touched yet.
-
-## Edits-log (mandatory)
-
-Maintain an edits-log throughout step 7. After each `Edit` / `Drop` / `Add` / `Save as Open Question` resolution (NOT for `Approve`), append one entry:
+## Edits-log schema (write-prd specifics)
 
 ```
 {item_id:    "US-06" | "AC-04" | "NFR-row-2" | "KPI-01",
@@ -49,9 +39,19 @@ Maintain an edits-log throughout step 7. After each `Edit` / `Drop` / `Add` / `S
  user_reason:"<the rationale the user provided, verbatim>"}
 ```
 
-`Approve` items do **not** go into the log — they are the baseline. The log is the **sole** signal the Phase 7.5 critic uses to detect upstream-coherence drift caused by user edits. Without it, the critic has no input for F1/F2/F3/F4.
+`Approve` items do **not** go into the log — they are the baseline. The log is the **sole** signal the clean-context critic uses to detect upstream-coherence drift.
 
-If the user provides no reason on `Drop` or `Save as Open Question` — re-prompt once for it. Verbatim user wording matters: the critic uses it to judge whether a defer silently re-introduces a vector that idea-brief §13 / §11 / §6 named as load-bearing.
+## Contract
+
+Per-section batch, not per-item-across-sections. For each section in order:
+
+1. **7a. Render the full proposed section** in one message — body text + numbered list of decisions. The user sees the whole shape before any per-decision commitment.
+2. **7b. Walk per-item resolutions** — one `AskUserQuestion` per item (4-state machine; 5-state for §5 AC).
+3. **7c. Apply transitions** to the in-memory draft as each resolution arrives.
+4. **7d. Run the coverage gate** (§5 only) — after all resolutions, verify both floors. If either is broken, regenerate a replacement AC and run a mini-batch. Loop until both floors hold or user `Save-as-OQ`-s the regenerated AC (critic handles it downstream).
+5. **7e. Repeat for the next section.** The skill never returns to a previous section — cross-section drift is the critic's job.
+
+On-disk artifacts are not touched until a section is resolved. Then write to disk + commit one bundled commit per section.
 
 ## Exit condition
 
@@ -59,7 +59,9 @@ Step 7 completes when:
 
 - All 4 sections (§4 US, §5 AC, §6 NFR, §7 KPI) have been batch-rendered (7a) and walked (7b) with one resolution per item.
 - The in-memory draft reflects every `Edit`/`Drop`/`Add`/`Save as OQ` resolution; `Save as OQ` items appear in §8 with owner+due.
-- The §5 coverage gate (7d) is closed — ≥1 AC of each of the 5 coverage types remains AFTER drops + OQ-migrations (OQ-migrated items do NOT count toward coverage; they live in §8 now).
-- The edits-log is closed (no pending entries).
+- Both §5 coverage floors (7d) are closed.
+- The edits-log has no pending entries.
 
-Then proceed to step 7.5 (see [critic-phase.md](./critic-phase.md)).
+Then proceed to step 8 (see [`critic.md`](./critic.md)).
+
+For concrete question wording and option descriptions, see [`ask-examples.md`](./ask-examples.md) (junior-friendly Ukrainian shape).

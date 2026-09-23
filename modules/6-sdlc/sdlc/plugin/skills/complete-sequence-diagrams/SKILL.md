@@ -1,166 +1,92 @@
 ---
 name: complete-sequence-diagrams
-description: >
-  Use when the user wants to audit a SAD against PRD user stories and add
-  sequence diagrams for every uncovered use case (not just the 3-5 critical
-  ones). Triggers on "complete sequences for {slug}", "audit sequence coverage",
-  "missing sequences", "sequence per US", "/sdlc-complete-sequences {slug}".
-  Iterative: one use case at a time with user confirm. Output: Mermaid
-  sequenceDiagram blocks appended/updated inline in
-  docs/features/{slug}/sad.md §6 (Runtime view). Also handles single-flow ad-hoc
-  draws (superset of legacy draw-sequence skill). Prerequisites:
-  docs/features/{slug}/PRD.md (stage 03) + docs/features/{slug}/sad.md (stage 04) —
-  hard refuse if missing.
+description: >-
+  Use to add Mermaid sequenceDiagram blocks to the SAD's runtime view
+  (sad.md §6) — one per critical flow, showing how a request moves between
+  generic participants with happy + error paths.
+  Triggers on "complete sequences for {slug}", "sequence diagram for {slug}",
+  "draw the runtime flow", "add a sequence to the SAD",
+  "/sdlc-complete-sequence-diagrams {slug}", "діаграми послідовності {slug}",
+  "sequence для {slug}", "намалюй потік {slug}". Reads sad.md §5 for
+  participants, drafts each flow from templates/seq-flow.md with generic
+  participants, walks them Socratically one flow at a time, and writes
+  confirmed blocks into sad.md §6 — they inform data-model indexes downstream.
+  Hard-refuse if sad.md is missing → run /sdlc-architecture-design first.
+  Single-flow mode: /sdlc-complete-sequence-diagrams {slug} --flow {name}.
+triggers:
+  - /sdlc-complete-sequence-diagrams
+stage: "05"
 ---
 
 # Skill: complete-sequence-diagrams
 
-Auditor + completer for the Runtime view. Reads PRD user stories, cross-checks SAD §6, and adds Mermaid `sequenceDiagram` blocks for every US that does not yet have one. Iterative per use case (user confirms each diagram), validates Mermaid syntax with `mmdc`, flags ADR-worthy decisions, and adds async patterns (idempotency, retry, DLQ) where the flow is non-`localhost`.
+Draws the **runtime view** of an already-designed feature: for each critical flow it produces a Mermaid `sequenceDiagram` block — generic participants, happy path plus the error branches the PRD demands — and writes them into `docs/features/<slug>/sad.md §6`. One flow at a time, user confirms each. The diagrams are the bridge between the static design (§5 building blocks) and the data layer: every persist/read step you draw becomes a hint for the indexes `generate-data-model` will need.
 
-Supersedes the legacy `draw-sequence` skill. For a single ad-hoc flow, invoke with `--flow <name>` (see "Single-flow mode" below).
+This skill keeps only its own machinery. **Flow count is driven by the PRD, not a cap** — every §4 user story / §5 acceptance criterion is covered (size may collapse *detail*, never *coverage*). Each diagram is **confirmed in prose, never as raw Mermaid** → [`../_shared/diagram-presentation.md`](../_shared/diagram-presentation.md); the per-flow confirm-vs-proceed behaviour follows the interview-depth setting → [`../_shared/interview-depth.md`](../_shared/interview-depth.md).
 
 ## Owner
 
-Tech Lead.
-
-## When to use
-
-- "complete sequences for <slug>", "audit sequence coverage for <slug>", "missing sequences for <slug>".
-- After SAD has been written (stage 04) and at least the critical flows have been sketched. This skill closes the long tail of use cases — webhooks, scheduled jobs, third-party callbacks, cross-service flows.
-- `/sdlc-complete-sequences <slug>` — explicit invocation.
-- `/sdlc-complete-sequences <slug> --flow <name>` — single-flow ad-hoc draw (legacy `draw-sequence` use case).
-- Skip if PRD has < 3 user stories or SAD §6 already references every US by name.
+Tech Lead (drives the runtime decomposition). The PM confirms that each drawn flow matches a real user story; a backend engineer flags persist steps that imply a new index.
 
 ## Inputs
 
-- `<slug>` — same as for PRD / SAD.
-- **Gate (hard refuse if missing):**
-  - `docs/features/<slug>/PRD.md` — user stories live in §4 as `US-N: <story>`.
-  - `docs/features/<slug>/sad.md` — §6 Runtime view holds existing sequences (heading: `### US-N: <name>` per arc42 convention).
-  - If either missing: STOP, suggest `sdlc:write-prd <slug>` or `sdlc:architecture-design <slug>`.
+- `<slug>` — same feature slug used by every earlier stage.
+- **Gate (hard-refuse if missing):** `docs/features/<slug>/sad.md`. The §5 building-block view names the participants; §6 is where flows are written. If `sad.md` is absent → STOP and point: «run `/sdlc-architecture-design <slug>` first — sequences are written into its §6».
+- **Strongly expected:** `docs/features/<slug>/PRD.md` — §4 user stories tell you *which* flows exist; §5 acceptance criteria are the **coverage floor** — every AC must be shown by a flow, a branch, or an explicit non-runtime N/A (the step-7 coverage check). Present by this stage in the normal pipeline; if genuinely absent, fall back to §6/§5 of `sad.md` for the flow list and note that AC-coverage can't be verified.
+- (Optional) `docs/features/<slug>/.size` — depth hint for *detail* (XS/S may collapse a flow's internal steps), never for *coverage*. Absent → default to M.
+- (Optional) `.claude/sdlc.local.md` `interview_depth` (else medium) — governs only the diagram-confirmation UX (per-diagram prose+ask vs. write+summarize-and-proceed); this skill does **not** open its own depth question (it honors the setting, or a `--depth=` arg if passed).
 
 ## Protocol
 
-1. **Prereq check (hard).** `test -f docs/features/<slug>/PRD.md && test -f docs/features/<slug>/sad.md` → exit ≠ 0 = refuse with pointer to which prereq is missing.
+1. **Gate.** `test -f docs/features/<slug>/sad.md` → fail = refuse with the pointer above. Then read §5 (participants) and §6 (any flows already drawn — this skill is additive, never rewrite an existing block).
 
-2. **Inventory user stories from PRD §4.** Parse every `US-N:` heading. Build an internal list `[US-1, US-2, ...]` with title and primary actor.
+2. **Pick the flows — PRD-driven, no cap.** List the flows from `PRD.md` **§4 user stories + §5 acceptance criteria** (absent the PRD, from §6 itself): **one flow per critical user story / distinct runtime path**. There is **no fixed cap** — draw as many flows as the user stories and ACs need. Then **plan AC coverage**: map every §5 AC to where it will be shown — a **dedicated flow**, an **`alt`/`else` branch** inside the relevant flow, or **explicitly non-runtime** (e.g. a middleware-enforced authorization check, a build-time validation) with a one-line reason. Size only collapses *detail* (XS/S may show fewer internal steps per flow), never *coverage*. Confirm the flow list **and the AC→flow map** with one `AskUserQuestion` before drawing.
 
-3. **Cross-check SAD §6 coverage by heading match.** For each US-N: `grep -E "^### .*US-N\b" docs/features/<slug>/sad.md`. Build coverage table:
-   - **Covered** — heading found, Mermaid block present.
-   - **Missing** — no heading.
-   - **Trivial** — auto-flagged (single hop UI → API → DB read, no business logic). Skipped by default; user can opt-in.
+3. **Map participants — generic only.** For each flow, draw participants from a fixed generic vocabulary: `<client>`, `<ui>`, `<service>`, `<data-store>`, `<external-system>`, `<message-bus>`. Do **not** invent concrete service or technology names — those are `architecture-design` / `generate-data-model` decisions, not runtime-view ones. **When `sad.md` frontmatter `target_surfaces` declares a UI surface** (`web-frontend` / `mobile-app` / `desktop-app`), draw the flows it touches as **UI-driven** — `<user>` (actor) → `<ui>` → `<service>` → `<data-store>` — so the user-visible step is shown, not just the service call (→ [`../_shared/surfaces.md`](../_shared/surfaces.md)). A backend-only / `cli` / `worker` feature keeps the service-level vocabulary (no `<ui>`). `<ui>` stays generic like every other participant — never a framework or component name. If a flow needs a participant §5 never declared, note it («flow needs `<message-bus>`, not in §5 — flag for architecture-design») and still draw it.
 
-4. **Surface coverage report to user.** Markdown table with `US-N | Title | Status (Covered/Missing/Trivial) | Notes`. Ask user to confirm the list of "Missing" UCs to process. Trivial UCs are listed under a separate "Skipped — trivial" block; user can promote any back to "Missing".
+4. **Sync vs async.** If the PRD describes a webhook, scheduled job, queued/event-driven step, or any third-party callback → async: add an idempotency-key check as the handler's first step, a retry note (`Note over <service>,<external-system>: retry N times with backoff`), and a dead-letter branch in an `alt` after N failures. Otherwise → sync (request → response).
 
-5. **For each missing UC (iteratively, user confirms each):**
+5. **Draft each flow** from [`./templates/seq-flow.md`](./templates/seq-flow.md): a precondition note, the happy-path messages, an `alt`/`else` for the error branches the PRD acceptance criteria require, and a postcondition note. Mark every write as a generic persist note — `Note over <service>,<data-store>: persists <entity>` — so `generate-data-model` sees what to index. Keep messages verb-first and free of HTTP verbs / status numbers / SQL.
 
-   a. **Classify sync vs async by PRD signals.** Look for keywords in PRD §4 acceptance criteria for this US: `webhook`, `cron`, `biweekly`, `scheduled`, `daily`, `external service`, `queue`, `event` → **async**. Otherwise → **sync**.
+6. **Present + confirm each flow, one at a time — in prose, never raw Mermaid.** Per [`../_shared/diagram-presentation.md`](../_shared/diagram-presentation.md): for each drafted flow, **write the block into §6** under a `### <flow name>` heading (so Obsidian renders it), **validate** it parses per [`../_shared/mermaid-check.md`](../_shared/mermaid-check.md), then **describe it in prose** — the happy path plus every `alt`/`else` branch in plain words. **Never paste the raw `sequenceDiagram` source as the question.** Confirm by prose, governed by the interview-depth setting: at **medium/hard**, one `AskUserQuestion` per flow with the 4-state actions (Accept / Fix / Save-as-OQ / Drop) — on **Fix**, regenerate + overwrite that one block, re-validate, re-describe (one round, second answer final); on **Drop**, remove the block again. At **easy**, write + a one-line prose summary into the assumptions ledger and proceed (no per-flow question). Never touch a flow already present in §6. Maintain a short edits-log.
 
-   b. **Identify actors from SAD §5 (Container view).** Parse Mermaid `C4Container` block. If async flow needs `Scheduler` / `Worker` / `External Service` and §5 has no such Container → **flag "new actor"** in the report; still draw the actor in sequence (don't block on §5 update).
+7. **Use-case + AC → flow coverage check (before finalizing).** Two passes, surfaced as one coverage table:
+   - **Use-case pass (§4).** List **every §4 user story** and the flow(s) that realize it. Every retained user story maps to **≥1 flow** (a US with no flow is a gap — draft + confirm one, or de-scope it back through `/sdlc-write-prd`/`/sdlc-clarify-prd`, never silently skip).
+   - **AC pass (§5).** List **every §5 AC** and where it is now shown — a **dedicated flow**, an **`alt`/`else` branch**, or an **explicit non-runtime N/A** (with its one-line reason, e.g. «AC-7: authorization check in middleware, not a runtime flow»).
 
-   c. **Generate Mermaid `sequenceDiagram` block.** Template:
-      ```mermaid
-      sequenceDiagram
-          autonumber
-          participant U as User (Methodist)
-          participant API as content-api
-          participant DB as Postgres
-          Note over U, API: Precondition: <state from PRD>
-          U->>API: <action>
-          API->>DB: <query>
-          DB-->>API: <result>
-          API-->>U: <response>
-          Note over API, DB: writes <table.column> (see §6.4 ER)
-          alt <error condition 1>
-              API-->>U: 4xx <error code>
-          else <error condition 2>
-              DB-->>API: timeout
-              API-->>U: 5xx <error code>
-          end
-          Note over U, API: Postcondition: <state from PRD>
-      ```
+   If a `Drop`/`Save-as-OQ` during step 6 left a user story or an AC uncovered, draft + confirm the missing flow or branch before proceeding, or record the explicit N/A with the user. **No §4 user story and no §5 AC may be silently uncovered.** (This gate holds even at easy/XS.)
 
-   d. **Add async patterns to webhook + retry flows.** When async:
-      - First step in handler: `check idempotency key`.
-      - Retry budget in a `Note over Worker, External: retry up to N with exponential backoff`.
-      - DLQ as an `alt` branch after N failed attempts.
-
-   e. **Fold cache layer into a Note for performance-critical reads.** If PRD §5 lists a latency budget for this US (e.g., `p95 < 120ms`), do NOT draw a separate cache diagram. Add `Note over API, DB: dashboard hits Redis first; cache TTL 60s` inline.
-
-   f. **Flag ADR potential.** If the flow involves a non-trivial architectural decision (`SAGA vs 2PC`, idempotency strategy choice, retry budget shape, polling vs push), do NOT auto-generate an ADR. Add to the final report under "ADR potential": `US-N: consider ADR for <topic>`.
-
-   g. **Validate Mermaid syntax with `mmdc --parse-only`** (mandatory). Write the block to a temp file and run `mmdc -i <tmp> --parse-only` (or equivalent). If parse fails → fix one-shot or surface to user.
-
-   h. **Show to user, ask confirm.** Render the diagram block (mention the `mmdc` validation passed). User responds `ok` / `redo` / `skip`. On `redo`, accept the user's note and regenerate.
-
-6. **Append confirmed blocks to SAD §6.** Insert with heading `### US-N: <title from PRD>`. Preserve order by US-N. Do NOT touch existing sequences.
-
-7. **Examples-as-corrigendum (learning loop, partial).** After the session, if the user has hand-edited any generated block, optionally copy the diff into `docs/features/<slug>/_audit/_examples/US-N.md` as a few-shot example for the next run. Opt-in: ask once at the end.
-
-8. **Final summary report.** Append to `docs/features/<slug>/_audit/sequences-<timestamp>.md`:
-   - **Added:** list of US-N + 1-line summary.
-   - **Skipped (trivial):** list with reason.
-   - **New actors flagged:** list (so §5 Container view can be updated).
-   - **ADR potential:** list of decisions to capture as ADRs.
-
-9. **Self-check against DoD.** Every PRD US is either Covered, explicitly Trivial, or has a fresh Mermaid block in §6. mmdc passed on all new blocks.
-
-10. **Propose commit.** `06: complete sequence coverage for <slug>` + next owner (Backend Lead → stage 07 data-model / generate-data-model).
+8. **Finalize: order, validate, propose commit.** Order the §6 blocks to match §4. **Re-validate every `sequenceDiagram` block per [`../_shared/mermaid-check.md`](../_shared/mermaid-check.md)** as the backstop (balanced `alt`/`else`/`end`, declared participants; fix any that don't parse before committing). Append any flagged items (new participants, decisions worth an ADR) as a short note at the end of §6 — flag only, never auto-write an ADR. Propose commit `sequences: <slug> runtime flows`. Then **emit the stage-handoff block** per [`../_shared/handoff.md`](../_shared/handoff.md) — *What I did* + *Review* (`sad.md` §6) + *Run next* (`/clear`, then `/sdlc-generate-data-model <slug>`, which uses the persist notes to choose indexes).
 
 ## Single-flow mode
 
-`/sdlc-complete-sequences <slug> --flow <name>` — draws one sequence on demand (legacy `draw-sequence` use case). Skips inventory + coverage; goes straight to step 5 (classify → actors → generate → validate → confirm). Writes inline into SAD §6 under a `### Ad-hoc: <name>` (or `### Endpoint-level: <method path>` for HTTP-verb-aware flows) heading. No coverage report. No separate file is created — the new convention is inline-only.
-
-## Inputs the skill does NOT touch
-
-- **Deployment view (§7).** Out of scope. If a sequence requires a new node (e.g., `Scheduler pod`), flag in the report; the user updates §7 separately.
-- **API contract method names.** If `define-api` already produced `openapi.yaml`, the skill reuses those operation names; otherwise leaves a TODO comment `<!-- TODO: align with openapi.yaml -->`.
-- **C4 container/component diagrams.** Only reads them for actor list; does not modify.
-
-## Questions for discussion
-
-- Which UCs are genuinely trivial (single hop with no business logic) and which look trivial but need a sequence anyway (e.g., a list endpoint behind a cache)?
-- Where does the flow cross a `non-localhost` boundary (webhook in, third-party out, queue between services)? Add async patterns there.
-- Is there an idempotency key story for every mutating async flow?
-- Which decisions in this flow deserve an ADR (SAGA, retry budget, polling vs push)?
-- For performance-critical reads — fold into a Note or split into a separate cache-aware sequence?
+`/sdlc-complete-sequence-diagrams <slug> --flow <name>` — draws one sequence on demand. Skips the full inventory + coverage audit; goes straight to step 4 (classify → participants → draft → validate → confirm). Writes inline into `sad.md §6` under `### <name>`. No coverage report generated. Still uses generic participants and validates per [`../_shared/mermaid-check.md`](../_shared/mermaid-check.md).
 
 ## Definition of Done
 
-- Every PRD US is Covered, explicitly Trivial, or has a fresh sequence in SAD §6.
-- All new Mermaid blocks pass `mmdc --parse-only`.
-- Audit report committed to `_audit/sequences-<timestamp>.md`.
+- `sad.md §6` holds a Mermaid `sequenceDiagram` for **every** critical user story / distinct runtime path — **no fixed cap**; size may collapse a flow's internal detail, never its coverage.
+- **Every §4 user story maps to ≥1 flow, and every §5 AC maps to a flow, an `alt`/`else` branch, or an explicit non-runtime N/A** — the step-7 coverage check passed on both passes; nothing is silently uncovered (holds at every depth + size).
+- Each flow was **confirmed in prose** (medium/hard) or **written + summarized** (easy) — never by pasting raw `sequenceDiagram` source as the question.
+- Every block uses **only** generic participants (`<client>` / `<ui>` / `<service>` / `<data-store>` / `<external-system>` / `<message-bus>`) — no concrete technology or service names. A declared UI surface uses `<ui>` in a UI-driven flow (`<user>` → `<ui>` → `<service>` → `<data-store>`); a backend-only feature omits it.
+- Each flow shows the error branches its PRD acceptance criteria require, not happy-path only; every mutating step carries a generic persist note for `generate-data-model`.
+- Every async flow has an idempotency-key step, a retry note, and a dead-letter branch.
+- Pre-existing §6 blocks are untouched; new participants / ADR-worthy decisions are flagged, not silently added.
 
 ## Anti-patterns
 
-- **Draw-without-coverage.** Adding sequences for the same 3 happy paths over and over while webhook / cron / cross-service flows have nothing. The whole point of this skill is the long tail.
-- **Auto-generated ADRs.** This skill only flags decisions; ADRs are written by a human (or `decide-adr` skill).
-- **One mega-sequence for the whole feature.** Split per US. Cross-US flows get their own `### Cross-cutting: <name>` heading.
-- **Drawing happy path only when PRD lists explicit error AC.** Each US gets happy + 2-3 errors from PRD acceptance criteria.
-- **New actors silently added to sequences without flagging §5.** The Container view is the source of truth; the report MUST list new actors.
-- **Modifying existing covered sequences.** Hard rule: this skill is additive only. If user wants to edit existing, that is a manual diff (or run with `--flow <name>` against that US specifically).
+- **Concrete participants.** Naming a specific database, service, or broker — the legacy trap. Participants stay generic; naming the technology is the job of `architecture-design` / `generate-data-model`.
+- **Capping the flow count** and silently under-covering. Flow count is driven by §4/§5 — every AC is shown by a flow, a branch, or an explicit N/A.
+- **Pasting raw Mermaid as the confirmation.** `sequenceDiagram` source in the terminal is unreadable — the user approves blind. Confirm in prose; let Obsidian render the written block (per [`../_shared/diagram-presentation.md`](../_shared/diagram-presentation.md)).
+- **Happy path only** when the PRD lists explicit error acceptance criteria. Each flow gets happy + the demanded error branches.
+- **One mega-diagram** for the whole feature. Split per flow; a cross-cutting flow gets its own `### Cross-cutting: <name>` heading.
+- **Auto-writing ADRs.** This skill only flags decisions (idempotency strategy, retry shape, sync-vs-async); ADRs come from `/sdlc-decide-adr` or a human.
+- **Rewriting an existing §6 block.** Additive only — editing a drawn flow is a deliberate manual diff.
+- **Inventing a participant §5 never declared without flagging it.** §5 is the source of truth; the flag lets `architecture-design` reconcile it.
 
-## Template
+## References & template
 
-→ [./templates/seq-flow.md](./templates/seq-flow.md) — the single-flow shape, embedded inline in SAD §6.
-
-## Example invocation
-
-> **User:** "complete sequences for course-lesson-mvp"
->
-> **Skill behavior:**
-> 1. `test -f docs/features/course-lesson-mvp/PRD.md && test -f docs/features/course-lesson-mvp/sad.md` → OK.
-> 2. Inventory: 5 user stories — US-1 createLesson, US-2 listLessons, US-3 biweeklyReminder, US-4 publishLesson, US-5 viewLearnerDashboard.
-> 3. Coverage table:
->    - US-1 — Covered (heading `### US-1: createLesson` in §6).
->    - US-2 — Trivial (single GET, no business logic; user can promote).
->    - US-3 — Missing (async, biweekly cron).
->    - US-4 — Covered.
->    - US-5 — Missing (performance budget p95 < 120ms).
-> 4. User confirms: process US-3 + US-5.
-> 5. **US-3 (async):** classify async (keyword `biweekly`). Actors: Scheduler (NEW — flagged), Worker, content-api, notification-service, DB. Generates sequence with idempotency key check, retry budget Note, DLQ alt. mmdc OK. ADR potential: `consider ADR for retry budget shape`. User confirms.
-> 6. **US-5 (sync, perf-critical):** classify sync. Actors from §5: web-app, content-api, DB. Generates sequence with `Note over API, DB: dashboard hits Redis first; cache TTL 60s` folded inline. mmdc OK. User confirms.
-> 7. Appends both blocks to sad.md §6 under headings `### US-3: biweeklyReminder` and `### US-5: viewLearnerDashboard`.
-> 8. Writes `_audit/sequences-2026-05-23.md`: added US-3, US-5; trivial US-2; new actor Scheduler; ADR potential for US-3 retry shape.
-> 9. Self-check DoD → 5/5 US accounted for.
-> 10. Commit suggestion: `06: complete sequence coverage for course-lesson-mvp`.
+- [`../_shared/diagram-presentation.md`](../_shared/diagram-presentation.md) — how each flow is confirmed (write → validate → prose-describe → confirm/proceed); never raw Mermaid as the question.
+- [`../_shared/mermaid-check.md`](../_shared/mermaid-check.md) — parse-validation run on each block at step 6 and again as the step-8 backstop.
+- [`../_shared/surfaces.md`](../_shared/surfaces.md) — a declared UI surface adds `<ui>` to the vocabulary and draws UI-driven flows; read from `sad.md` `target_surfaces`.
+- [`../_shared/handoff.md`](../_shared/handoff.md) — stage-handoff block format emitted at step 8.
+- [`./templates/seq-flow.md`](./templates/seq-flow.md) — generic-participant `sequenceDiagram` scaffold (sync + async), embedded inline in `sad.md §6`.

@@ -101,6 +101,29 @@ C4Container
 - Datastores live *outside* the boundary if they're separate processes (which is almost always).
 - Show the worker goroutine / cron job / scheduled task as a separate container — its lifecycle matters even though it runs in-process.
 
+**Multi-surface features — one `Container` per declared `target_surface`.** When §4 declares more than one surface (frontmatter `target_surfaces` → [`../../_shared/surfaces.md`](../../_shared/surfaces.md)), §5 draws one container for each. A `[backend-service, web-frontend, mobile-app]` feature shows the SPA **and** the mobile app **and** the backend API — both UI surfaces *consume* the API's contract, neither authors one:
+
+```mermaid
+C4Container
+    title <feature> — Containers (multi-surface)
+
+    Person(user, "<User role>")
+
+    Container_Boundary(app, "<Our system>") {
+        Container(spa, "<Web SPA>", "<SPA tech>", "browser UI — consumes the API")
+        Container(mobile, "<Mobile app>", "<mobile tech>", "native UI — consumes the API")
+        Container(api, "<Backend API>", "<backend tech>", "owns the REST/JSON contract")
+    }
+
+    ContainerDb(db, "<Datastore>", "<technology>", "<tables>")
+
+    Rel(user, spa, "uses", "HTTPS")
+    Rel(user, mobile, "uses", "HTTPS")
+    Rel(spa, api, "calls", "JSON/HTTPS")
+    Rel(mobile, api, "calls", "JSON/HTTPS")
+    Rel(api, db, "reads/writes", "<driver>")
+```
+
 ## Common mistakes
 
 - **Mixing levels.** Don't put a Component (a Go struct) inside a Container diagram. Either zoom out (it's part of the Container) or move to L3.
@@ -111,9 +134,11 @@ C4Container
 
 ## Validating Mermaid before commit
 
+Validate every block per [`../../_shared/mermaid-check.md`](../../_shared/mermaid-check.md) — render-parse with `mmdc` if available, else the structural lint there. A block that doesn't parse must never be committed (it renders as a red error box).
+
 ```bash
-# Optional pre-commit check — extracts the Mermaid block and runs the CLI parser.
-npx -y @mermaid-js/mermaid-cli@latest -i <(awk '/^```mermaid$/,/^```$/' docs/features/<slug>/sad.md) -o /tmp/out.svg
+# Optional pre-commit check — runs the CLI parser over the file (extracts every ```mermaid block).
+mmdc -i docs/features/<slug>/sad.md -o /tmp/_mmd_check.md 2>&1   # exit != 0 → a block failed; stderr names it
 ```
 
 In practice: open `sad.md` in Obsidian (with `mermaid-tools` plugin) or push to GitHub and inspect the rendered file. Both fail loudly on syntax errors.

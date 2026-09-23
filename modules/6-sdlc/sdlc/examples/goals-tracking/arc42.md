@@ -1,3 +1,4 @@
+<!-- LEGACY — predates v4.0.0 full-cycle upgrade (no PRD/tasks.json/staged-migrations/_review). See examples/course-lesson-mvp/ for the current reference. -->
 ---
 status: accepted
 owner: "feature-owner"

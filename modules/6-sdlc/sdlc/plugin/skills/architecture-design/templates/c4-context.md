@@ -10,7 +10,8 @@ ticket: "<ticket-id>"
 
 # C4 — Context
 
-<!-- Stage 06 → see SDLC/plugin/skills/draw-c4/SKILL.md -->
+<!-- Stages 04-05 → see sdlc/plugin/skills/architecture-design/SKILL.md -->
+<!-- Standalone L1 C4Context snippet — embedded inline in SAD §3. Syntax → references/c4-mermaid-syntax.md -->
 
 ```mermaid
 C4Context

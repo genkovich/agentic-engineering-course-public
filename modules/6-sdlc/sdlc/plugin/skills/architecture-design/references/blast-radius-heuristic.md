@@ -14,11 +14,11 @@
 
 ---
 
-The `architecture-design` skill makes 15-30 decisions per pass. Without a gate, you'd either generate one ADR per decision (kills the ADR genre — too much noise) or zero ADRs (loses the *why* of the important ones). The blast-radius heuristic picks the right 5-12.
+The `architecture-design` skill makes 15-30 decisions per pass. Without a gate, you'd either generate one ADR per decision (kills the ADR genre — too much noise) or zero ADRs (loses the *why* of the important ones). The blast-radius heuristic picks the right 5-12. It is architecture-design's per-skill Socratic gate, run on every **Approved** decision (see [socratic-loop.md](./socratic-loop.md)).
 
 ## The three criteria
 
-A decision crosses the threshold if **any** of these is true:
+A decision crosses the threshold if it scores **2 of 3** (a single criterion = borderline — ask explicitly):
 
 ### 1. Irreversible
 
@@ -55,7 +55,7 @@ Examples that **don't fire**:
 
 > Will a reader six months from now ask "why not X?" where X is a real, non-strawman alternative?
 
-This is the "surprising in 6 months" filter from the older `propose-adr` skill. It excludes:
+This is the "surprising in 6 months" filter. It excludes:
 - Decisions where the alternative is obviously worse (no straw man ADRs).
 - Decisions where the alternative is excluded by an existing constraint (no ADR for "use Go because the repo is in Go").
 

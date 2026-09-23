@@ -9,6 +9,8 @@ ticket: INC-841
 aliases: [PRD]
 ---
 
+> **LEGACY** — predates v4.0.0 full-cycle upgrade; uses old artifact names/layout. See [`examples/course-lesson-mvp/`](../course-lesson-mvp/) for the current reference.
+
 # SPEC — Rate limiting per user
 
 **Status:** Approved

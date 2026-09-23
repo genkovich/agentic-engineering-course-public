@@ -10,7 +10,9 @@ ticket: "<ticket-id>"
 
 # C4 — Container
 
-<!-- Stage 06 → see SDLC/plugin/skills/draw-c4/SKILL.md -->
+<!-- Stages 04-05 → see sdlc/plugin/skills/architecture-design/SKILL.md -->
+<!-- Standalone L2 C4Container snippet — embedded inline in SAD §5. One Container per declared -->
+<!-- target_surface (frontmatter). Syntax → references/c4-mermaid-syntax.md -->
 
 ```mermaid
 C4Container
