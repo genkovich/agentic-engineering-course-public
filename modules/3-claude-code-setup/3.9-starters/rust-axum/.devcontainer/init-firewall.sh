@@ -74,12 +74,12 @@ ALLOWED_DOMAINS=(
 
 for domain in "${ALLOWED_DOMAINS[@]}"; do
   # IPv4 (A records)
-  ips4=$(getent ahostsv4 "$domain" | awk '/STREAM/ {print $1}' | sort -u)
+  ips4=$(getent ahostsv4 "$domain" 2>/dev/null | awk '/STREAM/ {print $1}' | sort -u || true)
   for ip in $ips4; do
     ipset add claude-allowed "$ip" 2>/dev/null || true
   done
   # IPv6 (AAAA records) - якщо є
-  ips6=$(getent ahostsv6 "$domain" 2>/dev/null | awk '/STREAM/ {print $1}' | sort -u)
+  ips6=$(getent ahostsv6 "$domain" 2>/dev/null | awk '/STREAM/ {print $1}' | sort -u || true)
   for ip in $ips6; do
     ipset add claude-allowed-6 "$ip" 2>/dev/null || true
   done
@@ -90,7 +90,7 @@ done
 
 # 6. GitHub CIDR ranges з api.github.com/meta - тимчасово відкриваємо api.github.com,
 #    тягнемо meta, валідуємо кожен CIDR regex-ом (захист від 0.0.0.0/0 injection).
-gh_ip=$(getent ahostsv4 api.github.com | awk '/STREAM/ {print $1; exit}')
+gh_ip=$(getent ahostsv4 api.github.com | awk '/STREAM/ {print $1; exit}' || true)
 if [ -n "$gh_ip" ]; then
   iptables -I OUTPUT 1 -d "$gh_ip" -p tcp --dport 443 -j ACCEPT
   github_cidrs=$(curl -fsS --max-time 10 https://api.github.com/meta \
