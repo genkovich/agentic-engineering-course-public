@@ -91,7 +91,7 @@ fi
 echo "OK: sandbox.filesystem.denyRead покриває ~/.ssh, ~/.aws, ~/.gnupg, ~/.kube/config"
 
 # 6. Створюємо тимчасовий .env, перевіряємо що він не у git tracked
-TMP_ENV=$(mktemp -t "sandbox-leak-test.XXXXXX")
+TMP_ENV=$(mktemp "${TMPDIR:-/tmp}/sandbox-leak-test.XXXXXX")
 trap 'rm -f "$TMP_ENV"' EXIT
 echo "FAKE_SECRET=should_not_leak_$(date +%s)" > "$TMP_ENV"
 echo "OK: створено тимчасовий .env (live test з Claude - вручну, потребує API key)"
