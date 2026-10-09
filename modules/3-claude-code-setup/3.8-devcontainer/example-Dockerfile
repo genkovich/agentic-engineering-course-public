@@ -37,5 +37,10 @@ RUN chmod +x /usr/local/bin/init-firewall.sh
 # Claude Code CLI - встановлюємо глобально через npm від root, бінарник доступний усім
 RUN npm install -g @anthropic-ai/claude-code@${CLAUDE_CODE_VERSION}
 
+# Готуємо каталоги під named volume-и, щоб non-root node мав права на запис
+# (свіжий named volume успадковує ownership із mount-point образу).
+RUN mkdir -p /home/node/.claude /commandhistory \
+    && chown -R node:node /home/node/.claude /commandhistory
+
 USER node
 WORKDIR /workspace

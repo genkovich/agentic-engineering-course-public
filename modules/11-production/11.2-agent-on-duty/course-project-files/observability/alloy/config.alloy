@@ -1,0 +1,42 @@
+discovery.docker "containers" {
+  host             = "unix:///var/run/docker.sock"
+  refresh_interval = "5s"
+}
+
+discovery.relabel "course_project" {
+  targets = discovery.docker.containers.targets
+
+  rule {
+    source_labels = ["__meta_docker_container_label_com_docker_compose_service"]
+    regex         = "app"
+    action        = "keep"
+  }
+
+  rule {
+    source_labels = ["__meta_docker_container_label_com_docker_compose_service"]
+    target_label  = "service_name"
+  }
+
+  rule {
+    replacement  = "production"
+    target_label = "environment"
+  }
+}
+
+loki.source.docker "course_project" {
+  host          = "unix:///var/run/docker.sock"
+  targets       = discovery.relabel.course_project.output
+  relabel_rules = discovery.relabel.course_project.rules
+  forward_to    = [loki.process.course_project.receiver]
+}
+
+loki.process "course_project" {
+  stage.docker {}
+  forward_to = [loki.write.local.receiver]
+}
+
+loki.write "local" {
+  endpoint {
+    url = "http://loki:3100/loki/api/v1/push"
+  }
+}

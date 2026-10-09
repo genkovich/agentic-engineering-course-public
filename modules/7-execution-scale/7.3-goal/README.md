@@ -30,7 +30,7 @@ Claude крутить ходи сам, поки вона не виконаєть
 ## Setup
 
 ```bash
-cd modules/7-execution-scale/7.3-goal
+cd ~/sources/agentic-engineering-course/modules/7-execution-scale/7.3-goal
 
 make verify          # RED на чистому checkout: tags.py = NotImplementedError stub - це стартовий стан
 ```
@@ -114,6 +114,51 @@ git diff -- tests/                # пусто (обмеження умови д
 Слабкий шлях (`make demo-weak`): оцінювач закриває ціль на прозі, але
 `make verify` лишається червоним - наочна сліпа пляма.
 
+## beer-lms track - реальний M6 як референс
+
+> **Це АВТОРСЬКИЙ референс**, не частина runnable-демо. Runnable-частина цього
+> пакета лишається на абстрактних сніпетах (`make verify` ганяє pytest). Нижче -
+> як той самий патерн `/goal` наводиться на реальну M6-story в `beer-lms`. Демо
+> цього **не авто-ранить** (воно писало б Go-код у beer-lms).
+
+Той самий `/goal`-патерн, але контракт - реальна story з M6 capstone `beer-lms`
+(монорепо на GitLab; Go API у `beer-lms-api/`, backlog у
+`docs/features/course-lesson-mvp/tasks/`). Беремо story **L-2** =
+`L-2-postgres-lesson-repo.md` (`PostgresLessonRepository`). Щоб автономний
+прогін не чіпав основне дерево beer-lms, працюємо в окремому git **worktree**
+(незалежна робоча копія репозиторію):
+
+```bash
+BEERLMS=~/sources/beer-lms
+git -C "$BEERLMS" worktree add ../beer-lms-goal -b goal/l2
+cd "$BEERLMS/../beer-lms-goal"
+# baseline: cd beer-lms-api && go test ./...   (RED - PostgresLessonRepository ще заглушка)
+
+claude
+#   умова з трьох частин на реальній story (вимірюваний стан + явна перевірка + обмеження):
+#   /goal all integration tests in internal/modules/lessons pass, go test ./... exits 0, \
+#         and git diff -- '*_test.go' is empty, or stop after 12 turns
+
+# коли готово:
+git -C "$BEERLMS" worktree remove ../beer-lms-goal
+```
+
+DoD реального треку - `cd beer-lms-api && go test ./...` зелений (НЕ pytest).
+Інтеграційні тести L-2 спираються на testcontainers (бібліотека піднімає
+справжній Postgres у Docker на час тесту) і закомічені наперед, тож червоно на
+старті, зелено після успішного циклу.
+
+> **Чесна примітка про стек.** Тут той самий принцип здорової умови, але явна
+> перевірка - `go test ./...` exits 0, а не `pytest`, і обмеження дивиться на
+> `*_test.go`, а не `tests/`. Сама механіка `/goal` від стека не залежить:
+> оцінювач так само судить транскрипт, тож вивід `go test` і його код завершення
+> мають туди потрапити.
+
+> Реальний прогін на beer-lms пише код у репозиторій (у worktree). Це режим
+> AFK - тримай `--permission-mode acceptEdits`, ізоляцію через worktree і
+> тверду межу витрат поверх мʼякого `or stop after N` (алерт у Anthropic
+> Console). Повний autonomous/AFK розбір - у лекції 7.5 (фонове виконання).
+
 ## Покриття концептів лекції
 
 | Концепт лекції | Де у демо |
@@ -124,6 +169,7 @@ git diff -- tests/                # пусто (обмеження умови д
 | `/goal clear` (ручне зняття; синоніми) | `make demo` (останній крок) |
 | Завершення судить за транскриптом, не виконавець | `make demo` (причина оцінювача після кожного ходу) |
 | Вимірюваний кінцевий стан як DoD | `tasks/story-snip-2.md` → `pytest tests/test_tags.py` зелений |
+| Той самий патерн на реальному M6 | beer-lms track (story L-2, `go test ./...`) |
 
 ## Як перенести у свій проєкт
 

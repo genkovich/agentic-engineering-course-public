@@ -1,4 +1,4 @@
-.PHONY: help verify demo ralph prep demo-plugin clean
+.PHONY: help verify demo ralph prep demo-plugin demo-beerlms clean
 
 help:
 	@echo "Targets:"
@@ -7,6 +7,7 @@ help:
 	@echo "  ralph         - alias for demo (./ralph.sh)"
 	@echo "  prep          - reminder how to (re)generate PROMPT.md from a story via /ralph-prep"
 	@echo "  demo-plugin   - print the guided steps for the native /ralph-loop (ralph-wiggum plugin)"
+	@echo "  demo-beerlms  - print the guided steps to point this harness at the real beer-lms M6 tracker"
 	@echo "  clean         - remove run artifacts (app/, DONE, cost.log, __pycache__)"
 
 # DoD probe. On a fresh checkout app/ is absent → ModuleNotFoundError (red).
@@ -40,6 +41,21 @@ demo-plugin:
 	@echo ""
 	@echo "  --completion-promise is exact-string match (one condition, not many)."
 	@echo "  --max-iterations is the primary safeguard (no default limit — always set it)."
+
+# The 'even better' track: same harness, real Module 6 backlog.
+# We do NOT auto-run it (it would write Go code into beer-lms) — print the
+# worktree-isolated steps instead. See README → 'beer-lms track'.
+demo-beerlms:
+	@echo "Point the SAME harness at the real M6 backlog, isolated in a git worktree:"
+	@echo ""
+	@echo "  BEERLMS=~/sources/beer-lms"
+	@echo "  git -C \$$BEERLMS worktree add ../beer-lms-ralph -b ralph/lessons-mvp"
+	@echo "  cd \$$BEERLMS/../beer-lms-ralph"
+	@echo "  # inside 'claude':  /ralph-prep S-1   (reads docs/features/course-lesson-mvp/tasks/)"
+	@echo "  TASKS_DIR=docs/features/course-lesson-mvp/tasks MAX_ITER=8 \\"
+	@echo "    $(CURDIR)/ralph.sh"
+	@echo ""
+	@echo "When done: git -C \$$BEERLMS worktree remove ../beer-lms-ralph"
 
 clean:
 	rm -rf app DONE cost.log

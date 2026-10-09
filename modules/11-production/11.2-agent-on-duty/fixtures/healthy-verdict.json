@@ -1,0 +1,9 @@
+{
+  "schema_version": 1,
+  "status": "healthy",
+  "should_open_issue": false,
+  "summary": "The bounded release signals are healthy.",
+  "evidence": ["up=1 and the error ratio is below threshold"],
+  "recommended_action": "none",
+  "dedupe_key": "release-test123"
+}

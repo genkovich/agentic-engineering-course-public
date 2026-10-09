@@ -1,0 +1,36 @@
+groups:
+  - name: course-project
+    rules:
+      - alert: CourseProjectDown
+        expr: up{job="course-project"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: course-project metrics endpoint is down
+
+      - alert: CourseProjectHigh5xxRate
+        expr: |
+          sum(rate(course_project_http_requests_total{status=~"5.."}[5m]))
+          /
+          clamp_min(sum(rate(course_project_http_requests_total[5m])), 0.001)
+          >= 0.05
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: course-project 5xx ratio is at least 5 percent
+
+      - alert: CourseProjectHighP95
+        expr: |
+          histogram_quantile(
+            0.95,
+            sum by (le) (
+              rate(course_project_http_request_duration_seconds_bucket[5m])
+            )
+          ) >= 1
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: course-project p95 latency is at least one second

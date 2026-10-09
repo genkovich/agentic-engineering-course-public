@@ -1,0 +1,13 @@
+{
+  "schema_version": 1,
+  "status": "anomaly",
+  "should_open_issue": true,
+  "summary": "5xx ratio crossed the release threshold after the last deploy.",
+  "evidence": [
+    "up=1 and the metrics endpoint is reachable",
+    "error_ratio=0.12, threshold=0.05",
+    "p95_seconds=0.31, threshold=1"
+  ],
+  "recommended_action": "investigate",
+  "dedupe_key": "release-abc123"
+}

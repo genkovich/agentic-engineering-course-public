@@ -1,0 +1,15 @@
+diff --git a/.gitignore b/.gitignore
+--- a/.gitignore
++++ b/.gitignore
+@@ -25,6 +25,11 @@ yarn-error.log*
+ .env*
+ !.env.example
+ !.env.vps.example
++!.env.observability.example
++
++# local observability secrets
++observability/secrets/*.txt
++!observability/secrets/*.example.txt
+ 
+ # vercel
+ .vercel

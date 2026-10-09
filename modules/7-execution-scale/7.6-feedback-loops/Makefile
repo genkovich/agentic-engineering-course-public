@@ -1,4 +1,4 @@
-.PHONY: help dev verify gate install-hooks clean
+.PHONY: help dev verify gate install-hooks demo-beerlms clean
 
 help:
 	@echo "Targets:"
@@ -6,6 +6,7 @@ help:
 	@echo "  verify        - юніт-тести (vitest). story-28 ЧЕРВОНИЙ на старті (test-first, премиса скринкасту #1)."
 	@echo "  gate          - детермінований гейт: npx tsc --noEmit && npm test (як pre-commit/Stop-hook)"
 	@echo "  install-hooks - вказати git на scripts/pre-commit через core.hooksPath (увага: впливає на монорепо)"
+	@echo "  demo-beerlms  - друкує реальний трек: ті самі канали на beer-lms (JSON-логи + Playwright + /code-review)"
 	@echo "  clean         - прибрати tmp/ та артефакти прогонів"
 	@echo ""
 	@echo "СКРИНКАСТ #1 (детермінований гейт) — story-28 ships RED (test-first):"
@@ -43,6 +44,34 @@ gate:
 # core.hooksPath глобальний для репо. Для самодостатнього демо краще `make gate` вручну.
 install-hooks:
 	git config core.hooksPath "$(CURDIR)/scripts" && echo "core.hooksPath -> $(CURDIR)/scripts (pre-commit активний)"
+
+# Реальний трек на beer-lms (монорепо, GitLab). НЕ авто-ранимо — друкуємо кроки,
+# бо це реальний репозиторій. Ті самі КАНАЛИ, але доступні на наявному коді beer-lms.
+demo-beerlms:
+	@echo "Ті самі цикли зворотного зв'язку, наведені на реальний beer-lms (~/sources/beer-lms):"
+	@echo ""
+	@echo "BEERLMS=~/sources/beer-lms"
+	@echo ""
+	@echo "── Канал A · /code-review (вбудований skill) на реальному Go-diff ──────────────"
+	@echo "  cd \$$BEERLMS/beer-lms-api"
+	@echo "  git checkout -b review/some-change   # або наявна гілка з diff"
+	@echo "  claude"
+	@echo "    # /code-review                      рев'ю поточного git diff (Go, hexagonal)"
+	@echo ""
+	@echo "── Канал B · JSON-логи slog як канал (замість Playwright для бекенда) ──────────"
+	@echo "  cd \$$BEERLMS/beer-lms-api && make docker-up    # API пише slog JSON у stdout"
+	@echo "  docker compose logs -f api | jq 'select(.level==\"error\")'"
+	@echo "  # відтвори запит (login/тощо) -> дивись, чи спливає error-лог -> це сигнал зворотного зв'язку"
+	@echo ""
+	@echo "── Канал C · Playwright e2e на НАЯВНИХ сторінках web ───────────────────────────"
+	@echo "  cd \$$BEERLMS/beer-lms-web"
+	@echo "  npm run test:e2e        # auth/landing/navigation smoke у e2e/, screenshot-on-failure"
+	@echo ""
+	@echo "── Чесна примітка ──────────────────────────────────────────────────────────────"
+	@echo "  На beer-lms ще НЕМА метрик (Prometheus) і НЕМА збудованого Lessons UI."
+	@echo "  Тож фронтенд-баги карток на реальному beer-lms показати НЕ можна — лише на синтетиці."
+	@echo "  Реальні канали на beer-lms сьогодні = JSON-логи slog + Playwright на наявних"
+	@echo "  сторінках + /code-review на Go-diff."
 
 clean:
 	rm -rf tmp

@@ -7,11 +7,12 @@ Demo-проект для лекції **7.6 Цикли зворотного зв
 робить те, що треба: дія → сигнал → корекція. Різні баги ловляться різними каналами.
 Тест проходить, а в браузері поламано. Форма працює, а відступ не той. Код коректний,
 а стан губиться після reload. Цей пакет дає (1) **runnable** синтетику з трьома
-засадженими багами — по одному під свій канал — і (2) **скрінкаст-сценарії** прогону
-кожного каналу.
+засадженими багами — по одному під свій канал — і (2) **скрінкаст-сценарії**, зокрема
+як навести ті самі канали на реальний backlog із Module 6 (`beer-lms`).
 
-> **Драбина рівнів.** Демо показує **два** канали зворотного зв'язку: детермінований
-> гейт (`tsc` + vitest) і розробку через Playwright. Обидва - runnable.
+> **Re-spine 2026-06-01.** Лекцію переписано на «драбину рівнів» і **два** скринкасти
+> (детермінований гейт + розробка через Playwright). **Обидва збудовані й перевірені** (див.
+> `screencast-prompts.md`).
 
 ## Що показує
 
@@ -28,15 +29,16 @@ Demo-проект для лекції **7.6 Цикли зворотного зв
 - **Скіл `verify-ui`** (`/verify-ui <story>`) — CLI-first браузер-перевірка через `playwright-cli`;
   канонічна версія живе в курсовому sdlc-тулкіті як `/sdlc-verify-ui`. Опційні референси в репо:
   `screenshot-diff` (старий піксельний канал) і `/code-review` (рев'юер у чистому контексті).
+- Як навести **ті самі канали** на реальний beer-lms (JSON-логи slog + Playwright e2e + `/code-review`).
 
 Синтетичний застосунок — **абстрактна «черга карток на повторення»**: список із 3 карток,
 кнопки оцінок 1–5, форма редагування. Це навмисно **kata** (урок про патерн перевірки),
-а не реальний продуктовий фронтенд.
+а НЕ «BeerLMS frontend».
 
 ## Setup
 
 ```bash
-cd modules/7-execution-scale/7.6-feedback-loops
+cd ~/sources/agentic-engineering-course/modules/7-execution-scale/7.6-feedback-loops
 
 npm install
 make dev          # підняти dev-сервер на :5173 (тримати у фоні)
@@ -63,6 +65,7 @@ playwright-cli install --skills          # навички CLI у .claude/skills/
 | `make verify` | Юніт-тести (vitest). story-28 (`queue-sort.test.ts`) ЧЕРВОНИЙ навмисно (test-first, премиса скринкасту #1); `queue.test.ts` (story-25) ЗЕЛЕНИЙ навмисно — teaching point. |
 | `make gate` | Детермінований гейт: `npx tsc --noEmit && npm test` — той самий, що pre-commit/Stop-hook. ≠0 = червоно. |
 | `make install-hooks` | Вказати git на `scripts/pre-commit` (увага: монорепо — core.hooksPath глобальний). |
+| `make demo-beerlms` | Друкує покрокову інструкцію, як навести ті самі канали на реальний beer-lms. |
 | `make clean` | Прибрати `tmp/`. |
 
 Самі канали — це slash-команди, що живуть усередині `claude` (не в чистому shell):
@@ -84,16 +87,17 @@ playwright-cli install --skills          # навички CLI у .claude/skills/
 | story-25 | `src/lib/queue.ts` | `splice(index + 1, 1)` замість `splice(index, 1)` | браузер (`verify-ui story-25`) | юніт-тест (зелений) |
 | story-27 | `src/App.tsx` + `src/lib/storage.ts` | `saveQueue` існує, але ніде не викликається | рев'юер (`/code-review`) | юніт + screenshot |
 
-## Два канали в дії
+## Скрінкасти
 
-Демо показує два канали зворотного зв'язку наживо:
+Повні сценарії запису — у `screencast-prompts.md` (**два** скринкасти, обидва збудовані):
 
 - **#1** — детермінований гейт не пускає червоне (story-28): `make gate` червоний (`sortQueue`
   стаб) → `/verify-gate story-28` реалізує review-order, не каже DONE поки гейт червоний →
-  зелено (`7 passed`) → коміт із виводом як доказом (`make gate` red→green;
+  зелено (`7 passed`) → коміт із виводом як доказом. **Перевірено 2026-06-01** (`make gate` red→green;
   Stop-hook `verify.sh` дає exit 2 на червоному, exit 0 на зеленому).
 - **#2** — розробка через Playwright (story-26): агент відкриває через `playwright-cli`,
   читає `getComputedStyle` кнопки (`8px`), виправляє `px-2`→`px-3`, перечитує (`12px`).
+  **Перевірено 2026-06-01.**
 
 ## Покриття концептів лекції
 
@@ -106,6 +110,25 @@ playwright-cli install --skills          # навички CLI у .claude/skills/
 | Design-input через Figma Dev Mode MCP | `figma` у `.mcp.json` (читає структуру макета на вході) |
 | Чистий контекст рев'юера | `/code-review` (бачить лише diff + AC) |
 | Дискретний вердикт по AC | pass/fail з фактичним vs очікуваним — не «ну майже» |
+| Той самий патерн на реальному коді | beer-lms track (`make demo-beerlms`) |
+
+## beer-lms track — ті самі канали на реальному M6
+
+Ті самі цикли зворотного зв'язку, але на реальному монорепо `~/sources/beer-lms`
+(GitLab). `make demo-beerlms` друкує кроки. Коротко:
+
+- **`/code-review` (вбудований skill)** на реальному Go-diff (`beer-lms-api/`, hexagonal).
+- **JSON-логи slog як канал**: `beer-lms-api/` пише структуровані slog JSON у stdout
+  (`slog.NewJSONHandler(os.Stdout, ...)`). Підняти API (`make docker-up`) і
+  `docker compose logs -f api | jq 'select(.level=="error")'` — error-лог після
+  відтвореного запиту і є сигнал зворотного зв'язку (заміняє Playwright для бекенда).
+- **Playwright e2e на НАЯВНИХ сторінках web**: `beer-lms-web/` має e2e у `e2e/`
+  (auth/landing/navigation smoke, screenshot-on-failure), `npm run test:e2e` на :5173.
+
+> **Чесна примітка.** На beer-lms сьогодні ще **НЕМА метрик (Prometheus)** і **НЕМА
+> збудованого Lessons UI** — тож фронтенд-баги карток на реальному beer-lms показати
+> **не можна**, лише на цій синтетиці. Реальні канали на beer-lms = JSON-логи slog +
+> Playwright на наявних сторінках + `/code-review` на Go-diff.
 
 ## Чесні примітки
 
@@ -128,3 +151,4 @@ playwright-cli install --skills          # навички CLI у .claude/skills/
 ## Sources
 
 - Module 7 лекція 7.6 `Sources.md` — повний список.
+- `beer-lms` (`~/sources/beer-lms`) — реальний M6 capstone, канали slog + Playwright.

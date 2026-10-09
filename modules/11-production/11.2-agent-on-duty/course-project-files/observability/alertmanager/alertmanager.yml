@@ -1,0 +1,16 @@
+route:
+  receiver: on-duty-watcher
+  group_by: [alertname, service]
+  group_wait: 10s
+  group_interval: 1m
+  repeat_interval: 4h
+
+receivers:
+  - name: on-duty-watcher
+    webhook_configs:
+      - url: http://watcher:3001/webhooks/alertmanager
+        send_resolved: true
+        http_config:
+          authorization:
+            type: Bearer
+            credentials_file: /run/secrets/watcher_token

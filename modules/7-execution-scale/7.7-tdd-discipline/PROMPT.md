@@ -2,7 +2,7 @@
 
 ## Контекст
 
-Ти працюєш у мінімальному snippets-демо — pure-function модуль для інтервального повторення слів (SM-2). Стек: Python 3.12 + pytest + hypothesis + mutmut. Code під test — у `src/sm2.py`. Тести — у `tests/`.
+Ти працюєш у проекті BeerLMS — мінімальній бекенд-системі для інтервального повторення слів. Стек: Python 3.12 + pytest + hypothesis + mutmut. Code під test — у `src/sm2.py`. Тести — у `tests/`.
 
 Прочитай:
 

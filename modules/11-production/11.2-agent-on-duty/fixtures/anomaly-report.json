@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "run_id": "1721000000000-abcd1234",
+  "release_sha": "abc123",
+  "observed_from": "2026-07-13T12:00:00.000Z",
+  "observed_to": "2026-07-13T12:05:00.000Z",
+  "trigger": {
+    "kind": "alertmanager",
+    "status": "firing",
+    "alerts": [
+      {
+        "status": "firing",
+        "labels": { "alertname": "CourseProjectHigh5xxRate", "severity": "warning" },
+        "annotations": { "summary": "course-project 5xx ratio is at least 5 percent" }
+      }
+    ]
+  },
+  "thresholds": { "up": 1, "error_ratio": 0.05, "p95_seconds": 1 },
+  "measurements": {
+    "up": 1,
+    "request_rate_per_second": 3.2,
+    "error_ratio": 0.12,
+    "p95_seconds": 0.31
+  },
+  "recent_error_logs": [
+    {
+      "timestamp": "1721000000000000000",
+      "line": "{\"level\":\"error\",\"event\":\"request_completed\",\"route\":\"/api/memes/random\",\"status\":500}"
+    }
+  ]
+}

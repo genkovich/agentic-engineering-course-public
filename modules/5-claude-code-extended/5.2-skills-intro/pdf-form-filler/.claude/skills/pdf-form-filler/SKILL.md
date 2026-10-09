@@ -7,6 +7,8 @@ description: >
   workflows, or when batch-filling multiple forms with the same template.
   Use even if the user does not mention pdfplumber or pikepdf by name.
 allowed-tools: Bash, Read, Write
+model: opus
+effort: max
 disable-model-invocation: true
 user-invocable: true
 ---

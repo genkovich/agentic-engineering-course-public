@@ -1,4 +1,4 @@
-# Module 3 — Claude Code Setup
+# Module 3 - Claude Code Setup
 
 Встановлення Claude Code, конфігурація під свій стек, ключові режими роботи і блок безпеки (permissions, sandbox, devcontainer). Цей модуль про те, як перетворити Claude Code на робочий інструмент для свого проекту, а не залишити дефолтний CLI.
 
@@ -7,7 +7,7 @@
 - 3.1 Встановлення Claude Code
 - 3.2 Налаштування робочого середовища
 - 3.3 Ввід і команди
-- 3.4 Settings.json — повний гід
+- 3.4 Settings.json - повний гід
 - 3.5 Сесії, контекст та compaction
 - 3.6 Permissions
 - 3.7 Sandboxing
@@ -16,18 +16,51 @@
 
 ## Артефакти модуля
 
-Лекції 3.1–3.5 проходяться без коду, тільки CLI і конфіг. З лекції 3.6 починається безпековий блок, для якого у repo є 4 starters — повноцінні cloneable проекти, кожен покриває Permissions + Sandbox + Devcontainer для свого стеку.
+Лекції 3.1-3.5 проходяться без коду, тільки CLI і конфіг. З лекції 3.6 починається безпековий блок, для якого у repo є 4 starters (Шлях B capstone, 3.9) і reference snippet-и з лекцій 3.3, 3.4, 3.6, 3.7, 3.8 (Шлях A capstone, написати конфіг з нуля).
+
+### Reference snippet-и з лекцій
+
+Окремі шматки конфігурації, які можна вставити у власний проект руками. Дзеркало vault Module 3 у companion repo: vault залишається ground truth, тут копія для CLI-friendly доступу.
+
+| Артефакт | Лекція | Що показує |
+|---|---|---|
+| [3.3-commands](./3.3-commands/) | 3.3 Ввід і команди | Довідник slash-команд Claude Code (контекст, сесії, код, безпека, MCP, hooks, налаштування) |
+| [3.4-settings](./3.4-settings/) | 3.4 Settings.json - повний гід | 3 tier-и (User, Project, Local) у форматі прикладів |
+| [3.6-permissions](./3.6-permissions/) | 3.6 Permissions | 4 пресети: team-shared, protect-secrets, python-project, go-project |
+| [3.7-sandbox](./3.7-sandbox/) | 3.7 Sandboxing | Блок `sandbox` у settings + OS-level `init-firewall.sh` |
+| [3.8-devcontainer](./3.8-devcontainer/) | 3.8 Docker та devcontainers | `devcontainer.json`, `Dockerfile`, `docker-compose.yml` |
+
+### Starters (Шлях B capstone)
+
+4 повноцінні cloneable проекти, кожен покриває Permissions + Sandbox + Devcontainer для свого стеку.
 
 | Starter | Стек | README |
 |---|---|---|
-| [nodejs-typescript](./3.9-starters/nodejs-typescript/) | Node.js 20 + TypeScript + Express | [→](./3.9-starters/nodejs-typescript/README.md) |
-| [python-fastapi](./3.9-starters/python-fastapi/) | Python 3.12 + FastAPI + pytest | [→](./3.9-starters/python-fastapi/README.md) |
-| [go-chi](./3.9-starters/go-chi/) | Go 1.22 + chi/v5 | [→](./3.9-starters/go-chi/README.md) |
-| [rust-axum](./3.9-starters/rust-axum/) | Rust stable + axum | [→](./3.9-starters/rust-axum/README.md) |
+| [3.9-starters/nodejs-typescript](./3.9-starters/nodejs-typescript/) | Node.js 20 + TypeScript + Express | [→](./3.9-starters/nodejs-typescript/README.md) |
+| [3.9-starters/python-fastapi](./3.9-starters/python-fastapi/) | Python 3.12 + FastAPI + pytest | [→](./3.9-starters/python-fastapi/README.md) |
+| [3.9-starters/go-chi](./3.9-starters/go-chi/) | Go 1.22 + chi/v5 | [→](./3.9-starters/go-chi/README.md) |
+| [3.9-starters/rust-axum](./3.9-starters/rust-axum/) | Rust stable + axum | [→](./3.9-starters/rust-axum/README.md) |
 
-Starter це capstone artifact для лекцій 3.6–3.9. До цього достатньо самого Claude Code і свого редактора.
+Starter це capstone artifact для лекцій 3.6-3.9. До цього достатньо самого Claude Code і свого редактора.
 
-## 4 рівні захисту (Lectures 3.6–3.8)
+### Як вибрати між reference і starter
+
+Capstone HW (Lecture 3.9) має два шляхи:
+
+- **Шлях A** це написати конфіг з нуля по reference прикладах. Студент сам збирає `.claude/settings.json`, `init-firewall.sh`, `Dockerfile`, `devcontainer.json` під свій проект, дивлячись на `3.3-commands` / `3.4-settings` / `3.6-permissions` / `3.7-sandbox` / `3.8-devcontainer`.
+- **Шлях B** це склонувати готовий starter відповідного стека з `3.9-starters/` і адаптувати під свій проект.
+
+Capstone Шлях A reference checklist:
+
+- `.claude/settings.json` (Project tier) → база з [3.6-permissions/example-team-shared.json](./3.6-permissions/example-team-shared.json), плюс `sandbox` блок з [3.7-sandbox/example-sandbox-config.json](./3.7-sandbox/example-sandbox-config.json).
+- `.devcontainer/devcontainer.json` → [3.8-devcontainer/example-devcontainer.json](./3.8-devcontainer/example-devcontainer.json).
+- `.devcontainer/Dockerfile` → [3.8-devcontainer/example-Dockerfile](./3.8-devcontainer/example-Dockerfile).
+- `.devcontainer/init-firewall.sh` → [3.7-sandbox/init-firewall.sh](./3.7-sandbox/init-firewall.sh).
+- `docker-compose.yml` (опційно, без VS Code) → [3.8-devcontainer/example-docker-compose.yml](./3.8-devcontainer/example-docker-compose.yml).
+
+Покриття у starters: всі 4 starters мають готові версії цих файлів, адаптовані під стек.
+
+## 4 рівні захисту (Lectures 3.6-3.8)
 
 Безпековий блок модуля будує захист пошарово. Зняти будь-який шар можна, але кожен наступний шар підстраховує попередній якщо ти про щось забув.
 
@@ -35,9 +68,9 @@ Starter це capstone artifact для лекцій 3.6–3.9. До цього д
 
 Три файли settings.json з різними scope:
 
-- `~/.claude/settings.json` (User) — глобальні преференції, не у repo.
-- `.claude/settings.json` (Project) — правила команди, у git.
-- `.claude/settings.local.json` (Local) — твої overrides, у gitignore.
+- `~/.claude/settings.json` (User) - глобальні преференції, не у repo.
+- `.claude/settings.json` (Project) - правила команди, у git.
+- `.claude/settings.local.json` (Local) - твої overrides, у gitignore.
 
 У starter є тільки Project tier (`.claude/settings.json`) і шаблон Local (`.claude/settings.local.json.example`). User tier налаштовуєш сам глобально.
 
@@ -70,4 +103,10 @@ Allow адаптується під стек. Deny спільний для вс�
 
 ## Capstone HW (Lecture 3.9)
 
-Capstone завдання модуля: склонувати starter відповідного стека, адаптувати під свій проект (свої домени, команди, секрети), запустити `make verify` і показати результат. Деталі завдання у Lecture 3.9 курсу (LMS).
+Capstone завдання модуля має два шляхи:
+
+**Шлях A** це написати конфіг з нуля по 4 рівнях. Дивись лекції 3.4, 3.6, 3.7, 3.8.
+
+**Шлях B** це клонувати starter відповідного стека, адаптувати під свій проект (свої домени, команди, секрети), запустити `make verify` і показати результат.
+
+Деталі завдання у Lecture 3.9 курсу.

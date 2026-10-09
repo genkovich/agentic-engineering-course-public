@@ -68,7 +68,7 @@ JavaScript-скрипт, який Claude пише сам під твою зад�
 ## Setup
 
 ```bash
-cd modules/7-execution-scale/7.4-dynamic-workflows
+cd ~/sources/agentic-engineering-course/modules/7-execution-scale/7.4-dynamic-workflows
 
 make verify          # RED на чистому checkout: NotImplementedError у search/dedupe/export - стартовий стан
 make check-workflow  # GREEN: обидва .claude/workflows/*.mjs парсяться як валідний JS
@@ -153,6 +153,54 @@ make verify                  # зелено
 git diff --stat              # зміни у трьох НЕпересічних файлах: search.py / dedupe.py / export.py
 git diff -- tests/           # пусто - тести з RED-фази не чіпали
 ```
+
+## beer-lms track - реальний M6 як референс
+
+> **АВТОРСЬКИЙ референс.** Цей розділ описує прогін на справжньому capstone, який
+> **не** входить у runnable-частину демо й **не** запускається автоматично.
+> Runnable-частина лишається на snippets (вище) - вона детермінована й не палить
+> токенів. beer-lms тут - щоб показати той самий патерн на реальному backlog-у.
+
+Той самий dynamic-workflow-патерн, але backlog - реальний multi-story wave з M6
+capstone `beer-lms` (монорепо на GitLab; Go API у `beer-lms-api/`, трекер у
+`docs/features/course-lesson-mvp/tasks/`). Беремо **Wave 1** трекера: дві сторіс
+S-1 (доменні Go-структури `Lesson` + `LessonBlock` у `domain/`) і S-2 (SQL-міграції
+на таблиці `lessons` / `lesson_blocks` у `migrations/`). Епіка прямо каже: у них
+**нема спільного коду** - одна пише `.go` у `domain/`, друга пише `.sql` у
+`migrations/`. Різні файли - безпечно паралелити, рівно як snippets вище.
+
+Щоб автономний прогін не чіпав основне дерево beer-lms, працюємо в окремому git
+**worktree** (незалежна робоча копія репозиторію):
+
+```bash
+BEERLMS=~/sources/beer-lms
+git -C "$BEERLMS" worktree add ../beer-lms-wf -b wf/wave-1
+cd "$BEERLMS/../beer-lms-wf"
+
+claude
+#   промпт зі словом-тригером:
+#   «workflow: достав S-1 і S-2 з course-lesson-mvp tracker паралельно,
+#    спершу підтверди незалежність файлів, потім перевір кожну тестами»
+#   /workflows                 дивитись фази Independence / Implement / Verify
+#   s                          зберегти прогін як власну команду /ship-wave
+
+# прибрати worktree, коли закінчив
+git -C "$BEERLMS" worktree remove ../beer-lms-wf
+```
+
+DoD реального треку - `cd beer-lms-api && go test ./...` зелений (НЕ pytest).
+
+> **Чесна примітка про стек.** Скрипти у цьому демо заточені під snippets/pytest
+> (агенти ганяють `pytest tests/*.py -q`). На Go реальний трек використовує **той
+> самий патерн** (незалежність по файлах → `parallel()` → перевірка через
+> збіжність), але прогін тестів - `go test ./...`, не pytest, а перевірка
+> незалежності звіряє `domain/*.go` проти `migrations/*.sql`. Це адаптація, а не
+> запуск snippets-скриптів «as is».
+
+> Реальний прогін на beer-lms пише код у репозиторій (у worktree). Субагенти
+> всередині workflow завжди працюють у режимі `acceptEdits` і успадковують твій
+> allowlist - тримай ізоляцію через worktree і `budget` у токенах. Повний
+> autonomous/AFK розбір - у лекції 7.5 (фонове виконання).
 
 ## Покриття концептів лекції
 

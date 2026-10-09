@@ -36,7 +36,8 @@
   },
   "env": {
     "BASH_DEFAULT_TIMEOUT_MS": "300000",
-    "CLAUDE_CODE_SUBPROCESS_ENV_SCRUB": "1"
+    "CLAUDE_CODE_SUBPROCESS_ENV_SCRUB": "1",
+    "CLAUDE_CODE_ENABLE_TELEMETRY": "1"
   },
   "hooks": {
     "PreToolUse": [

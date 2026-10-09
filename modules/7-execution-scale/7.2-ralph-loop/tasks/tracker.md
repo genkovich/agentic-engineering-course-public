@@ -16,3 +16,6 @@
 ## Notes
 
 - Single-story tracker навмисне мінімалістичний — фокус на механіці циклу.
+- Реальний M6 tracker (8 stories у 4 waves) — у beer-lms:
+  `~/sources/beer-lms/docs/features/course-lesson-mvp/tasks/tracker.md`. Як навести
+  той самий harness на нього — див. секцію «beer-lms track» у README.

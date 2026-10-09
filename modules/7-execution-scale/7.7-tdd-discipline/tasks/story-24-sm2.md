@@ -1,6 +1,7 @@
 ---
 id: S-24
-project: snippets-demo
+epic: course-lesson-mvp
+project: beer-lms
 wave: 2
 priority: P1
 estimate: 1.5h
@@ -13,10 +14,12 @@ created: 2026-05-26
 
 # S-24 · SM-2 spaced repetition algorithm
 
-Реалізувати pure-function `sm2_next(card, grade)`, що рахує наступний стан картки за алгоритмом SuperMemo-2 (SM-2). Це core scheduler для spaced repetition — після кожної відповіді користувача система викликає цю функцію, щоб дізнатись, через скільки днів показати слово знову.
+Реалізувати pure-function `sm2_next(card, grade)`, що рахує наступний стан картки за алгоритмом SuperMemo-2 (SM-2). Це core scheduler для BeerLMS spaced repetition — після кожної відповіді користувача система викликає цю функцію, щоб дізнатись, через скільки днів показати слово знову.
 
 ## Linked artifacts
 
+- [[../CONTEXT|CONTEXT.md]] — домен-глосарій BeerLMS
+- [[../data-model.md#cards|схема таблиці cards]] (поля `repetitions`, `ease_factor`, `interval_days`)
 - External reference: SuperMemo SM-2 (Wozniak, 1985)
 
 ## Interface

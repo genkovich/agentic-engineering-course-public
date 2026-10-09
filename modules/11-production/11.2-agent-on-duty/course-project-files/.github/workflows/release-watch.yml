@@ -1,0 +1,38 @@
+name: release-watch
+
+on:
+  workflow_run:
+    workflows: [deploy-vps]
+    types: [completed]
+  workflow_dispatch:
+    inputs:
+      release_sha:
+        description: Commit SHA to review
+        required: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-watch
+  cancel-in-progress: false
+
+jobs:
+  trigger-watcher:
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      github.event.workflow_run.conclusion == 'success'
+    runs-on: [self-hosted, linux, x64, course-vps]
+    timeout-minutes: 5
+    steps:
+      - name: Ask the local watcher to review the release
+        env:
+          WATCHER_WEBHOOK_TOKEN: ${{ secrets.WATCHER_WEBHOOK_TOKEN }}
+          RELEASE_SHA: ${{ inputs.release_sha || github.event.workflow_run.head_sha }}
+        run: |
+          test -n "$WATCHER_WEBHOOK_TOKEN"
+          curl --fail --silent --show-error \
+            --header "Authorization: Bearer $WATCHER_WEBHOOK_TOKEN" \
+            --header "Content-Type: application/json" \
+            --data "{\"release_sha\":\"$RELEASE_SHA\"}" \
+            http://127.0.0.1:3002/webhooks/deploy

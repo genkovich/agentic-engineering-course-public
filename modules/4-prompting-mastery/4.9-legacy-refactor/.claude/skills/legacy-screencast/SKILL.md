@@ -25,7 +25,7 @@ bash-сценарій з коментарями для запису через a
 # Duration: ~5-7 minutes
 
 # === Setup ===
-cd ~/sources/claude-course-demos/4.9-legacy-refactor
+cd modules/4-prompting-mastery/4.9-legacy-refactor
 git status                                    # clean working tree
 
 # === Recording ===

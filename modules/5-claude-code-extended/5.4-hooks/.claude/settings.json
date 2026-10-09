@@ -28,7 +28,6 @@
     ],
     "PreToolUse": [
       {
-        "_slide": "6.2 — File protection",
         "matcher": "Edit|Write",
         "hooks": [
           {

@@ -1,0 +1,51 @@
+{
+  "skill_name": "audit-pytest-file",
+  "split": {
+    "train": 5,
+    "validation": 2
+  },
+  "queries": [
+    {
+      "split": "train",
+      "query": "перевір чи tests/test_users.py у нормальному стані перед мерджем",
+      "should_trigger": true,
+      "rationale": "явна назва тестового файлу, явний намір на аудит перед мерджем"
+    },
+    {
+      "split": "train",
+      "query": "що з продакшн-готовністю tests/test_billing.py — чи можна релізити",
+      "should_trigger": true,
+      "rationale": "production readiness одного тестового файлу — основний use case"
+    },
+    {
+      "split": "train",
+      "query": "глянь чи src/api/tests/test_orders.py не ламається і не повільний",
+      "should_trigger": true,
+      "rationale": "явні runtime-сигнали (ламається, повільний) які скіл ловить"
+    },
+    {
+      "split": "train",
+      "query": "перепиши tests/test_users.py під параметризовані тести",
+      "should_trigger": false,
+      "rationale": "refactor, не аудит"
+    },
+    {
+      "split": "train",
+      "query": "збільш покриття тестами для модуля billing",
+      "should_trigger": false,
+      "rationale": "coverage analysis — explicitly out of scope, скіл не дивиться coverage"
+    },
+    {
+      "split": "validation",
+      "query": "цей тестовий файл tests/test_pipeline.py щось дивно поводиться, глянеш?",
+      "should_trigger": true,
+      "rationale": "розмитий запит про якість одного тестового файлу — головна ціль скілу"
+    },
+    {
+      "split": "validation",
+      "query": "запусти всю тестову suite і дай report",
+      "should_trigger": false,
+      "rationale": "whole-suite audit — explicitly out of scope, скіл скоупиться до одного файлу"
+    }
+  ]
+}

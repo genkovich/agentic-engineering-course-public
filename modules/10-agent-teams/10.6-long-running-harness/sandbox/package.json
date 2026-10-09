@@ -1,0 +1,10 @@
+{
+  "name": "hopper",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Браузерна гра-платформер, яку будує довгограючий agent harness (демо 10.6)",
+  "type": "module",
+  "scripts": {
+    "dev": "node serve.mjs"
+  }
+}

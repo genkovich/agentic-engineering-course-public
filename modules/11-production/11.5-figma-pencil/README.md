@@ -24,6 +24,8 @@
 | `prompts/03-pencil.md` | Pencil Dev: `.pen` поруч із кодом |
 | `prompts/04-implement-and-verify.md` | затверджений design → code → browser |
 | `scripts/verify-materials.sh` | локальна перевірка комплекту |
+| `skills/work-with-design-systems/` | сторонній скіл для дизайн-систем у Figma (MIT, © Nataliia Bukhtiiarova) |
+| `skills/README.md` | звідки скіл, як поставити у свій проєкт, як оновити |
 
 ## Перевір handout
 

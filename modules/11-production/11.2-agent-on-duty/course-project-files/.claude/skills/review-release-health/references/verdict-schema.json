@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "status",
+    "should_open_issue",
+    "summary",
+    "evidence",
+    "recommended_action",
+    "dedupe_key"
+  ],
+  "properties": {
+    "schema_version": { "const": 1 },
+    "status": { "enum": ["healthy", "anomaly"] },
+    "should_open_issue": { "type": "boolean" },
+    "summary": { "type": "string", "minLength": 1, "maxLength": 500 },
+    "evidence": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 8,
+      "items": { "type": "string", "minLength": 1, "maxLength": 300 }
+    },
+    "recommended_action": { "enum": ["none", "investigate", "rollback"] },
+    "dedupe_key": { "type": "string", "pattern": "^release-[A-Za-z0-9._-]+$" }
+  }
+}

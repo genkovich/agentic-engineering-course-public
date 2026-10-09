@@ -16,7 +16,7 @@
 ## Як ставити
 
 ```bash
-cd ~/sources/claude-course-demos/4.9-legacy-refactor
+cd modules/4-prompting-mastery/4.9-legacy-refactor
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -e .

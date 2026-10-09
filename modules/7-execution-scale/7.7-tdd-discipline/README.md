@@ -5,7 +5,7 @@ Demo-проект для лекції **7.7 TDD як execution discipline**
 
 ## Що це
 
-Мінімальний snippets-stub для повного TDD-циклу через
+Мінімальний BeerLMS-stub для запису скринкасту повного TDD-циклу через
 **orchestrator-skill `/tdd` + 3 ізольовані agents**:
 
 - **orchestrator** (`.claude/skills/tdd/SKILL.md`) — одна команда. Pre-flight checks, далі послідовно викликає 3 agents через Agent tool. Між фазами — automatic bash-gates (git log, pytest exit code, `git diff -- tests/`). На failure будь-якого gate — STOP з actionable error.
@@ -13,7 +13,7 @@ Demo-проект для лекції **7.7 TDD як execution discipline**
 - **tdd-implementer** (`.claude/agents/`) — окремий context. Бачить лише failing tests і інтерфейс, пише мінімальну реалізацію, доводить до green.
 - **tdd-refactorer** (`.claude/agents/`) — окремий context. Green tests + сирий код → витягає helpers, тести лишаються зеленими.
 
-Спільний substrate — одна story `S-24 · SM-2 algorithm`. На відміну від 7.2 (де Ralph виконує абстрактний `slugify`), тут agent рахує наступний інтервал повторення за класичним SuperMemo-2.
+Спільний substrate — одна story `S-24 · SM-2 algorithm` (продовження M6 BeerLMS tracker). На відміну від 7.2 (де Ralph виконує `POST /repetitions`), тут agent рахує наступний інтервал повторення за класичним SuperMemo-2.
 
 Чому agents, а не skills: skill виконується inline у тому самому context window головного агента. Agent tool створює окреме context window. Тільки другий варіант дає реальний isolation, який лікує context pollution — головний аргумент Section 4 лекції 7.7.
 
@@ -26,7 +26,7 @@ SM-2 (SuperMemo 2) — алгоритм spaced repetition, що приймає �
 ## Setup
 
 ```bash
-cd modules/7-execution-scale/7.7-tdd-discipline
+cd ~/sources/agentic-engineering-course/modules/7-execution-scale/7.7-tdd-discipline
 python3.12 -m venv .venv
 source .venv/bin/activate
 pip install -e .
@@ -43,6 +43,7 @@ pytest -q            # expected: 11 failures, всі на NotImplementedError
 |---|---|
 | `make test` | DoD-проба (`pytest -q`). Червоно на чистому checkout (NotImplementedError) — це стартовий стан. |
 | `make demo` | Друкує кроки запуску синтетичного `/tdd story-24-sm2` через `claude` (slash-команда живе всередині `claude`, тож не авто-ран). |
+| `make demo-beerlms` | Друкує worktree-кроки реального TDD-треку на справжньому M6 (`beer-lms`, story L-2). НЕ авто-ран. |
 | `make test-fast` | Re-run on file change (потрібен `pip install -e ".[dev]"`). |
 | `make coverage` | Coverage report. |
 | `make mutation` | Mutation testing через mutmut як sanity check. |
@@ -53,7 +54,7 @@ pytest -q            # expected: 11 failures, всі на NotImplementedError
 
 ```bash
 # Pre-state: git status — чисте дерево, tests/ написані але red, src/sm2.py = NotImplementedError.
-cd modules/7-execution-scale/7.7-tdd-discipline
+cd ~/sources/agentic-engineering-course/modules/7-execution-scale/7.7-tdd-discipline
 git status
 pytest -q             # 11 failing (8 example + 3 PBT) — усі на NotImplementedError
 bat tasks/story-24-sm2.md   # показуємо AC (8 cases + 3 PBT invariants)
@@ -85,23 +86,53 @@ git diff HEAD~3 HEAD -- tests/    # тести з RED фази не змінюв
 
 **Augmented coding варіант** (Section 9 лекції): `/tdd story-24-sm2 --review-tests` — pipeline зупиняється після Gate 1, чекає на user перегляд `git show <RED_SHA>` і `continue` / `abort`.
 
+Повну покрокову розкадровку обох скринкастів див. у `screencast-prompts.md`.
+
+## beer-lms track — реальний TDD на справжньому M6
+
+Той самий `/tdd`-патерн, але контракт — реальна story з M6 capstone `beer-lms`
+(монорепо на GitLab; Go API у `beer-lms-api/`, backlog у
+`docs/features/course-lesson-mvp/tasks/`). Беремо story **L-2** =
+`L-2-postgres-lesson-repo.md` (`PostgresLessonRepository`) — вона вже готова під TDD.
+Щоб прогін не чіпав основне дерево beer-lms, працюємо в окремому git **worktree**
+(незалежна робоча копія репозиторію):
+
+```bash
+BEERLMS=~/sources/beer-lms
+git -C "$BEERLMS" worktree add ../beer-lms-tdd -b tdd/l2
+cd "$BEERLMS/../beer-lms-tdd"
+# baseline: cd beer-lms-api && go test ./...
+# у claude:  /ralph-prep L-2   (або /tdd на Go-адаптації)
+# коли готово: git -C "$BEERLMS" worktree remove ../beer-lms-tdd
+```
+
+DoD реального треку — `cd beer-lms-api && go test ./...` зелений (НЕ pytest).
+Червоно на старті (реалізація repo ще відсутня), зелено після успішного циклу.
+`make demo-beerlms` друкує ці кроки.
+
 > **Чесна примітка про стек.** `/tdd` skill із цього демо заточений під pytest/Python:
 > його bash-gates перевіряють `pytest -q` exit code, а `tdd-test-writer` пише
-> `tests/*.py` з Hypothesis. На іншому стеку (Go, TS, …) патерн **той самий**
+> `tests/*.py` з Hypothesis. На Go реальний трек використовує **той самий патерн**
 > (red → green → refactor, `tests/` як незмінний контракт, 3 atomic commits
-> `test:`/`feat:`/`refactor:`), але прогін тестів інший — треба замінити test-команду
-> у gates skill-а (`pytest -q` → твій runner) і переписати test-writer під відповідний
-> test-фреймворк. Це адаптація, а не запуск pytest-координатора «as is».
+> `test:`/`feat:`/`refactor:`), але прогін тестів — `go test ./...`, не pytest.
+> Це адаптація, а не запуск pytest-координатора «as is»: щоб ганяти Go, треба замінити
+> test-команду у gates skill-а (`pytest -q` → `go test ./...`) і переписати
+> test-writer під `_test.go`. Не вдавай, що pytest-orchestrator працює на Go без правок.
+
+> Реальний прогін на beer-lms пише код у репозиторій (у worktree). Це режим AFK —
+> тримай `--permission-mode acceptEdits`, ізоляцію через worktree і притомний ліміт
+> ітерацій. Повний autonomous/AFK розбір — у лекції 7.5 (фонове виконання).
 
 ## Структура
 
 ```
 7.7-tdd-discipline/
 ├── README.md                  # цей файл — огляд + setup
+├── screencast-prompts.md      # покрокова розкадровка двох скринкастів
 ├── CLAUDE.md                  # конвенції: стек, тестовий контракт, mutmut
 ├── PROMPT.md                  # 3-section промпт для test-writer (Контекст / Завдання / DoD)
 ├── pyproject.toml             # Python 3.12, pytest, hypothesis, mutmut
-├── Makefile                   # test, demo, coverage, mutation, clean, help
+├── Makefile                   # test, demo, demo-beerlms, coverage, mutation, clean, help
 ├── .gitignore                 # .venv/, __pycache__, .mutmut-cache
 ├── .claude/
 │   ├── agents/                            # справжні isolated-context agents
@@ -154,13 +185,14 @@ make mutation                      # optional: всі mutants killed
 | PBT як safety net | `tests/test_sm2_properties.py` (Hypothesis, 3 інваріанти) |
 | Mutation testing як sanity check | `make mutation` (mutmut проти `src/sm2.py`) |
 | Augmented coding (human-in-the-loop) | `/tdd ... --review-tests` (STOP після Gate 1) |
+| Той самий патерн на реальному M6 | beer-lms track (story L-2, `go test ./...`) |
 
 ## Як перенести у свій проєкт
 
 1. Скопіюй `.claude/skills/tdd/` і `.claude/agents/tdd-*`.
 2. Додай тонкий `CLAUDE.md` (стек + тестовий контракт + заборона міняти `tests/`) і story-файл із AC/GWT у `tasks/`.
 3. `/tdd <story-id>`. Тримай DoD бінарним, а `tests/` — read-only для implementer/refactorer.
-4. Інший стек (Go, TS, …) — заміни test-команду у gates skill-а і перепиши test-writer під відповідний test-фреймворк (див. «Чесну примітку про стек» вище).
+4. Інший стек (Go, TS, …) — заміни test-команду у gates skill-а і перепиши test-writer під відповідний test-фреймворк (див. beer-lms track вище).
 
 ## Sources
 

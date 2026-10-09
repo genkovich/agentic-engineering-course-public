@@ -1,0 +1,4 @@
+interface:
+  display_name: "Review Release Health"
+  short_description: "Review post-deploy metrics and logs safely"
+  default_prompt: "Use $review-release-health to review this release report and return a strict health verdict."

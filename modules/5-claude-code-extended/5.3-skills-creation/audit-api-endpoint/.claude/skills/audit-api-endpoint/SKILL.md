@@ -2,7 +2,7 @@
 name: audit-api-endpoint
 description: Use when reviewing one HTTP endpoint for production readiness — checks status, Content-Type, body shape, cache headers, and surfaces health-vs-ready confusion. Black-box runtime probe, works on any HTTP server regardless of language (Go, Node, Python, Rust, etc.). Trigger when the user names a single URL to audit, asks about /health or /ready quality, or wants a structured audit report for one endpoint.
 allowed-tools: Bash(uv run *), Bash(curl *), Read, Glob, Grep
-disable-model-invocation: false
+disable-model-invocation: true
 context: fork
 agent: Explore
 argument-hint: '[url]'

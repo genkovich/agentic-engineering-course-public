@@ -5,7 +5,8 @@ Demo-проект для лекції **7.2 Ralph loop: автономний п�
 
 Ralph loop — це найпростіший спосіб запустити агента «по колу»: один промпт, один
 bash-цикл, один бінарний критерій «готово». Цей пакет дає (1) **runnable** канонічний
-цикл на абстрактній задачі і (2) **скрінкаст-сценарії** запуску цього harness.
+цикл на абстрактній задачі і (2) **скрінкаст-сценарії**, зокрема прогін того самого
+harness на реальному backlog-у з Module 6 (`beer-lms`).
 
 ## Що показує
 
@@ -15,6 +16,7 @@ bash-цикл, один бінарний критерій «готово». Це
 - Три запобіжники в `ralph.sh`: `MAX_ITER`, `cost.log`, `trap` на Ctrl-C.
 - `/ralph-prep` — власний skill, що генерує тонкий `PROMPT.md` зі story-файлу.
 - Нативний Ralph «у коробці»: офіційний плагін `ralph-wiggum` / `/ralph-loop` (теплий Stop-hook) проти cold-start bash.
+- Як навести **той самий** harness на реальний M6 tracker (`beer-lms`) в ізольованому worktree.
 
 Задача в self-contained демо навмисне **абстрактна** (`slugify` kata-рівня): урок про
 сам цикл, а не про конкретну фічу.
@@ -22,7 +24,7 @@ bash-цикл, один бінарний критерій «готово». Це
 ## Setup
 
 ```bash
-cd modules/7-execution-scale/7.2-ralph-loop
+cd ~/sources/agentic-engineering-course/modules/7-execution-scale/7.2-ralph-loop
 
 make verify          # RED на чистому checkout: ModuleNotFoundError (app/ ще нема) — це стартовий стан
 ```
@@ -37,6 +39,7 @@ make verify          # RED на чистому checkout: ModuleNotFoundError (ap
 | `make demo` | Канонічний цикл на абстрактній задачі. Реально кличе `claude -p` (недетерміновано, ~$1-5). |
 | `make demo-plugin` | Друкує кроки для нативного `/ralph-loop` (плагін `ralph-wiggum`) на тій самій задачі. |
 | `make prep` | Нагадування, як (пере)згенерувати `PROMPT.md` через `/ralph-prep`. |
+| `make demo-beerlms` | Друкує покрокову інструкцію, як навести harness на реальний beer-lms M6 tracker. |
 | `make clean` | Прибрати `app/`, `DONE`, `cost.log`, кеші. |
 
 > `make demo` витрачає токени і недетерміноване. Перед запуском перевір `MAX_ITER` у
@@ -67,7 +70,7 @@ ls DONE
 
 ```bash
 # Pre-state: чисте дерево, нема app/, DONE, cost.log
-cd modules/7-execution-scale/7.2-ralph-loop
+cd ~/sources/agentic-engineering-course/modules/7-execution-scale/7.2-ralph-loop
 git status && make verify          # verify RED (ModuleNotFoundError) — стартова точка
 
 # Step 0 (~20с) — згенерувати тонкий PROMPT.md зі story (skill)
@@ -118,9 +121,39 @@ git diff
 завершення, а не кілька. Головний запобіжник — `--max-iterations`: за замовчуванням ліміту
 обертів немає, тож став його завжди.
 
-Плагін наводиться на будь-який backlog так само, як bash-варіант — задача `/ralph-loop`
-від абстрактного `slugify` не залежить. `make demo-plugin` друкує ці кроки (slash-команда
-живе всередині `claude`, не в чистому shell).
+Той самий плагін наводиться і на реальний M6 backlog так само, як bash-варіант (див. розділ
+beer-lms нижче) — задача `/ralph-loop` від абстрактного `slugify` не залежить. `make demo-plugin`
+друкує ці кроки (slash-команда живе всередині `claude`, не в чистому shell).
+
+## beer-lms track — «а ще краще» на реальному M6
+
+Той самий harness, але backlog — реальний M6 capstone з `beer-lms`
+(`docs/features/course-lesson-mvp/tasks/` — 8 stories S-1…S-8 у 4 waves, Go). Щоб
+автономний прогін не чіпав основне дерево beer-lms, працюємо в окремому git **worktree**
+(незалежна робоча копія репозиторію):
+
+```bash
+BEERLMS=~/sources/beer-lms
+git -C "$BEERLMS" worktree add ../beer-lms-ralph -b ralph/lessons-mvp
+cd "$BEERLMS/../beer-lms-ralph"
+
+claude
+#   /ralph-prep S-1                 # читає docs/features/course-lesson-mvp/tasks/
+# поза claude:
+TASKS_DIR=docs/features/course-lesson-mvp/tasks MAX_ITER=8 \
+  ~/sources/agentic-engineering-course/modules/7-execution-scale/7.2-ralph-loop/ralph.sh
+
+# прибрати worktree, коли закінчив
+git -C "$BEERLMS" worktree remove ../beer-lms-ralph
+```
+
+Ralph читає `tracker.md`, бере першу `todo`-story без блокерів (Wave 1: S-1/S-2),
+реалізує її в Go проти `go test`, оновлює tracker і йде далі. DoD тут — `go test ./...`
+зелений, а не pytest. `make demo-beerlms` друкує ці кроки.
+
+> Реальний прогін на beer-lms пише код у репозиторій (у worktree). Це режим AFK —
+> тримай `--permission-mode acceptEdits`, ізоляцію через worktree і `MAX_ITER`. Повний
+> autonomous/AFK розбір — у лекції 7.5 (фонове виконання).
 
 ## Покриття концептів лекції
 
@@ -132,6 +165,7 @@ git diff
 | Бінарний DoD | `tasks/story-t1.md` → `pytest -q` зелений |
 | Три запобіжники | `MAX_ITER`, `cost.log`, `trap INT` у `ralph.sh` |
 | Ralph «у коробці» (plugin) | розділ «Нативний Ralph» (`/ralph-loop`, `make demo-plugin`) |
+| Реальний tracker (M6) | beer-lms track (`course-lesson-mvp/tasks/`) |
 
 ## Як перенести у свій проєкт
 

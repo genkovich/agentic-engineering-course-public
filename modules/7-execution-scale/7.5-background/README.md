@@ -70,7 +70,7 @@ Worked-приклад просто в цьому демо:
 ## Setup
 
 ```bash
-cd modules/7-execution-scale/7.5-background
+cd ~/sources/agentic-engineering-course/modules/7-execution-scale/7.5-background
 
 make verify          # GREEN на чистому checkout: snippets store уже реалізований
 make matrix          # надрукувати матрицю трьох рівнів
@@ -119,6 +119,47 @@ make matrix          # надрукувати матрицю трьох рівн
 `/background` + активний `/goal` (щоб сесія зупинилась сама) - у
 `recipes/background.md`.
 
+## beer-lms track - реальний M6 як референс
+
+> **АВТОРСЬКИЙ референс.** Цей розділ описує, як ті самі рівні розкладу автор наводить
+> на реальний M6 (`beer-lms`). Клон-енд-ран частина пакета лишається на snippets-рецептах
+> вище; нижче - референсний рецепт на справжньому репозиторії, який **не запускається
+> автоматично**.
+
+Той самий патерн розкладу, але ціль - реальний M6 capstone з `beer-lms`
+(монорепо на GitLab; Go API у `beer-lms-api/`, backlog у
+`docs/features/course-lesson-mvp/tasks/`). Щоб фоновий прогін не чіпав основне
+дерево beer-lms, працюємо в окремому git **worktree** (незалежна робоча копія
+репозиторію) на гілці `claude/...`:
+
+```bash
+BEERLMS=~/sources/beer-lms
+git -C "$BEERLMS" worktree add ../beer-lms-bg -b claude/nightly-m6
+cd "$BEERLMS/../beer-lms-bg"
+
+# Варіант A - desktop scheduled task (локально, без сесії, бачить worktree):
+claude
+#   /schedule create local "щодня 02:00" "візьми наступну todo-story з course-lesson-mvp і доведи go test ./... до зеленого"
+
+# Варіант B - cloud routine (у хмарі; бачить ЛИШЕ закомічене в git):
+claude
+#   /schedule create "щодня 03:00" "підбий дайджест змін у course-lesson-mvp за добу"
+#   # ПАСТКА: усе незакомічене в beer-lms-bg ця рутина не побачить - спершу закоміть
+
+# прибрати worktree, коли закінчив:
+git -C "$BEERLMS" worktree remove ../beer-lms-bg
+```
+
+DoD реального треку - `cd beer-lms-api && go test ./...` зелений (НЕ pytest).
+Локальна scheduled task бачить worktree як є; хмарна рутина - лише те, що
+закомічено в git. Це робить хмарну пастку не абстракцією, а живим обмеженням
+саме на M6.
+
+> Реальний прогін пише код у репозиторій (у worktree, гілка `claude/...`). Це
+> режим AFK - тримай `--permission-mode acceptEdits`, ізоляцію через worktree і
+> регулярний аудит через `claude agents`, щоб забута нічна рутина не крутилась
+> непомітно.
+
 ## Покриття концептів лекції
 
 | Концепт лекції | Де у демо |
@@ -131,6 +172,7 @@ make matrix          # надрукувати матрицю трьох рівн
 | Дашборд `claude agents` (6 станів, групи, клавіші) | `recipes/dashboard.md` |
 | Запобіжники: 7 днів / 50 задач / jitter / `CLAUDE_CODE_DISABLE_CRON` | розділ нижче + `routines/README.md` |
 | Тверда стеля витрат - на тобі | наголос у кожному рецепті |
+| Реальний M6 як референс | beer-lms track (worktree, гілка `claude/...`) |
 
 ### Вбудовані запобіжники (довідка)
 

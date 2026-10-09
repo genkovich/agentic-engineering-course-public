@@ -1,0 +1,38 @@
+services:
+  # Жертва-застосунок: крихітний сервіс зі структурованими логами і /metrics.
+  # "Реліз із багом" вмикається змінними APP_VERSION=1.5.0 BUGGY_RELEASE=1.
+  victim:
+    build: ./victim-app
+    environment:
+      APP_VERSION: ${APP_VERSION:-1.4.2}
+      BUGGY_RELEASE: ${BUGGY_RELEASE:-0}
+    ports:
+      - "3410:3000"
+
+  # Постійний трафік, щоб у логах було життя і без ручних запитів.
+  loadgen:
+    image: curlimages/curl:8.13.0
+    depends_on:
+      - victim
+    command: >
+      sh -c 'while true; do
+        curl -s -o /dev/null http://victim:3000/api/orders;
+        sleep 1;
+      done'
+
+  # Черговий агент: приймає вебхуки, розбирає issues, аналізує логи релізу.
+  # Секрети приходять з .env - їх немає ні в образі, ні в git.
+  agent:
+    build: ./agent
+    env_file: .env
+    ports:
+      - "3411:3411"
+
+  # Тунель: публічна HTTPS-адреса для вебхука без жодного відкритого порту.
+  # Quick tunnel від Cloudflare - конкретний бренд живе лише тут, у кіті.
+  # Адресу шукай у логах: docker compose logs tunnel | grep trycloudflare
+  tunnel:
+    image: cloudflare/cloudflared:latest
+    depends_on:
+      - agent
+    command: tunnel --no-autoupdate --url http://agent:3411
