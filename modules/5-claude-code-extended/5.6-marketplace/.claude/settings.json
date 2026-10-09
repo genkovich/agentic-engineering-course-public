@@ -1,0 +1,8 @@
+{
+  "extraKnownMarketplaces": {
+    "team-marketplace": {
+      "type": "github",
+      "repo": "your-org/team-marketplace"
+    }
+  }
+}

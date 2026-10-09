@@ -1,0 +1,11 @@
+{
+  "name": "pr-review-rules",
+  "description": "Enforce team PR review conventions: changelog entry, no console.log, test coverage, no formatting churn, security checklist.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Platform Team",
+    "email": "platform@your-org.example"
+  },
+  "keywords": ["pr", "review", "quality", "conventions"],
+  "license": "MIT"
+}

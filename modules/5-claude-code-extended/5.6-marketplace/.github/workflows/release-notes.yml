@@ -1,0 +1,117 @@
+name: release-notes
+on:
+  push:
+    tags: ['v*']
+
+jobs:
+  validate:
+    uses: ./.github/workflows/validate-plugins.yml
+    secrets: inherit
+
+  generate:
+    needs: validate
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+
+      - name: Install Claude Code CLI (stable)
+        run: |
+          curl -fsSL https://claude.ai/install.sh | bash -s stable
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+
+      - name: Configure git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Create release-notes branch
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          git checkout -B "release-notes/$TAG"
+
+      - name: Generate release notes
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          RESPONSE=$(claude -p "$(cat .github/prompts/generate-release-notes.md)" \
+            --allowed-tools "Bash(git log *)" "Read(docs/**)" "Edit(docs/**)" \
+            --model claude-haiku-4-5 \
+            --max-turns 6 \
+            --output-format json \
+            --json-schema "$(cat .github/prompts/release-notes.schema.json)")
+
+          RESULT=$(echo "$RESPONSE" | jq -c '
+            if type == "array"
+            then (map(select(.type == "result")) | last // {})
+            else .
+            end
+          ')
+
+          COST=$(echo "$RESULT" | jq -r '.total_cost_usd // "n/a"')
+          DURATION=$(echo "$RESULT" | jq -r '.duration_ms // "n/a"')
+          TURNS=$(echo "$RESULT" | jq -r '.num_turns // "n/a"')
+          IS_ERROR=$(echo "$RESULT" | jq -r '.is_error // false')
+          echo "[claude] cost=\$${COST} duration=${DURATION}ms turns=${TURNS} is_error=${IS_ERROR}"
+
+          if [[ "$IS_ERROR" == "true" ]]; then
+            echo "::error::claude failed: $(echo "$RESULT" | jq -r '.result')"
+            exit 1
+          fi
+
+          echo "$RESULT" | jq '
+            if (.structured_output // null) != null
+            then .structured_output
+            else (.result as $r | try ($r | fromjson) catch $r)
+            end
+          ' > /tmp/release-notes.json
+
+      - name: Commit changelog edit
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          git diff -- docs/CHANGELOG.md > /tmp/changelog.patch
+          if [[ ! -s /tmp/changelog.patch ]]; then
+            echo "::error::agent produced no changelog diff"
+            exit 1
+          fi
+          git add docs/CHANGELOG.md
+          git commit -m "chore: changelog for $TAG"
+          git push -u origin "release-notes/$TAG"
+
+      - name: Open pull request
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          {
+            echo "Suggested changelog for \`$TAG\` (agent-generated, human applies):"
+            echo
+            echo '```diff'
+            cat /tmp/changelog.patch
+            echo '```'
+          } > /tmp/pr-body.md
+          gh pr create \
+            --title "chore: changelog for $TAG" \
+            --body-file /tmp/pr-body.md \
+            --base main \
+            --head "release-notes/$TAG"
+
+      - name: Create draft GitHub Release
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          jq -r '.sections[] | "## \(.title)\n\n" + (.items | map("- " + .) | join("\n")) + "\n"' \
+            /tmp/release-notes.json > /tmp/release-body.md
+          gh release create "$TAG" \
+            --draft \
+            --title "$TAG" \
+            --notes-file /tmp/release-body.md

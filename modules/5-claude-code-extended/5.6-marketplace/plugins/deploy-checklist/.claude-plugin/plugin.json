@@ -1,0 +1,11 @@
+{
+  "name": "deploy_checklist",
+  "description": "Pre-deploy checklist enforcer: env diff, migrations dry-run, smoke endpoints, rollback plan, oncall heads-up.",
+  "version": "1.2.0",
+  "author": {
+    "name": "Platform Team",
+    "email": "platform@your-org.example"
+  },
+  "keywords": ["deploy", "release", "checklist", "ops"],
+  "license": "MIT"
+}

@@ -1,0 +1,11 @@
+{
+  "name": "security-scan",
+  "description": "Pre-push security audit: scan staged diff and dependencies for hardcoded secrets, dangerous eval/shell patterns, and known-vulnerable packages.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Platform Team",
+    "email": "platform@your-org.example"
+  },
+  "keywords": ["security", "secrets", "audit", "pre-push"],
+  "license": "MIT"
+}

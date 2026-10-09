@@ -1,0 +1,46 @@
+name: validate-plugins
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_call:
+jobs:
+  static-validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate marketplace.json schema
+        run: |
+          python3 - <<'PY'
+          import json, re, sys
+          m = json.load(open('.claude-plugin/marketplace.json'))
+          assert 'name' in m and 'owner' in m and 'plugins' in m
+          for p in m['plugins']:
+              assert re.match(r'^\d+\.\d+\.\d+$', p['version']), p
+              for k in ('name', 'source', 'description', 'version'):
+                  assert k in p, k
+          print('OK', len(m['plugins']), 'plugins')
+          PY
+  plugin-validate:
+    runs-on: ubuntu-latest
+    needs: static-validate
+    strategy:
+      matrix:
+        plugin: [deploy-checklist, pr-review-rules, security-scan]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Claude Code CLI (native, stable channel)
+        run: |
+          curl -fsSL https://claude.ai/install.sh | bash -s stable
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+      - name: Show CLI version
+        run: claude --version
+      - name: Validate plugin manifest (no auth)
+        run: claude plugin validate ./plugins/${{ matrix.plugin }}
+      - name: Smoke install (requires ANTHROPIC_API_KEY)
+        if: env.ANTHROPIC_API_KEY != ''
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          claude --plugin-dir ./plugins/${{ matrix.plugin }} \
+                 --print "echo ready" || exit 1

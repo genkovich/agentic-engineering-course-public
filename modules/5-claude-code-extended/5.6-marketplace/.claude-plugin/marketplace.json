@@ -1,0 +1,48 @@
+{
+  "name": "team-marketplace",
+  "owner": {
+    "name": "Platform Team",
+    "email": "platform@your-org.example",
+    "url": "https://github.com/your-org/team-marketplace"
+  },
+  "plugins": [
+    {
+      "name": "deploy-checklist",
+      "source": "./plugins/deploy-checklist",
+      "description": "Standardize pre-deploy checks across services: env diff, migrations, smoke tests, rollback plan.",
+      "version": "1.3.0",
+      "category": "deploy",
+      "tags": ["deploy", "release", "checklist", "ops"],
+      "author": {
+        "name": "Platform Team",
+        "email": "platform@your-org.example"
+      },
+      "strict": true
+    },
+    {
+      "name": "pr-review-rules",
+      "source": "./plugins/pr-review-rules",
+      "description": "Enforce team conventions on every pull request: changelog, tests, security checklist, no churn.",
+      "version": "1.0.0",
+      "category": "code-review",
+      "tags": ["pr", "review", "quality", "conventions"],
+      "author": {
+        "name": "Platform Team",
+        "email": "platform@your-org.example"
+      }
+    },
+    {
+      "name": "security-scan",
+      "source": "./plugins/security-scan",
+      "description": "Pre-push security audit: hardcoded secrets, eval/shell=True, vulnerable dependencies, unvetted network destinations.",
+      "version": "1.0.0",
+      "category": "security",
+      "tags": ["security", "secrets", "audit", "pre-push"],
+      "author": {
+        "name": "Platform Team",
+        "email": "platform@your-org.example"
+      },
+      "strict": true
+    }
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "type": "object",
+  "properties": {
+    "version": {"type": "string"},
+    "release_date": {"type": "string"},
+    "sections": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "title": {"type": "string", "enum": ["Added", "Changed", "Fixed", "Removed"]},
+          "items": {"type": "array", "items": {"type": "string"}}
+        },
+        "required": ["title", "items"]
+      }
+    }
+  },
+  "required": ["version", "release_date", "sections"]
+}
