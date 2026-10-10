@@ -43,7 +43,7 @@
 | `docker-compose.yml` | Альтернатива devcontainer без VS Code |
 | `src/main.py` | Hello World FastAPI app з / і /health |
 | `tests/test_main.py` | pytest для FastAPI ендпоінтів |
-| `tests/sandbox-leak.test.sh` | Перевіряє що sandbox конфіг повний і блокує bash subprocess |
+| `tests/sandbox-leak.test.sh` | Перевіряє що sandbox конфіг повний (сам витік — ручна перевірка, див. нижче) |
 | `tests/firewall.test.sh` | Перевіряє firewall behavior всередині devcontainer |
 | `Makefile` | Стандартний API: verify, test, build, clean |
 | `pyproject.toml` | FastAPI + uvicorn + pytest + ruff + mypy |

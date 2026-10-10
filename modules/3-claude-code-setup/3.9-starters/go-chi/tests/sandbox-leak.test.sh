@@ -1,5 +1,5 @@
 #!/bin/bash
-# sandbox-leak.test.sh - перевіряє що sandbox блокує bash subprocess до .env.
+# sandbox-leak.test.sh - перевіряє, що конфіг permissions і sandbox повний (сам витік не перевіряє).
 # Тест запускається на хості (не у контейнері). Сам Claude не запускає - перевіряє файлову систему і конфіг.
 #
 # Логіка: переконуємось що:

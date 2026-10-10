@@ -133,15 +133,15 @@ cd ../sdk-cli && make demo-fixture
 --allowed-tools "Bash(git log *)" "Read(docs/**)" "Edit(docs/**)"
 ```
 
-Це не один параметр — це три **незалежні** allowlist'и:
+Це не один параметр — це три **незалежні** allowlist'и. Вони знімають запит дозволу для свого патерну, але не обмежують набір інструментів:
 
-| Dimension | Pattern         | Що дозволено                     | Що заблоковано                                  |
+| Dimension | Pattern         | Без запиту дозволу               | Потребує дозволу (у `claude -p` — відхилено)    |
 |-----------|-----------------|----------------------------------|-------------------------------------------------|
 | **Bash**  | `git log *`     | `git log`, `git log --oneline`   | `git tag`, `git push`, `rm`, `curl`             |
-| **Read**  | `docs/**`       | `docs/CHANGELOG.md`, `docs/README.md` | `src/main.py`, `.env`, `~/.ssh/id_rsa`     |
+| **Read**  | `docs/**`       | усі файли в робочій директорії, зокрема `src/main.py` і `.env` | `~/.ssh/id_rsa` (поза робочою директорією) |
 | **Edit**  | `docs/**`       | `docs/CHANGELOG.md`              | `src/main.py`, `pyproject.toml`, `.github/*`    |
 
-Якби це був `Bash(git *)` — агент міг би push'нути на remote. Якби `Read(**)` — міг би прочитати `.env`. Кожна стрічка цього allowlist обмежує agent поведінку незалежним способом.
+Якби це був `Bash(git *)` — агент міг би push'нути на remote без запиту. Читання в робочій директорії дозволу не потребує взагалі, тож `.env` захищає лише `deny`-правило (`Read(**/.env)`) або sandbox. Обмеження тут дає `claude -p`: усе, що потребує дозволу, відхиляється. Щоб справді звузити набір інструментів — `--tools` або `--disallowed-tools`.
 
 ## JSON Schema validation
 

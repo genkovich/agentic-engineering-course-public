@@ -42,7 +42,7 @@
 | `.devcontainer/init-firewall.sh` | default-deny iptables з whitelist |
 | `docker-compose.yml` | Альтернатива devcontainer без VS Code |
 | `cmd/server/main.go` | Hello World chi HTTP API |
-| `tests/sandbox-leak.test.sh` | Перевіряє що sandbox конфіг повний і блокує bash subprocess |
+| `tests/sandbox-leak.test.sh` | Перевіряє що sandbox конфіг повний (сам витік — ручна перевірка, див. нижче) |
 | `tests/firewall.test.sh` | Перевіряє firewall behavior всередині devcontainer |
 | `Makefile` | Стандартний API: verify, test, build, clean |
 | `go.mod` | Go module з chi/v5 dep |

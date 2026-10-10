@@ -42,7 +42,7 @@
 | `.devcontainer/init-firewall.sh` | default-deny iptables з whitelist |
 | `docker-compose.yml` | Альтернатива devcontainer без VS Code |
 | `src/main.rs` | Hello World axum API (`/` і `/health`) |
-| `tests/sandbox-leak.test.sh` | Перевіряє що sandbox конфіг повний і блокує bash subprocess |
+| `tests/sandbox-leak.test.sh` | Перевіряє що sandbox конфіг повний (сам витік — ручна перевірка, див. нижче) |
 | `tests/firewall.test.sh` | Перевіряє firewall behavior всередині devcontainer |
 | `Makefile` | Стандартний API: verify, test, build, clean, fmt, lint |
 | `Cargo.toml` | Rust toolchain і залежності (axum, tokio, tower, serde) |

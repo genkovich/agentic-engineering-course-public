@@ -4,7 +4,7 @@
 # Найдешевший мешканець конфігу - Context7 (~тисяча токенів definitions, без ключа).
 # Підключаємось і дивимось два його tools: resolve-library-id, query-docs.
 inspect:
-	npx @modelcontextprotocol/inspector --cli npx -y @upstash/context7-mcp --method tools/list
+	npx -y @modelcontextprotocol/inspector --cli npx @upstash/context7-mcp --method tools/list
 
 help:
 	@echo "make inspect - tools/list Context7 (без ключа)"
