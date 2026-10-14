@@ -31,12 +31,11 @@
         "api.anthropic.com",
         "statsig.anthropic.com",
         "sentry.io"
-      ],
-      "allowManagedDomainsOnly": false
+      ]
     },
     "excludedCommands": [
-      "docker",
-      "watchman"
+      "docker compose *",
+      "watchman *"
     ],
     "allowUnsandboxedCommands": true
   }

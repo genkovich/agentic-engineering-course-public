@@ -18,6 +18,7 @@ services:
       - claude-history:/commandhistory
     environment:
       - CLAUDE_CONFIG_DIR=/home/node/.claude
+      - CLAUDE_CODE_OAUTH_TOKEN=${CLAUDE_CODE_OAUTH_TOKEN:-}
       - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
     entrypoint: ["/bin/bash", "-c", "sudo /usr/local/bin/init-firewall.sh && exec bash"]
     stdin_open: true
