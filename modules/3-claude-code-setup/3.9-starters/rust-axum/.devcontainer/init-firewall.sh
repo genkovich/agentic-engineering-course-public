@@ -70,6 +70,8 @@ ALLOWED_DOMAINS=(
   "github.com"
   "objects.githubusercontent.com"
   "codeload.github.com"
+  "claude.ai"
+  "platform.claude.com"
 )
 
 for domain in "${ALLOWED_DOMAINS[@]}"; do
