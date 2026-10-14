@@ -1,6 +1,6 @@
 # example-Dockerfile - база для devcontainer або docker compose з Claude Code.
 # Перейменуй на Dockerfile у .devcontainer/ або у корені проекту поруч з docker-compose.yml.
-# init-firewall.sh має лежати у тій самій директорії що і цей Dockerfile (див. ../Lecture 7/init-firewall.sh).
+# init-firewall.sh має лежати у тій самій директорії що і цей Dockerfile (див. ../3.7-sandbox/init-firewall.sh).
 
 ARG TZ=Europe/Kyiv
 ARG CLAUDE_CODE_VERSION=latest

@@ -40,7 +40,7 @@ ALLOWED_DOMAINS=(
 )
 
 for domain in "${ALLOWED_DOMAINS[@]}"; do
-  ips=$(getent ahosts "$domain" | awk '/STREAM/ {print $1}' | sort -u)
+  ips=$(getent ahosts "$domain" | awk '/STREAM/ {print $1}' | sort -u || true)
   if [ -z "$ips" ]; then
     echo "WARN: не вдалось зрезолвити $domain - пропускаємо"
     continue
@@ -51,7 +51,7 @@ for domain in "${ALLOWED_DOMAINS[@]}"; do
 done
 
 # 6. GitHub CIDR ranges - отримуємо з api.github.com/meta (тимчасово відкриваємо api.github.com)
-gh_ip=$(getent ahosts api.github.com | awk '/STREAM/ {print $1; exit}')
+gh_ip=$(getent ahosts api.github.com | awk '/STREAM/ {print $1; exit}' || true)
 if [ -n "$gh_ip" ]; then
   iptables -I OUTPUT 1 -d "$gh_ip" -p tcp --dport 443 -j ACCEPT
   github_cidrs=$(curl -fsS --max-time 10 https://api.github.com/meta \
@@ -69,10 +69,11 @@ iptables -A OUTPUT -p tcp -m set --match-set claude-allowed dst --dport 80  -j A
 # 8. Self-validation - переконатись що firewall працює як треба
 echo "=== Firewall self-validation ==="
 
-if curl -fsS --max-time 5 https://api.anthropic.com -o /dev/null; then
-  echo "OK: api.anthropic.com доступний"
+# github.com відповідає 200; api.anthropic.com на корені віддає 404, і curl -f тоді падає
+if curl -fsS --max-time 5 https://github.com -o /dev/null; then
+  echo "OK: whitelist пропускає дозволені домени (github.com)"
 else
-  echo "FAIL: api.anthropic.com має бути доступний - whitelist зламаний"
+  echo "FAIL: дозволений домен недоступний - whitelist зламаний"
   exit 1
 fi
 
