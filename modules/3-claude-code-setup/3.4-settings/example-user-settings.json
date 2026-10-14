@@ -4,7 +4,9 @@
   "effortLevel": "medium",
   "outputStyle": "Explanatory",
   "language": "ukrainian",
-  "voiceEnabled": true,
+  "voice": {
+    "enabled": true
+  },
   "attribution": {
     "commit": "",
     "pr": ""
@@ -12,6 +14,7 @@
   "cleanupPeriodDays": 14,
   "spinnerTipsEnabled": false,
   "env": {
-    "CLAUDE_CODE_NO_FLICKER": "1"
+    "CLAUDE_CODE_NO_FLICKER": "1",
+    "CLAUDE_CODE_SUBPROCESS_ENV_SCRUB": "1"
   }
 }
