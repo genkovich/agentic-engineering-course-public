@@ -5,7 +5,7 @@ A feature is considered complete when all items are closed. Otherwise — it's i
 - [ ] **All tasks closed**, AC verified (PM/QA confirmed). `tasks/tracker.md` shows all tasks done; `tasks/tasks.json` AC rows satisfied.
 - [ ] **Tests per test-plan, CI green** (unit + integration + contract + E2E where relevant).
 - [ ] **Migration promoted and executed on staging**, rollback scenario tested. Staged `docs/features/<slug>/migrations/` promoted to live migrations tree by `implement-tasks`.
-- [ ] **OpenAPI updated**, contract tests pass (`contracts/openapi.yaml` + `api-sync-report.md`).
+- [ ] **OpenAPI updated**, contract tests pass (`contracts/openapi.yaml` + `api-sync-report.md` with `**Verdict:**` PASS or PASS (with deferrals) — never FAIL).
 - [ ] **ADR updated** if the decision changed during implementation.
 - [ ] **review-feature PASS** — `_review/review-<date>.md` verdict is PASS (AC end-to-end trace + quality stage both clear). This is the hard gate before shipping.
 - [ ] **CHANGELOG entry** added and **PR body** created by `ship-feature` (Keep-a-Changelog: Added/Changed/Fixed/Removed + Breaking; includes AC/ADR links + SDLC-Task commit history).

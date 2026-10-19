@@ -1,8 +1,8 @@
-# SDLC toolkit (знімок v4.5.1)
+# SDLC toolkit (знімок v4.6.0)
 
 SDLC-пайплайн для Claude Code: документи-артефакти, Claude Code skills, агенти і чек-листи. Каталог супроводжує Module 6 курсу "Agentic Engineering з Claude" і далі модулі, де фіча доходить до коду, рев'ю і релізу.
 
-> **Дисклеймер.** Це знімок плагіна `sdlc` версії 4.5.1. Канонічна версія живе в [github.com/genkovich/sdlc](https://github.com/genkovich/sdlc) і розвивається там. Якщо хочеш свіжіше, став плагін звідти (спосіб 2 нижче). Артефакти в `examples/` синтетичні (домени `course-lesson-mvp`, `goals-tracking`, `rate-limiting`), справжні робочі артефакти сюди не потрапляють.
+> **Дисклеймер.** Це знімок плагіна `sdlc` версії 4.6.0. Канонічна версія живе в [github.com/genkovich/sdlc](https://github.com/genkovich/sdlc) і розвивається там. Якщо хочеш свіжіше, став плагін звідти (спосіб 2 нижче). Артефакти в `examples/` синтетичні (домени `course-lesson-mvp`, `goals-tracking`, `rate-limiting`), справжні робочі артефакти сюди не потрапляють.
 
 ## Що тут лежить
 
@@ -68,7 +68,7 @@ cp plugin/skills/write-prd/templates/PRD-template.md docs/features/<your-slug>/P
 | 6.3 | PRD | `plugin/skills/write-prd/` (+ `templates/PRD-template.md`) |
 | 6.4 | Architecture (SAD + ADR + C4) | `plugin/skills/architecture-design/` (+ `templates/sad-template.md`, `adr-template.md`, `c4-context.md`, `c4-container.md`), `plugin/skills/decide-adr/`, `document-templates/arc42.md`; вхід для SAD дає `map-architecture` |
 | 6.5 | Sequence diagrams + data model | `plugin/skills/complete-sequence-diagrams/`, `plugin/skills/generate-data-model/` (+ `templates/data-model.md`, `rules-migrations-baseline.md`) |
-| 6.6 | API contracts (OpenAPI) | `plugin/skills/api-forge/` (+ `templates/openapi.yaml`, `events.md`, `cli.md`, `public-api.md`) |
+| 6.6 | API contracts (OpenAPI) | `plugin/skills/api-forge/` (+ `templates/openapi.yaml`, `events.md`, `cli.md`, `public-api.md`, `rules-openapi-baseline.md`; `references/drift-check.md` з правилами вердикту і 5-пунктовим drift-чеклистом) |
 | 6.7 | Tasks | `plugin/skills/break-tasks/`, `plugin/skills/plan-tests/`, `examples/course-lesson-mvp/tasks/` (`_epic.md`, `tracker.md`, `tasks.json` і story-файли) |
 
 ## Module 7+ і далі
@@ -95,4 +95,4 @@ cp plugin/skills/write-prd/templates/PRD-template.md docs/features/<your-slug>/P
 
 - Внутрішні конфігурації робочих проєктів, прод-домени, ідентифікатори тікетів
 - CI і службові скрипти приватного репозиторію
-- Версії плагіна новіші за 4.5.1: їх шукай у [genkovich/sdlc](https://github.com/genkovich/sdlc)
+- Версії плагіна новіші за 4.6.0: їх шукай у [genkovich/sdlc](https://github.com/genkovich/sdlc)

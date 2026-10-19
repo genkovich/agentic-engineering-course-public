@@ -2,9 +2,12 @@
 name: api-forge
 description: >
   Use to derive the API contract for a feature — an OpenAPI 3.1 document at
-  docs/features/{slug}/contracts/openapi.yaml plus a drift/sync report, and the
-  right contract artifact per surface (events.md for async, cli.md for CLI,
-  public-api.md for library/SDK). Triggers on "api for {slug}", "openapi for {slug}",
+  docs/features/{slug}/contracts/openapi.yaml plus a drift/sync report
+  (api-sync-report.md with an explicit Verdict: PASS | PASS (with deferrals) | FAIL
+  and a 5-point drift checklist), the right contract artifact per surface
+  (events.md for async, cli.md for CLI, public-api.md for library/SDK), and — on the
+  HTTP path, first run only — a baseline .claude/rules/openapi.md so later code
+  follows the same API conventions. Triggers on "api for {slug}", "openapi for {slug}",
   "API contract for {slug}", "lock the interface for {slug}", "events for {slug}",
   "/sdlc-api-forge {slug}", "контракт API для {slug}", "OpenAPI для {slug}", "опиши ендпоінти".
   The contract is never hand-written: it is a derived function of data-model.md (typed
@@ -61,13 +64,13 @@ The skill detects scenario from inputs and tells the user which one it is runnin
 
 Contract is **derived** from the model. Every field has an `origin` in a typed entity. Constraints (`maxLength`, `pattern`, `enum`) trace back to DDL (`varchar(N)`, `CHECK`, ENUM type). Error codes derive from constraints (`UNIQUE (a, b)` → `<entity>.duplicate_<field>`). `unresolved_origins` is **empty**.
 
-Drift check verifies field-by-field alignment. Drift in scenario A means model and contract disagree on form — human resolves which artifact is right.
+Drift check verifies field-by-field alignment. Drift in scenario A means model and contract disagree on form — human resolves which artifact is right. Only scenario A can reach a plain `PASS` verdict.
 
 ### Scenario B — data-model.md missing (fallback)
 
 Contract is **inferred** from PRD §4 acceptance criteria + sequence diagrams + SAD §6 namespacing. Types are less precise (`string` without `maxLength`, no enum patterns yet). Error codes derive from `alt`-blocks in sequences, not from constraints.
 
-`unresolved_origins` lists every field whose origin is "inferred from PRD/sequence, needs confirmation when data-model.md arrives". This is **not an error** — it is **declared incompleteness**, visible to the team.
+`unresolved_origins` lists every field whose origin is "inferred from PRD/sequence, needs confirmation when data-model.md arrives". This is **not an error** — it is **declared incompleteness**, visible to the team. Because something is always parked, a scenario-B report reads `PASS (with deferrals)` at best, never plain `PASS`.
 
 ### Reconcile (`--reconcile` flag)
 
@@ -84,7 +87,7 @@ When `data-model.md` arrives after a scenario-B run, re-run with `--reconcile`. 
 
 ## Defaults
 
-Fixed minimum, not invented per feature; an `adr/*.md` overrides any of them and the report records "deviation by ADR-NNNN".
+Fixed minimum, not invented per feature; an `adr/*.md` overrides any of them and the report records "deviation by ADR-NNNN". The same defaults are written once into the repo as `.claude/rules/openapi.md` (protocol step 2, from [`./templates/rules-openapi-baseline.md`](./templates/rules-openapi-baseline.md)) so that the handlers, clients and tests written later follow the contract's conventions, not only the contract itself.
 
 | Topic | Default | Rationale |
 |---|---|---|
@@ -101,22 +104,24 @@ Fixed minimum, not invented per feature; an `adr/*.md` overrides any of them and
 
 1. **Gate + interface kind + read.** `test -f docs/features/<slug>/PRD.md` → fail = refuse with the pointer above. **Determine the interface kind — read `sad.md` frontmatter `target_surfaces` FIRST** (architecture-design already declared it; the surface picks the contract form per [`../_shared/surfaces.md`](../_shared/surfaces.md): `backend-service` → OpenAPI / gRPC / events per its sub-kind; `cli` → `contracts/cli.md`; `worker` → `contracts/events.md`; `library-sdk` → `contracts/public-api.md`; a UI surface — `web-frontend` / `mobile-app` / `desktop-app` — *consumes* the backend contract, it does not author one). **Fall back to deriving the kind** from `docs/architecture-map.md` + the PRD's capabilities **only if the SAD or the field is absent** (a greenfield run where `architecture-design` was skipped). HTTP/REST → the OpenAPI path below (default); gRPC/CLI/library/event-only → produce the matching contract form with this same derive→drift→reconcile loop; **no external interface** (pure internal logic) → skip to `break-tasks` with a one-line note in the report. Then detect scenario (A if `data-model.md` exists, B otherwise). Surface a one-line "found / missing" note for sad.md and data-model.md.
 
-2. **Copy the template.** [`./templates/openapi.yaml`](./templates/openapi.yaml) → `docs/features/<slug>/contracts/openapi.yaml`. If async flows exist, also [`./templates/events.md`](./templates/events.md) → `contracts/events.md`. If CLI surface, [`./templates/cli.md`](./templates/cli.md) → `contracts/cli.md`. If library-sdk surface, [`./templates/public-api.md`](./templates/public-api.md) → `contracts/public-api.md`. Fill `info.description` from PRD §1 (why this API exists).
+2. **Rules bootstrap (HTTP path only).** If `.claude/rules/openapi.md` is absent in the repo root, copy [`./templates/rules-openapi-baseline.md`](./templates/rules-openapi-baseline.md) → `.claude/rules/openapi.md` and tell the user «I wrote a baseline API rules file; edit it if your team disagrees with any default.» Reporting this bootstrap is mandatory (same mechanism as `generate-data-model` → `.claude/rules/migrations.md`). If the file already exists, read it — a team edit there overrides the Defaults table below the same way an ADR does, and the report records the deviation. Skip this step for CLI / library / event-only surfaces.
 
-3. **Derive endpoints + schemas.** One endpoint (or more) per PRD §4 user story. In scenario A, every request/response field traces to a `data-model.md` entity column — copy its constraints across (`maxLength`/`pattern`/`enum` from the model's bounded types). In scenario B, schemas are derived from PRD field names + sequence message names; `unresolved_origins` is populated. **Never invent a field with no origin in any input** — ask the user where it comes from. `$ref` every shared schema; no inline duplication. Lists paginate by cursor (`?after=&before=&limit=`), wrapped in `{items, has_next, has_prev, next_cursor}`.
+3. **Copy the template.** [`./templates/openapi.yaml`](./templates/openapi.yaml) → `docs/features/<slug>/contracts/openapi.yaml`. If async flows exist, also [`./templates/events.md`](./templates/events.md) → `contracts/events.md`. If CLI surface, [`./templates/cli.md`](./templates/cli.md) → `contracts/cli.md`. If library-sdk surface, [`./templates/public-api.md`](./templates/public-api.md) → `contracts/public-api.md`. Fill `info.description` from PRD §1 (why this API exists).
 
-4. **Derive error responses from the sequences.** Each endpoint covered by a §6 flow: turn every `alt … else … end` branch into a `responses` entry. The error body is the unified envelope **`{code, message, details?}`**; `code` follows the **neutral** convention `module.error_name` (snake_case, e.g. `lesson.not_owned`, `lesson.invalid_state`). Map status by class (4xx client / 5xx server). This closes the PRD's usual blind spot — PRD lists the happy path + a couple of errors; the sequences enumerate the authorization and concurrent-state branches the PRD omits.
+4. **Derive endpoints + schemas.** One endpoint (or more) per PRD §4 user story. In scenario A, every request/response field traces to a `data-model.md` entity column — copy its constraints across (`maxLength`/`pattern`/`enum` from the model's bounded types). In scenario B, schemas are derived from PRD field names + sequence message names; `unresolved_origins` is populated. **Never invent a field with no origin in any input** — ask the user where it comes from. `$ref` every shared schema; no inline duplication. Lists paginate by cursor (`?after=&before=&limit=`), wrapped in `{items, has_next, has_prev, next_cursor}`.
 
-5. **Async + idempotency.** A mutating endpoint whose §6 flow shows a retry note or an async actor is marked `Idempotency-Key`-required (state the TTL). For each async message, fill an `events.md` entry: event name `module.action.vN`, payload schema, producer, consumers, retry / dead-letter behaviour.
+5. **Derive error responses from the sequences.** Each endpoint covered by a §6 flow: turn every `alt … else … end` branch into a `responses` entry. The error body is the unified envelope **`{code, message, details?}`**; `code` follows the **neutral** convention `module.error_name` (snake_case, e.g. `lesson.not_owned`, `lesson.invalid_state`). Map status by class (4xx client / 5xx server). This closes the PRD's usual blind spot — PRD lists the happy path + a couple of errors; the sequences enumerate the authorization and concurrent-state branches the PRD omits.
 
-6. **Examples + placeholder data.** Every operation carries a request example + a success example + an error example, using placeholder values only (`<...>@example.test`, `+380 00 000 00 00`, `Test User`) — never real PII.
+6. **Async + idempotency.** A mutating endpoint whose §6 flow shows a retry note or an async actor is marked `Idempotency-Key`-required (state the TTL). For each async message, fill an `events.md` entry: event name `module.action.vN`, payload schema, producer, consumers, retry / dead-letter behaviour.
 
-7. **Inline DRIFT CHECK (bidirectional) + write the report.** Compare the generated contract against the read artifacts and write `docs/features/<slug>/contracts/api-sync-report.md` — see [`./references/drift-check.md`](./references/drift-check.md). It has a field-origins table (one row per `operation.field`: `path | origin | confidence`) and a checklist. The check runs **both directions**:
-   - **forward** (contract derived correctly): endpoint↔model, error-code↔repo, validation↔constraint, OpenAPI↔sequence.
-   - **back-feed (coverage cross-check)**: every PRD §5 AC maps to ≥1 operation/response; every operation maps to a §4 user story + ≥1 AC; every `sad.md` §6 `alt`-branch has a response, and any error/authorization response the contract needs but no §6 flow shows is a **sequence gap**. A gap here is not an api bug — it's a hole upstream: surface it and offer **Fix-the-source-first**, which re-opens `write-prd` (add the missing AC) or `complete-sequence-diagrams` (draw the missing branch) before the contract is finalized.
-   A **core** finding failing (or ≥3 flags total) pauses the run — resolve each via the 4-state actions: Accept-as-is / Fix-the-contract / Save-as-OQ / Fix-the-source-first. Never silently edit the sources — surface the mismatch and let the human pick the right artifact (the contract, the PRD's AC, or the sequence).
+7. **Examples + placeholder data.** Every operation carries a request example + a success example + an error example, using placeholder values only (`<...>@example.test`, `+380 00 000 00 00`, `Test User`) — never real PII.
 
-8. **Lint + write + commit.** Suggest `spectral lint contracts/openapi.yaml` (add it to the project's check target if not yet wired). On a clean check, the files are written; propose commit `api: <slug> contract`. Then **emit the stage-handoff block** per [`../_shared/handoff.md`](../_shared/handoff.md) — *What I did* + *Review* (`contracts/openapi.yaml`, `api-sync-report.md`, + `events.md` if async, + `cli.md` if CLI, + `public-api.md` if library) + *Run next* (`/clear`, then `/sdlc-break-tasks <slug>`).
+8. **Inline DRIFT CHECK (bidirectional) + write the report.** Compare the generated contract against the read artifacts and write `docs/features/<slug>/contracts/api-sync-report.md` — see [`./references/drift-check.md`](./references/drift-check.md). It opens with a **`**Verdict:**` line** (`PASS` | `PASS (with deferrals)` | `FAIL`, rules in the reference), then holds a field-origins table (one row per `operation.field`: `path | origin | confidence`), the **5-point drift checklist**, `unresolved_origins`, and a `Deferrals` list. Each point is marked ✓, ✓ (deferred: one line) or ✗ (one-line diagnostic). The check runs **both directions**:
+   - **forward** (contract derived correctly) — points 1–3, *core*: endpoint↔model, error-code↔repo, validation↔constraint.
+   - **back-feed (coverage cross-check)** — points 4–5, *supporting*: **4** every `data-model.md` entity is surfaced by ≥1 operation or marked intentionally internal, every PRD §5 AC maps to ≥1 operation/response, every operation maps to a §4 user story + ≥1 AC; **5** OpenAPI↔sequence — every `sad.md` §6 `alt`-branch has a response, and any error/authorization response the contract needs but no §6 flow shows is a **sequence gap**. A gap here is not an api bug — it's a hole upstream: surface it and offer **Fix-the-source-first**, which re-opens `write-prd` (add the missing AC) or `complete-sequence-diagrams` (draw the missing branch) before the contract is finalized.
+   A **core** finding failing (or ≥3 flags total) pauses the run — resolve each via the 4-state actions: Accept-as-is / Fix-the-contract / Save-as-OQ / Fix-the-source-first. Never silently edit the sources — surface the mismatch and let the human pick the right artifact (the contract, the PRD's AC, or the sequence). Then set the verdict from what is left: all 5 ✓ and nothing parked → `PASS`; core 1–3 ✓ but something consciously parked (scenario B, a deferred supporting point, a Save-as-OQ, a sequence gap) → `PASS (with deferrals)`; a core point still ✗, ≥3 open flags, or a field with no origin → `FAIL`. **The report is written on every run, FAIL included** — a FAIL that lives only in the chat is lost by the next `/clear`.
+
+9. **Lint + write + commit.** Suggest `spectral lint contracts/openapi.yaml` (add it to the project's check target if not yet wired). Write the files, propose commit `api: <slug> contract`. Then **emit the stage-handoff block** per [`../_shared/handoff.md`](../_shared/handoff.md) — *What I did* (incl. the verdict and whether `.claude/rules/openapi.md` was bootstrapped) + *Review* (`contracts/openapi.yaml`, `api-sync-report.md`, + `events.md` if async, + `cli.md` if CLI, + `public-api.md` if library) + *Run next*: on `PASS` / `PASS (with deferrals)` → `/clear`, then `/sdlc-break-tasks <slug>`; on `FAIL` → the fix-the-source command the report names (`/sdlc-write-prd`, `/sdlc-complete-sequence-diagrams` or `/sdlc-generate-data-model <slug>`), then `/sdlc-api-forge <slug> --reconcile`. A `FAIL` never hands off to `break-tasks`.
 
 ### Reconcile mode
 
@@ -125,7 +130,9 @@ Fixed minimum, not invented per feature; an `adr/*.md` overrides any of them and
 ## Definition of Done
 
 - `docs/features/<slug>/contracts/openapi.yaml` written: OpenAPI 3.1, `BearerAuth` global with public endpoints declaring explicit `security: []`, every error response the `{code, message, details?}` envelope, every operation with examples, all shared types via `$ref`.
-- `api-sync-report.md` written alongside: field-origins table + the 4-point drift checklist, scenario recorded, every core finding ✓ or explicitly resolved, `unresolved_origins` empty (A) or listed (B).
+- `api-sync-report.md` written alongside: `**Verdict:**` line first, field-origins table, the 5-point drift checklist (1–3 core, 4–5 supporting), scenario recorded, every core finding ✓ or explicitly resolved, `unresolved_origins` empty (A) or listed (B), `Deferrals` listed with a next step (or "none").
+- Verdict is `PASS` or `PASS (with deferrals)`. A `FAIL` report is a valid artifact but the stage is **not done** — the report names what to fix and the run is repeated with `--reconcile`.
+- On the HTTP path, `.claude/rules/openapi.md` exists in the repo root (bootstrapped from the baseline on first run and reported, or already there and read).
 - Every endpoint maps to a PRD §4 user story; every field traces to a `data-model.md` column (scenario A) or has an explicit inferred origin noted (scenario B); every error `code` exists in the repo's error definitions.
 - `contracts/events.md` present iff the feature has async flows; each event has a payload schema, producer, consumers, retry / DLQ note.
 - `contracts/cli.md` present iff the surface is `cli`; `contracts/public-api.md` present iff the surface is `library-sdk`.
@@ -145,7 +152,9 @@ If ≥3 flags appear in one run, pause, list them, and ask whether to continue o
 ## Anti-patterns
 
 - **Contract written by hand**, then the model/sequences bent to fit it. The arrow is one-way: model + sequences + PRD → contract.
-- **Skipping the drift check** because "it was just generated, of course it matches". Generation can match the PRD-as-read while diverging from the model or the sequences — different files, different authors. A clean 4/4 ✓ is cheap; a silent ✗ in prod is not.
+- **Skipping the drift check** because "it was just generated, of course it matches". Generation can match the PRD-as-read while diverging from the model or the sequences — different files, different authors. A clean 5/5 ✓ is cheap; a silent ✗ in prod is not.
+- **Writing `PASS` over an open finding.** A core ✗ that was not resolved through the 4-state actions is a `FAIL`; a parked item without a `Deferrals` entry is a hidden deferral. The verdict is derived from the checklist, never typed from a feeling.
+- **Bootstrapping `.claude/rules/openapi.md` and forgetting to tell the user.** Report it when it happens — the user owns that file from then on.
 - **Error responses from the PRD only.** PRD lists happy + a couple of errors; the §6 sequences hold the authorization and concurrent-state branches. Skipping them leaves blind spots.
 - **Inventing a field** with no origin in any input, or **silently dropping** one that left `data-model.md` (keep it with a `# stale` note and surface it — the human decides).
 - **Stack-specific schema or error names.** Schemas use the domain language from `data-model.md`; error codes are the neutral `module.error_name` convention — not a Go/TS/Python idiom and not tied to any driver's error type.
@@ -165,7 +174,8 @@ If ≥3 flags appear in one run, pause, list them, and ask whether to continue o
 - [`../_shared/surfaces.md`](../_shared/surfaces.md) — the declared `target_surfaces` (read from `sad.md`) pick the contract form; this skill reads, never re-derives.
 - [`../_shared/size-matrix.md`](../_shared/size-matrix.md) — MVP (one resource, events only if async) vs Full surface depth.
 - [`../_shared/handoff.md`](../_shared/handoff.md) — stage-handoff block format.
-- [`./references/drift-check.md`](./references/drift-check.md) — the field-origins table + 4-point drift checklist, reconcile semantics, conflict table.
+- [`./references/drift-check.md`](./references/drift-check.md) — report shape: verdict rules, field-origins table, 5-point drift checklist, deferrals, reconcile semantics, conflict table.
+- [`./templates/rules-openapi-baseline.md`](./templates/rules-openapi-baseline.md) — baseline `.claude/rules/openapi.md` copied at step 2 when missing (HTTP path).
 - [`./templates/openapi.yaml`](./templates/openapi.yaml) — OpenAPI 3.1 scaffold: `BearerAuth`, cursor page wrapper, `{code, message, details?}` Error schema.
 - [`./templates/events.md`](./templates/events.md) — async event-contract scaffold (producer / consumers / payload / retry / DLQ).
 - [`./templates/cli.md`](./templates/cli.md) — CLI surface contract scaffold (commands / flags / exit codes).

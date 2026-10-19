@@ -4,6 +4,39 @@ All notable changes to the `sdlc/` toolkit and `sdlc` Claude Code plugin.
 
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versioning: [SemVer](https://semver.org/spec/v2.0.0.html).
 
+## [4.6.0] — 2026-10-19
+
+### Changed — `api-forge`: explicit verdict, 5-point drift checklist, baseline `.claude/rules/openapi.md`
+
+Course lesson 6.6 asks the student to open `api-sync-report.md` and confirm "verdict PASS,
+all 5 drift points ✓, `unresolved_origins` empty". The skill text promised a 4-point checklist
+and never defined a verdict; only the example report carried both. The skill now says what the
+example (and the lesson) already do.
+
+- **`**Verdict:**` line** opens `api-sync-report.md`: `PASS` | `PASS (with deferrals)` | `FAIL`,
+  derived mechanically from the checklist — `PASS` = scenario A, 5/5 ✓, nothing parked;
+  `PASS (with deferrals)` = core 1–3 ✓ but something consciously parked and listed (scenario B,
+  a deferred supporting point, a Save-as-OQ, a sequence gap, a default deviation without ADR);
+  `FAIL` = a core point still ✗ after the 4-state resolution, ≥3 open flags, or a field with no
+  origin. The report is written on every run, `FAIL` included; the handoff's *Run next* follows
+  the verdict (`FAIL` → fix the source, then `--reconcile`; never `break-tasks`).
+- **Drift checklist is 5 points.** 1–3 core, forward (endpoint↔model, error-code↔registry,
+  validation↔constraint); 4 **Entity / AC ↔ endpoint (coverage)** — the former unnumbered
+  "back-feed cross-check", now a numbered supporting point; 5 **OpenAPI ↔ sequence**, both
+  directions (branch→response, and response-without-branch = sequence gap). Per-point marks:
+  ✓ / ✓ (deferred: …) / ✗.
+- **Section D — Deferrals** in the report: every parked item with its next step, or `none`;
+  `--reconcile` reads it first and closes or carries each entry.
+- **Rules bootstrap** (HTTP path): on first run the skill writes `.claude/rules/openapi.md` from
+  `plugin/skills/api-forge/templates/rules-openapi-baseline.md` (error envelope, `module.error_name`
+  codes, cursor pagination, URL versioning, BearerAuth, `$ref`-only, no PII in examples) and reports
+  it — same mechanism as `generate-data-model` → `.claude/rules/migrations.md`. A team edit there
+  counts like an ADR for the drift check.
+- Protocol steps renumbered 1–9 (rules bootstrap is step 2; drift check is step 8). DoD,
+  anti-patterns, `plugin/README.md` and `00-overview/definition-of-done.md` updated.
+- Example `examples/course-lesson-mvp/contracts/api-sync-report.md` aligned to the shape
+  (canonical verdict wording, `Rules file` header line, `Deferrals` section, generator line).
+
 ## [4.5.1] — 2026-08-19
 
 ### Changed — scaffold: єдина env-пара `api/.env.example` → `api/.env`
