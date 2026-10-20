@@ -1,0 +1,5 @@
+anthropic==1.15.0
+python-dotenv==1.2.4
+tiktoken==0.14.0
+tokenizers==0.23.3
+huggingface_hub==2.2.0
