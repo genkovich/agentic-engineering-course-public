@@ -16,7 +16,7 @@
 
 Skill заточений під AcroForm-PDF-форми. Працює навколо двох бібліотек: `pdfplumber` (для inspection) і `pikepdf` (для write-back).
 
-`examples/` тримає sample form schema і value mapping які лекція 5.2 використовує у скрінкастах.
+`examples/` тримає тестову fillable-форму `sample-form.pdf`, її schema (`form_fields.json`) і value mapping, які лекція 5.2 використовує у скрінкастах.
 
 ## Pre-requisites
 
@@ -45,7 +45,7 @@ make analyze-help
 Прямий запуск без Make:
 
 ```bash
-# Аналіз PDF (потребує справжню PDF-форму на вході)
+# Аналіз PDF: у examples/ лежить тестова fillable-форма sample-form.pdf, можна підставити свою AcroForm-PDF
 uv run .claude/skills/pdf-form-filler/scripts/analyze.py examples/sample-form.pdf > form_fields.json
 
 # Валідація mapping проти schema
