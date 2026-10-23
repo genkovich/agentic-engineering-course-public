@@ -1,45 +1,21 @@
 #!/usr/bin/env bash
-# Idempotent setup — re-runnable. Initializes git repos for each demo
-# and installs dependencies. File contents are managed separately
-# (already committed alongside this script).
+# Ставить залежності для демо уроку «Як писати промпти». Можна запускати повторно.
+# Окремі git-репозиторії не створює: між прогонами повертайте теку в початковий
+# стан командами з README.md (node_modules ігнорує .gitignore курсу).
 set -e
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-cd "$ROOT"
 
-init_repo() {
-  local dir="$1"
-  cd "$ROOT/$dir"
-  if [ ! -d .git ]; then
-    git init -q
-    git add -A
-    git commit -q -m "initial: $dir demo scaffold" || true
-  fi
-}
+for dir in 01-refactor 04-verification; do
+  echo "npm install: $dir"
+  (cd "$ROOT/$dir" && npm install --silent)
+done
 
-# 01-refactor — TS + Vitest
-init_repo "01-refactor"
-cd "$ROOT/01-refactor"
-[ -d node_modules ] || npm install --silent
-
-# 02-few-shot — empty repo, just cwd for claude
-init_repo "02-few-shot"
-
-# 03-race-condition — Go
-init_repo "03-race-condition"
-
-# 04-verification — Node + Express + Vitest
-init_repo "04-verification"
-cd "$ROOT/04-verification"
-[ -d node_modules ] || npm install --silent
+if command -v go >/dev/null 2>&1; then
+  echo "go: $(go version)"
+else
+  echo "Go не знайдено: для 03-race-condition поставте Go 1.22+."
+fi
 
 echo ""
-echo "✅ Demo structure ready at $ROOT"
-echo ""
-echo "Next steps:"
-echo "  1. cd into one of the demo dirs"
-echo "  2. Start screen recorder (1920x1080 @ 30fps, mic OFF)"
-echo "  3. Run: claude"
-echo "  4. Paste the matching prompt from PROMPTS.md"
-echo ""
-echo "Between takes: git reset --hard HEAD"
+echo "Готово. Промпти лежать у PROMPTS.md, порядок роботи в README.md."

@@ -21,7 +21,7 @@
 
 | Demo | Що показує | Лекції |
 |---|---|---|
-| [4.1-prompts](./4.1-prompts) | Текстові приклади промптів для скринкастів лекції: vague vs explicit, few-shot з 1/3 прикладами, race-condition, verification. Не runnable — це reference для повторення вживу | 4.1 |
+| [4.1-prompts](./4.1-prompts) | Чотири невеликі демо до уроку «Як писати промпти»: vague vs explicit refactor (TS), few-shot, race condition (Go), verification loop (Node). Промпти в `PROMPTS.md`, порядок у `README.md` теки | 4.1 |
 | [4.8-bc](./4.8-bc) | E-commerce домен з 5 BC, реалізований у Go × TS × Python × 3 стадіях зрілості (flat → feature-first → hexagonal). 9 робочих проєктів, per-stage Makefile, arch-test у Stage 3 | 4.8 |
 | [4.9-legacy-refactor](./4.9-legacy-refactor) | FastAPI «спагетті» users-модуль + протокол з 7 skills (`legacy-spike` → `legacy-extract` → `legacy-critic` → `legacy-plan` → `legacy-tests` → `legacy-cutover`) для рефакторингу у чистий `internal/account/` через 1-2 дні роботи з агентом | 4.9 |
 
