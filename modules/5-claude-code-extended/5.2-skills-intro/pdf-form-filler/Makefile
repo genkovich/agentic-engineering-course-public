@@ -1,4 +1,4 @@
-.PHONY: demo validate validate-help analyze-help validate-bad clean help
+.PHONY: demo analyze validate validate-help analyze-help validate-bad clean help
 
 SKILL_DIR := .claude/skills/pdf-form-filler
 ANALYZE   := $(SKILL_DIR)/scripts/analyze.py
@@ -6,14 +6,19 @@ VALIDATE  := $(SKILL_DIR)/scripts/validate.sh
 
 help:
 	@echo "Targets:"
-	@echo "  demo            - run validation against the good fixture (exits 0)"
+	@echo "  demo            - analyze examples/sample-form.pdf, then validate the good fixture (exits 0)"
+	@echo "  analyze         - print the AcroForm fields of examples/sample-form.pdf as JSON"
 	@echo "  validate        - same as demo"
 	@echo "  validate-bad    - run validation against the bad fixture (exits 2 with JSON errors)"
 	@echo "  validate-help   - show validate.sh --help"
 	@echo "  analyze-help    - show analyze.py --help (resolves PEP 723 deps via uv)"
 	@echo "  clean           - remove __pycache__"
 
-demo: validate
+demo: analyze validate
+
+analyze:
+	@echo "--- fields of examples/sample-form.pdf ---"
+	uv run $(ANALYZE) examples/sample-form.pdf
 
 validate:
 	@echo "--- valid mapping (should exit 0) ---"

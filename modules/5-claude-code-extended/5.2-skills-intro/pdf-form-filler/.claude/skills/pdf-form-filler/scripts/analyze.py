@@ -24,6 +24,7 @@ import sys
 
 import pdfplumber
 import pikepdf
+from pdfminer.pdftypes import resolve1
 
 
 def main() -> int:
@@ -34,10 +35,12 @@ def main() -> int:
 
     try:
         with pdfplumber.open(args.pdf, password=args.password) as pdf:
-            if "/AcroForm" not in pdf.doc.catalog:
+            # pdfminer keys the catalog without the leading slash: "AcroForm", not "/AcroForm"
+            acroform = resolve1(pdf.doc.catalog.get("AcroForm"))
+            if not acroform:
                 print(f"error: {args.pdf} has no AcroForm dictionary", file=sys.stderr)
                 return 2
-            if pdf.doc.catalog.get("/AcroForm", {}).get("/XFA"):
+            if acroform.get("XFA"):
                 print(f"error: {args.pdf} is an XFA form (out of scope)", file=sys.stderr)
                 return 4
     except Exception as exc:
@@ -48,16 +51,31 @@ def main() -> int:
 
     fields = []
     with pikepdf.open(args.pdf, password=args.password) as pdf:
-        for field in getattr(pdf.acroform, "fields", []) or []:
-            ft = str(field.get("/FT", ""))
-            ff = int(field.get("/Ff", 0) or 0)
+        # walk the raw /Fields tree: pikepdf's AcroFormField wrappers have no .get()
+        def walk(node, parent_name="", inherited_ft=None, inherited_ff=0):
+            name = str(node.get("/T", ""))
+            full = f"{parent_name}.{name}" if parent_name and name else (name or parent_name)
+            ft = node.get("/FT", inherited_ft)
+            ff = int(node.get("/Ff", inherited_ff) or 0)
+            kids = [k for k in node.get("/Kids", []) if "/T" in k]
+            if kids:
+                for kid in kids:
+                    walk(kid, full, ft, ff)
+                return
+            opts = []
+            for opt in node.get("/Opt", []) or []:
+                # /Opt items are either strings or [export_value, display_text] pairs
+                opts.append(str(opt[0]) if isinstance(opt, pikepdf.Array) else str(opt))
             fields.append({
-                "name": str(field.get("/T", "")),
-                "type": ft.lstrip("/") or "Tx",
+                "name": full,
+                "type": str(ft or "/Tx").lstrip("/"),
                 "required": bool(ff & 0b10),
                 "read_only": bool(ff & 0b01),
-                "options": [str(o) for o in field.get("/Opt", []) or []] or None,
+                "options": opts or None,
             })
+
+        for field in pdf.Root.AcroForm.get("/Fields", []):
+            walk(field)
 
     json.dump(fields, sys.stdout, indent=2, ensure_ascii=False)
     sys.stdout.write("\n")
