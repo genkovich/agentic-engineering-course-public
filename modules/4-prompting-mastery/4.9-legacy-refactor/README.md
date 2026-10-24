@@ -72,7 +72,7 @@ pyproject.toml
 Step 1, Step 2 і Step 3 (skeleton, finalize) ідуть у plan mode. Вмикай його через `claude --permission-mode plan` або Shift+Tab, доки у footer не з'явиться `⏸ plan mode on`. У plan mode skill лише досліджує. Файл артефакту з'являється, коли ти схвалюєш план пунктом «Yes, manually approve edits». Схвалення виводить сесію з plan mode, тому на наступному кроці вмикай його знову.
 
 ```bash
-claude --permission-mode plan
+claude --permission-mode plan             # запускай з цієї теки, інакше заборона з .claude/settings.json не діє
 # Step 1: scope
 /legacy-spike account                     # → SPIKE.md
 # Step 2: archeology (між кроками /clear)
@@ -93,4 +93,24 @@ pytest -q                                 # усе зелене
 
 ## Межі
 
-`.claude/rules/legacy-account.md` вантажиться в контекст, коли Claude читає чи редагує файли з його `paths:`. Це лише текст для моделі, і заборону редагувати `internal/users/` він не забезпечує. Тому після кожного кроку дивись `git status`.
+`.claude/settings.json` забороняє Claude редагувати legacy:
+
+```json
+{
+  "permissions": {
+    "deny": ["Edit(internal/users/**)", "Write(internal/users/**)"]
+  }
+}
+```
+
+Читати `internal/users/` Claude може. Спроба його редагувати закінчиться так:
+
+```
+File is in a directory that is denied by your permission settings.
+```
+
+Заборона діє, лише коли Claude запущено з цієї теки (`cd modules/4-prompting-mastery/4.9-legacy-refactor && claude`). З кореня репозиторію курсу Claude цього `settings.json` не бачить, і правка в `internal/users/` проходить без помилки. Ми це перевірили.
+
+Навмисний злом legacy на Step 3 ти робиш сам у терміналі, без Claude, тож заборона йому не заважає.
+
+`.claude/rules/legacy-account.md` працює інакше: він вантажиться в контекст, коли Claude читає чи редагує файли з його `paths:`, і це лише текст для моделі. Тому після кожного кроку однаково дивись `git status`.

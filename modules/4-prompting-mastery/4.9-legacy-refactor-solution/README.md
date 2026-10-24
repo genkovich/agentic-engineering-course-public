@@ -32,6 +32,8 @@ python server.py   # App ready. account handlers: ['register', 'verify_email', '
 
 Потрібен Python 3.12 або новіший, залежність лише одна, pytest.
 
+`.claude/settings.json` тут той самий, що й у чистому старті: забороняє Claude редагувати `internal/users/**`. Діє, коли Claude запущено з цієї теки.
+
 ## Як звіряти
 
 1. `diff -r ../4.9-legacy-refactor/internal/users internal/users` порожній: legacy під час циклу не правили.

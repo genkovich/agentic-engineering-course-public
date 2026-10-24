@@ -1,0 +1,5 @@
+{
+  "permissions": {
+    "deny": ["Edit(internal/users/**)", "Write(internal/users/**)"]
+  }
+}
