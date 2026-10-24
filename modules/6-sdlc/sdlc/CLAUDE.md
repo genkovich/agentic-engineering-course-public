@@ -10,7 +10,7 @@ Instructions for Claude on how to work with the SDLC process.
 
 1. Identify the stage → open the matching skill `SDLC/plugin/skills/<name>/SKILL.md` (skill = single source of truth, contains protocol + DoD + anti-patterns).
 2. In the skill, read: Owner, Inputs, Protocol, Questions for discussion, Definition of Done, Anti-patterns.
-3. The skill copies its own template from `SDLC/plugin/skills/<name>/templates/` into `docs/features/<slug>/` when invoked via `/sdlc-<action>`. For cross-feature snippets (`CHANGELOG.md`, `rollback-plan.md`, `review-checklist.md`, …) copy from `SDLC/document-templates/` by hand.
+3. The skill copies its own template from `SDLC/plugin/skills/<name>/templates/` into `docs/features/<slug>/` when invoked via `/sdlc:<action>`. For cross-feature snippets (`CHANGELOG.md`, `rollback-plan.md`, `review-checklist.md`, …) copy from `SDLC/document-templates/` by hand.
 4. Ask the user (or read context) to fill in the `<...>` placeholders.
 5. Fill the template — facts only, no fluff. If you don't know something — put `<!-- TBD: ... -->`, don't make it up.
 6. Check DoD against the skill → propose a commit.
@@ -29,7 +29,7 @@ Instructions for Claude on how to work with the SDLC process.
 
 ## Plugin
 
-[plugin/](plugin/) — Claude Code plugin `sdlc` with 20 skills (12-stage backbone + 7 cross-cutting utilities + interview) and 11 agents. Triggers via trigger-phrases in the frontmatter description (`/sdlc-<action> <slug>` or natural language). Skill files (`plugin/skills/<name>/SKILL.md`) = single source of truth for protocol + DoD + anti-patterns. Each skill copies its own templates from `plugin/skills/<name>/templates/` into `docs/features/<slug>/`; `document-templates/` keeps cross-feature snippets only.
+[plugin/](plugin/) — Claude Code plugin `sdlc` with 20 skills (12-stage backbone + 7 cross-cutting utilities + interview) and 11 agents. Triggers via trigger-phrases in the frontmatter description (`/sdlc:<action> <slug>` or natural language). Skill files (`plugin/skills/<name>/SKILL.md`) = single source of truth for protocol + DoD + anti-patterns. Each skill copies its own templates from `plugin/skills/<name>/templates/` into `docs/features/<slug>/`; `document-templates/` keeps cross-feature snippets only.
 
 GATE skills hard-refuse when the prereq artefact is missing:
 
@@ -51,14 +51,14 @@ The remaining skills also have prereq checks, but they're not gate-blocking — 
 
 | Skill | Trigger | Purpose |
 |-------|---------|---------|
-| `interview` | `/sdlc-interview <slug>` | Ideation suite before PRD — writes `docs/features/<slug>/idea-brief.md` |
-| `classify-size` | `/sdlc-classify-size <slug>` | Writes `docs/features/<slug>/.size` (XS/S/M/L/XL) — single source for the skip-matrix |
-| `fix-term` | `/sdlc-fix-term <term>` | Lazy bootstrap of a `CONTEXT.md` glossary entry (definition + NOT cross-reference) |
-| `decide-adr` | `/sdlc-decide-adr <slug>` | Standalone ADR for post-hoc decisions (blast-radius gate, Proposed → Accepted) |
-| `roadmap` | `/sdlc-roadmap` | Maintains `docs/roadmap.md` (Now / Next / Later / Shipped tables) |
-| `prepare-design-spec` | `/sdlc-prepare-design-spec <slug>` | Repository-aware UI design spec with an embedded, traced Definition of Done |
-| `verify-ui` | `/sdlc-verify-ui <slug-or-story>` | Live-browser verification of acceptance criteria — per-AC verdict + screenshot evidence |
-| `user-documentation` | `/sdlc-user-documentation <target-dir>` | End-user flow docs + linked User Guide index from a live app (per-flow `sdlc:doc-flow` agents, screenshots, optional screencasts) |
+| `interview` | `/sdlc:interview <slug>` | Ideation suite before PRD — writes `docs/features/<slug>/idea-brief.md` |
+| `classify-size` | `/sdlc:classify-size <slug>` | Writes `docs/features/<slug>/.size` (XS/S/M/L/XL) — single source for the skip-matrix |
+| `fix-term` | `/sdlc:fix-term <term>` | Lazy bootstrap of a `CONTEXT.md` glossary entry (definition + NOT cross-reference) |
+| `decide-adr` | `/sdlc:decide-adr <slug>` | Standalone ADR for post-hoc decisions (blast-radius gate, Proposed → Accepted) |
+| `roadmap` | `/sdlc:roadmap` | Maintains `docs/roadmap.md` (Now / Next / Later / Shipped tables) |
+| `prepare-design-spec` | `/sdlc:prepare-design-spec <slug>` | Repository-aware UI design spec with an embedded, traced Definition of Done |
+| `verify-ui` | `/sdlc:verify-ui <slug-or-story>` | Live-browser verification of acceptance criteria — per-AC verdict + screenshot evidence |
+| `user-documentation` | `/sdlc:user-documentation <target-dir>` | End-user flow docs + linked User Guide index from a live app (per-flow `sdlc:doc-flow` agents, screenshots, optional screencasts) |
 
 ## Where to look for an example
 

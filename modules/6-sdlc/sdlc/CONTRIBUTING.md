@@ -32,7 +32,7 @@ sdlc/
    name: <name>
    description: >
      Use when <conditions>. Triggers on "<phrase 1>", "<phrase 2>",
-     "/sdlc-<name> <slug>". Output: <artefact path>. Prerequisite: <prereq>.
+     "/sdlc:<name> <slug>". Output: <artefact path>. Prerequisite: <prereq>.
    ---
    ```
 
@@ -49,7 +49,7 @@ sdlc/
    - `## Template` — link to `document-templates/<file>`
    - `## Example invocation` — full run-through on a real example
 
-4. **Description must list trigger phrases.** Claude Code resolves trigger phrases from `description` (including `/sdlc-<name>`). Without them the skill doesn't activate automatically.
+4. **Description must list trigger phrases.** Claude Code resolves trigger phrases from `description` (including `/sdlc:<name>`). Without them the skill doesn't activate automatically.
 
 5. **If it's a GATE skill** — in Protocol step 1 add a hard prereq check:
    ```
@@ -67,7 +67,7 @@ sdlc/
 
 ## Adding a new composite wrapper
 
-1. **Frontmatter** with triggers (including `/sdlc-<name>`).
+1. **Frontmatter** with triggers (including `/sdlc:<name>`).
 2. **Required sections:**
    - `# Skill: <name> (SDLC stages NN-MM composite)`
    - intro
@@ -113,7 +113,7 @@ Eval rubric: [`plugin/tests/rubric.md`](plugin/tests/rubric.md).
 ## PR checklist
 
 - [ ] New / changed skill has all required sections in order.
-- [ ] Frontmatter description lists trigger phrases (including `/sdlc-...`).
+- [ ] Frontmatter description lists trigger phrases (including `/sdlc:...`).
 - [ ] If it's a GATE — Protocol step 1 does a hard prereq check.
 - [ ] `README.md` skill table updated.
 - [ ] `CHANGELOG.md` has an entry under [Unreleased].

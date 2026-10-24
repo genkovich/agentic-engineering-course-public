@@ -9,6 +9,9 @@ docs/
   architecture-map.md         # repo-root; written once by map-architecture, read by all skills
   roadmap.md                  # Now/Next/Later/Shipped tables; updated by roadmap + ship-feature
   features/
+    _scaffold/                # greenfield only — map-architecture's skeleton plan
+      tasks/
+        tasks.json            # layer: scaffold; run /sdlc:implement-tasks _scaffold
     <feature-slug>/
       idea-brief.md
       PRD.md

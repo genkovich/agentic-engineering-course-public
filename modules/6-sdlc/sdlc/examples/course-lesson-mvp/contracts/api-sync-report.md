@@ -306,7 +306,7 @@ and closes or carries each line.
 
 | What | Why parked | Next step |
 |---|---|---|
-| Endpoint-level sequences for the 9 new endpoints (check 5) | only container-level US-01..US-10 sequences exist; the team chose not to draw 9 more this pass | `/sdlc-complete-sequence-diagrams course-lesson-mvp`, then `--reconcile` lifts the `medium` rows to `high` |
+| Endpoint-level sequences for the 9 new endpoints (check 5) | only container-level US-01..US-10 sequences exist; the team chose not to draw 9 more this pass | `/sdlc:complete-sequence-diagrams course-lesson-mvp`, then `--reconcile` lifts the `medium` rows to `high` |
 | Error registry for the course-lesson module (check 2) | `domain/errors.go` for this module does not exist yet; the 17 codes are the contract's proposal | S-2 scaffolding: mirror the codes into a sentinel-error file (mentorship pattern `internal/modules/mentorship/ports/errors.go`), then `--reconcile` |
 | `additionalProperties: true` on `LessonBlock.payload` / `AddBlockRequest.payload` | default deviation covered by ADR-0001 (polymorphic payload); discriminated variants would need `if/then/else` schemas | follow-up run once the four `block_type` shapes stabilise |
 | `cover_image_url` allowlist (`CreateCourseRequest`) | PRD OQ-1 / OQ-2 still open; no `format: uri` constraint yet | PRD owner closes OQ-1/OQ-2 → `--reconcile` adds the constraint |

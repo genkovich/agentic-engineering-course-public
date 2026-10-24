@@ -66,4 +66,4 @@ flowchart TD
 
 ## Step 0 — map-architecture
 
-`map-architecture` is always first. It scans the codebase once and writes `docs/architecture-map.md` at the repo root. Every later skill reads this file instead of re-scanning. For greenfield repos it also scaffolds an initial `tasks.json`. The §Frontend/UI foundation section lets downstream UI work reuse the existing design system rather than reinventing it.
+`map-architecture` is always first. It scans the codebase once and writes `docs/architecture-map.md` at the repo root. Every later skill reads this file instead of re-scanning. For greenfield repos it also writes the skeleton plan `docs/features/_scaffold/tasks/tasks.json`, which `implement-tasks _scaffold` materializes. The §Frontend/UI foundation section lets downstream UI work reuse the existing design system rather than reinventing it.
