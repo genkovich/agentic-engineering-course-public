@@ -24,7 +24,10 @@ def _walk_source(package_name: str) -> dict[str, str]:
             sources[name] = inspect.getsource(mod)
         except (OSError, TypeError):
             continue
-    sources[pkg.__name__] = inspect.getsource(pkg)
+    try:
+        sources[pkg.__name__] = inspect.getsource(pkg)
+    except OSError:
+        pass  # порожній __init__.py: Python 3.12 не віддає source, 3.13+ віддає ""
     return sources
 
 

@@ -1,0 +1,64 @@
+# apps/api/openapi.yaml — Hard Rule: DO NOT change (публічний контракт)
+#
+# Мобільні клієнти і CLI парсять цей файл. Зміна signature ламає клієнтів
+# у рантаймі. Якщо потрібно змінити API — це окремий цикл з версіонуванням
+# (v1, v2 endpoints поряд), узгодженням з мобільною командою і deprecation
+# вікном. У межах legacy-рефакторингу контракт зберігається 1-в-1.
+
+openapi: 3.0.3
+info:
+  title: TeamHub Account API
+  version: 1.0.0
+paths:
+  /register:
+    post:
+      summary: Register a new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+                  minLength: 8
+      responses:
+        '201': {description: Created}
+        '400': {description: Bad request}
+        '409': {description: Email already taken}
+
+  /verify-email:
+    post:
+      summary: Verify email by token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [token]
+              properties:
+                token: {type: string}
+      responses:
+        '200': {description: Verified}
+        '400': {description: Invalid or expired token}
+
+  /reset-password:
+    post:
+      summary: Request password reset
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email]
+              properties:
+                email: {type: string, format: email}
+      responses:
+        '202': {description: Reset email queued}

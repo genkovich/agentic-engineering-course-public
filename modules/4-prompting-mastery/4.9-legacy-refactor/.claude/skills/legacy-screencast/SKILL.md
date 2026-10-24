@@ -32,7 +32,7 @@ git status                                    # clean working tree
 
 # 🎬 [00:00] — open Claude in plan mode
 claude
-# (UI: Shift+Tab двічі — у footer plan mode on)
+# (UI: Shift+Tab, доки у footer не зʼявиться ⏸ plan mode on; або claude --permission-mode plan)
 
 # 🎬 [00:30] — extract
 # Type у Claude:

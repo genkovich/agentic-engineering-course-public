@@ -1,0 +1,23 @@
+[project]
+name = "course-4-9-legacy-refactor"
+version = "0.2.0"
+description = "Demo project for the lesson «Legacy Refactoring без меж»"
+requires-python = ">=3.12"
+# Код демо — лише стандартна бібліотека: «БД» = dict у пам'яті, HTTP-шару немає.
+dependencies = []
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+]
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["apps*", "internal*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]

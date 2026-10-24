@@ -84,7 +84,7 @@ TBD — заповнюється у --phase=finalize
 (або інша стратегія chunking — див. лекцію 4.9 секція Step 4)
 
 ## 6. Відкат  ✅
-- Register cutover зламається → `git revert <hash>` + один рядок у container.py
+- Register cutover зламається → `git revert <hash>` + один рядок у server.py
 - VerifyEmail зламається → теж
 - ResetPassword зламається → теж
 ```

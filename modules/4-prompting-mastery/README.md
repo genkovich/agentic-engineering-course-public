@@ -23,12 +23,13 @@
 |---|---|---|
 | [4.1-prompts](./4.1-prompts) | Чотири невеликі демо до уроку «Як писати промпти»: vague vs explicit refactor (TS), few-shot, race condition (Go), verification loop (Node). Промпти в `PROMPTS.md`, порядок у `README.md` теки | 4.1 |
 | [4.8-bc](./4.8-bc) | E-commerce домен з 5 BC, реалізований у Go × TS × Python × 3 стадіях зрілості (flat → feature-first → hexagonal). 9 робочих проєктів, per-stage Makefile, arch-test у Stage 3 | 4.8 |
-| [4.9-legacy-refactor](./4.9-legacy-refactor) | FastAPI «спагетті» users-модуль + протокол з 7 skills (`legacy-spike` → `legacy-extract` → `legacy-critic` → `legacy-plan` → `legacy-tests` → `legacy-cutover`) для рефакторингу у чистий `internal/account/` через 1-2 дні роботи з агентом | 4.9 |
+| [4.9-legacy-refactor](./4.9-legacy-refactor) | Чистий старт: «спагетті» users-модуль на чистому Python + протокол з 7 skills (`legacy-spike` → `legacy-extract` → `legacy-critic` → `legacy-plan` → `legacy-tests` → `legacy-cutover`) для рефакторингу в `internal/account/`. Артефактів і нового модуля ще немає, їх створюєш ти | 4.9 |
+| [4.9-legacy-refactor-solution](./4.9-legacy-refactor-solution) | Той самий кіт після першого циклу (spike → critic → тести → register cutover). Звірити після свого циклу, не копіювати | 4.9 |
 
 ## Pre-requisites
 
 - Claude Code локально (див. Module 3)
-- Python 3.12 (для 4.9 — FastAPI demo)
+- Python 3.12+ (для 4.9: стандартна бібліотека + pytest)
 - Go 1.26 / Node 22 / Python 3.12 (для 4.8 — обираєш свою мову)
 
 ## Як використовувати
@@ -42,7 +43,7 @@ make run
 
 # 4.9 — Legacy refactor demo
 cd modules/4-prompting-mastery/4.9-legacy-refactor
-python3 -m venv .venv && source .venv/bin/activate && pip install -e .
+python3 -m venv .venv && source .venv/bin/activate && pip install -e '.[dev]'
 pytest -q
 ```
 

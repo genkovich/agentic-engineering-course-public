@@ -1,0 +1,16 @@
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+*.egg-info/
+build/
+dist/
+.coverage
+.DS_Store
+
+# протоколні артефакти можна бачити для прогрсу або ігнорувати — як подобається
+# LEGACY/*.md
+# PLAN.md
+# REFACTOR_LOG.md
+# SPIKE.md
+# CRITIC.md

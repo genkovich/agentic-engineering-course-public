@@ -51,7 +51,7 @@ def test_domain_does_not_import_infra():
 
 ### 4. Integration tests — `tests/<module>/integration/`
 
-Через FastAPI `TestClient`, перевіряють повний HTTP-флоу.
+Через `server.setup_app()`: повний флоу через DI-точку. HTTP-шару в демо немає; у проєкті з веб-фреймворком тут був би його тестовий клієнт.
 
 ### 5. Unit tests — `tests/<module>/unit/`
 

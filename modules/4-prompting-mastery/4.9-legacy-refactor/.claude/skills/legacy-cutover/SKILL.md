@@ -8,7 +8,7 @@ disable-model-invocation: false
 
 # legacy-cutover — Step 4 один атомарний use case за виклик
 
-Пише один use case у `internal/<module>/`, перемикає DI у `apps/api/container.py` (або `server.py`), запускає тести, дописує `REFACTOR_LOG.md`. Один виклик skill = один атомарний коміт.
+Пише один use case у `internal/<module>/`, перемикає DI у `server.py` (DI-точка демо; у твоєму проєкті це може бути `container.py` чи аналог), запускає тести, дописує `REFACTOR_LOG.md`. Один виклик skill = один атомарний коміт.
 
 ## Аргументи
 
@@ -39,14 +39,14 @@ disable-model-invocation: false
 ## Output
 
 - Нові файли у `internal/<module>/`
-- Зміна одного рядка у `apps/api/container.py` (або `server.py` у демо)
+- Зміна DI у `server.py` (один рядок, або гібрид, поки решта use case ще на legacy)
 - `REFACTOR_LOG.md` дописаний один рядок
 - `PLAN.md` секція «Шматки міграції» — `- [ ]` стає `- [x]`
 
 ## Шаблон зміни DI
 
 ```python
-# server.py або apps/api/container.py
+# server.py
 # from internal.users import setup as account_setup       # ← коментуємо
 from internal.account import setup as account_setup       # ← новий імпорт
 ```

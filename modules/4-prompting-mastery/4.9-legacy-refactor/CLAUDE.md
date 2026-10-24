@@ -4,9 +4,9 @@
 
 ## Stack
 
-- Python 3.12, FastAPI 0.110, SQLAlchemy 2.0, Pydantic 2
-- pytest + hypothesis, import-linter (architectural fitness functions)
-- pdm/poetry/pip — будь-який, з `pyproject.toml` працює `pip install -e .`
+- Python 3.12+, лише стандартна бібліотека: «БД» = `dict` у пам'яті, HTTP-шару немає, DI-точка = `server.py`
+- pytest; архітектурні тести на `importlib`/`inspect` (import-linter можна додати, якщо захочеш)
+- uv/pip — будь-який, з `pyproject.toml` працює `pip install -e '.[dev]'`
 
 ## Hard Rules — never touch without explicit approval
 
@@ -51,7 +51,7 @@
 
 - **Чисті бар'єри замість token-чисел:** не привʼязуйся до «25-30k» або інших чисел. Перевіряй `/context`. Якщо chat history більший за `system + tools + files` — `/clear`.
 - **Читай `/context` коли відчуваєш плутанину** (модель повторює, забуває, виходить за scope) — час `/clear`.
-- **Plan mode (Shift+Tab двічі) обовʼязковий** для Step 1, Step 2, Step 3 (skeleton+finalize). Step 3 (tests) і Step 4 — Plan mode вимикаємо, бо саме там пишемо файли.
+- **Plan mode обовʼязковий** для Step 1, Step 2, Step 3 (skeleton+finalize): `claude --permission-mode plan` або Shift+Tab, доки у footer не зʼявиться `⏸ plan mode on`. У plan mode skill лише досліджує; артефакт (`SPIKE.md`, `LEGACY/<module>.md`, `CRITIC.md`, `PLAN.md`) записується після схвалення плану пунктом «Yes, manually approve edits». Схвалення виводить сесію з plan mode, на наступному кроці вмикай його знову. Step 3 (tests) і Step 4 — без plan mode, бо саме там пишемо код.
 
 ## Auto-rule: REFACTOR_LOG.md
 

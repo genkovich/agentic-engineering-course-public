@@ -24,7 +24,7 @@ paths:
 
 ## DI switching
 
-Перемикання реалізації — через `apps/api/container.py` одним рядком:
+Перемикання реалізації — у `server.py` (у демо це DI-контейнер), одним рядком:
 
 ```python
 # from internal.users import setup as account_setup     # старе
