@@ -93,17 +93,19 @@ pytest -q                                 # усе зелене
 
 ## Межі
 
-`.claude/settings.json` забороняє Claude редагувати legacy:
+`.claude/rules/legacy-account.md` вантажиться в контекст, коли Claude читає чи редагує файли з його `paths:`. Це лише текст для моделі, редагувати `internal/users/` він не забороняє.
+
+Заборону дає `.claude/settings.json`. У кіті його немає: за Завданням уроку ти створюєш його сам.
 
 ```json
 {
   "permissions": {
-    "deny": ["Edit(internal/users/**)", "Write(internal/users/**)"]
+    "deny": ["Edit(internal/users/**)"]
   }
 }
 ```
 
-Читати `internal/users/` Claude може. Спроба його редагувати закінчиться так:
+З цим файлом читати `internal/users/` і правити `internal/account/` Claude може, а спроба редагувати legacy закінчиться так:
 
 ```
 File is in a directory that is denied by your permission settings.
@@ -111,6 +113,6 @@ File is in a directory that is denied by your permission settings.
 
 Заборона діє, лише коли Claude запущено з цієї теки (`cd modules/4-prompting-mastery/4.9-legacy-refactor && claude`). З кореня репозиторію курсу Claude цього `settings.json` не бачить, і правка в `internal/users/` проходить без помилки. Ми це перевірили.
 
-Навмисний злом legacy на Step 3 ти робиш сам у терміналі, без Claude, тож заборона йому не заважає.
+Навмисний злом legacy на Step 3 ти робиш сам у терміналі, без Claude, тож заборона йому не заважає. Коли після повного cutover видалятимеш `internal/users/`, спершу прибери цей рядок із `settings.json`.
 
-`.claude/rules/legacy-account.md` працює інакше: він вантажиться в контекст, коли Claude читає чи редагує файли з його `paths:`, і це лише текст для моделі. Тому після кожного кроку однаково дивись `git status`.
+Після кожного кроку однаково дивись `git status`.
