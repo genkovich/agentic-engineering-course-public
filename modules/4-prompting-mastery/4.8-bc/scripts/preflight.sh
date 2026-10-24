@@ -31,12 +31,12 @@ hint()  { printf '      %s\n' "$1"; }
 
 have() { command -v "$1" >/dev/null 2>&1; }
 
-# Перше число.число з рядка: "go version go1.25.13 darwin/arm64" -> "1.25.13"
+# Перше число.число з рядка: "go version go1.27.3 darwin/arm64" -> "1.27.3"
 extract_version() {
 	printf '%s\n' "$1" | grep -oE '[0-9]+\.[0-9]+(\.[0-9]+)?' | head -n 1
 }
 
-# ver_ge 1.25.13 1.25 -> 0 (true), якщо перша версія не менша за другу
+# ver_ge 1.27.3 1.27 -> 0 (true), якщо перша версія не менша за другу
 ver_ge() {
 	local a1 a2 a3 b1 b2 b3
 	IFS='.' read -r a1 a2 a3 <<<"${1%%[!0-9.]*}"
@@ -122,7 +122,7 @@ check_ports() {
 check_go() {
 	if ! have go; then
 		fail "go не знайдено"
-		hint "Постав Go 1.25+: https://go.dev/dl/"
+		hint "Постав Go 1.27+: https://go.dev/dl/"
 		hint "Немає бажання ставити Go? Візьми ts/ або py/ — потік ідентичний."
 		return
 	fi
@@ -130,14 +130,14 @@ check_go() {
 	gv="$(extract_version "$(go version 2>/dev/null)")"
 	toolchain="$(go env GOTOOLCHAIN 2>/dev/null)"
 
-	if ver_ge "${gv:-0}" "1.25"; then
+	if ver_ge "${gv:-0}" "1.27"; then
 		ok "go ${gv}"
 	elif [ "$toolchain" = "local" ]; then
-		fail "go ${gv} < 1.25, а GOTOOLCHAIN=local забороняє доїхати новішому"
-		hint "Або постав Go 1.25+, або: go env -w GOTOOLCHAIN=auto"
+		fail "go ${gv} < 1.27, а GOTOOLCHAIN=local забороняє доїхати новішому"
+		hint "Або постав Go 1.27+, або: go env -w GOTOOLCHAIN=auto"
 	else
-		warn "go ${gv} < 1.25, але GOTOOLCHAIN=${toolchain:-auto} — Go доїде сам"
-		hint "Першому запуску потрібна мережа: він завантажить go1.25.x."
+		warn "go ${gv} < 1.27, але GOTOOLCHAIN=${toolchain:-auto} — Go доїде сам"
+		hint "Першому запуску потрібна мережа: він завантажить go1.27.x."
 	fi
 
 	if have go && [ -n "$(go env GOMODCACHE 2>/dev/null)" ] \
@@ -152,7 +152,7 @@ check_go() {
 check_node() {
 	if ! have node; then
 		fail "node не знайдено"
-		hint "Постав Node 22 LTS: https://nodejs.org/ (або nvm install)"
+		hint "Постав Node 24 LTS: https://nodejs.org/ (або nvm install)"
 		return
 	fi
 	local nv want
@@ -160,7 +160,7 @@ check_node() {
 	want=""
 	[ -f .nvmrc ] && want="$(tr -d ' \t\r\n' < .nvmrc)"
 
-	if ver_ge "${nv:-0}" "20"; then
+	if ver_ge "${nv:-0}" "22"; then
 		if [ -n "$want" ] && [ "${nv%%.*}" != "${want%%.*}" ]; then
 			warn "node ${nv}, а .nvmrc просить ${want}"
 			hint "Демо перевірене на ${want} LTS. Швидкий шлях: nvm use"
@@ -168,7 +168,7 @@ check_node() {
 			ok "node ${nv}"
 		fi
 	else
-		fail "node ${nv} — застарий, потрібен 20+ (демо перевірене на ${want:-22})"
+		fail "node ${nv} — застарий, потрібен 22+ (демо перевірене на ${want:-24})"
 	fi
 
 	if ! have npm; then
@@ -186,20 +186,20 @@ check_node() {
 check_python() {
 	if ! have python3; then
 		fail "python3 не знайдено"
-		hint "Потрібен Python 3.12–3.14: https://www.python.org/downloads/"
+		hint "Потрібен Python 3.12–3.15: https://www.python.org/downloads/"
 		return
 	fi
 	local pv
 	pv="$(extract_version "$(python3 --version 2>&1)")"
 
-	if ver_ge "${pv:-0}" "3.12" && ! ver_ge "${pv:-0}" "3.15"; then
+	if ver_ge "${pv:-0}" "3.12" && ! ver_ge "${pv:-0}" "3.16"; then
 		ok "python ${pv}"
 	elif ! ver_ge "${pv:-0}" "3.12"; then
 		fail "python ${pv} — потрібен 3.12+"
 	else
-		fail "python ${pv} — новіший за перевірений діапазон (3.12–3.14)"
+		fail "python ${pv} — новіший за перевірений діапазон (3.12–3.15)"
 		hint "Частина залежностей ще не має коліс під цю версію."
-		hint "Створи venv на 3.14: python3.14 -m venv .venv && source .venv/bin/activate"
+		hint "Створи venv на 3.15: python3.15 -m venv .venv && source .venv/bin/activate"
 	fi
 
 	if [ -n "${VIRTUAL_ENV:-}" ]; then
@@ -222,6 +222,19 @@ check_python() {
 	if [ "$STAGE_ARG" = "3" ] && ! have lint-imports; then
 		warn "import-linter ще не поставлений"
 		hint "Запусти: make install (або make arch-lint-install)"
+		# grimp (рушій import-linter, лише stage-3) під Python 3.15 має готові
+		# колеса тільки для Linux x86_64 і Windows. На macOS і Linux arm64 pip
+		# збирає його з вихідників, і збірка сама тягне Rust. Після оновлення
+		# grimp у requirements.lock.txt перевір, чи це ще актуально.
+		case "$pv" in
+			3.15|3.15.*)
+				if [ "$(uname -s)" = "Darwin" ] || [ "$(uname -m)" = "aarch64" ]; then
+					hint "Python 3.15 на $(uname -s)/$(uname -m): готового колеса grimp (рушій"
+					hint "import-linter) тут ще немає. make install збере його сам і для цього"
+					hint "завантажить Rust (~800 МБ), це кілька хвилин. Швидше: venv на 3.14."
+				fi
+				;;
+		esac
 	fi
 }
 

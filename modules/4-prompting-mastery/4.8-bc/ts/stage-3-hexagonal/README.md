@@ -6,13 +6,13 @@
 
 ## Стек
 
-- Node.js 22+
-- Fastify 4 — HTTP сервер
+- Node.js 22+ (`.nvmrc` просить 24 LTS)
+- Fastify 5 — HTTP сервер
 - pg — Postgres драйвер (raw SQL)
 - bcryptjs — паролі
-- TypeScript 5 + tsx (dev) / `tsc` (build)
+- TypeScript 6 + tsx (dev) / `tsc` (build)
 - Postgres 18 у Docker
-- `dependency-cruiser` v16 — архітектурні тести
+- `dependency-cruiser` v18 — архітектурні тести (TypeScript 7 він поки не читає, тому тут TypeScript 6)
 - In-memory event bus у `src/shared/events/bus.ts` — cross-BC комунікація без брокера
 
 ## Структура

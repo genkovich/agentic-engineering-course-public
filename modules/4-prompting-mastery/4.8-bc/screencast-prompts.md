@@ -190,12 +190,12 @@ make arch-test; echo $?
 
 Реальний вивід:
 ```
-go-arch-lint v1.17.0
+go-arch-lint v1.19.0
 module: github.com/genkovich/claude-course-demos/4.8-bc/go/stage-3-hexagonal
 linters:
    On | Base: component imports # always on
-   On | Advanced: vendor imports
-  Off | Advanced: method calls and dependency injections
+   On | Advanced: vendor imports # switch 'allow.depOnAnyVendor = false' (or delete) to on
+  Off | Advanced: method calls and dependency injections # switch 'allow.deepScan = true' (or delete) to on
 
 Component notifications-domain shouldn't depend on
 github.com/genkovich/claude-course-demos/4.8-bc/go/stage-3-hexagonal/billing/infra/postgres

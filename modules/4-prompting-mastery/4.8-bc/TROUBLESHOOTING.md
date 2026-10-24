@@ -25,7 +25,7 @@ make doctor
 
 **Фікс.** У цьому демо два незалежні запобіжники, і обидва вже на місці:
 
-1. Версія лінтера запінена в `Makefile` (`ARCH_LINT_VERSION ?= v1.17.0`)
+1. Версія лінтера запінена в `Makefile` (`ARCH_LINT_VERSION ?= v1.19.0`)
    і запускається через `go run …@версія` — тобто вона завжди та, що написана.
 2. `scripts/arch-test.sh` розпізнає цей клас падінь і виходить з **1**,
    а не з нуля.
@@ -33,9 +33,9 @@ make doctor
 Якщо ти все одно бачиш цей текст:
 
 ```bash
-go version                       # потрібен Go 1.25+
+go version                       # потрібен Go 1.27+
 go env GOTOOLCHAIN               # має бути auto (не local)
-ARCH_LINT_VERSION=v1.17.0 make arch-test
+ARCH_LINT_VERSION=v1.19.0 make arch-test
 ```
 
 ### `go-arch-lint not installed; run: make arch-lint-install` — хоча установка пройшла успішно
@@ -47,15 +47,17 @@ ARCH_LINT_VERSION=v1.17.0 make arch-test
 **Фікс.** Уже виправлено: лінтер запускається через `go run`, у `$PATH` йому бути не треба.
 Якщо ти бачиш це повідомлення — ти працюєш зі старою копією демо. Онови репозиторій.
 
-### `go: github.com/fe3dback/go-arch-lint@v1.17.0 requires go >= 1.25.0; switching to go1.25.13`
+### `go: github.com/fe3dback/go-arch-lint@v1.19.0 requires go >= 1.25.0; switching to go1.26.10`
 
-Це не помилка. Твій Go старший за 1.25, і `GOTOOLCHAIN=auto` тихо тягне потрібний
-тулчейн. Першому запуску потрібна мережа.
+Це не помилка. Твій Go старший за 1.25, і `GOTOOLCHAIN=auto` тихо тягне тулчейн,
+яким зібрати лінтер (останній патч попередньої гілки Go, тому номер може бути вищим).
+Сам демо-код просить Go 1.27 (`toolchain go1.27.3` у `go.mod`), тож на старому Go
+перший запуск завантажить і його: `go: downloading go1.27.3`. Першому запуску потрібна мережа.
 
 Якщо в тебе `GOTOOLCHAIN=local`, замість цього рядка буде відмова. Тоді:
 
 ```bash
-go env -w GOTOOLCHAIN=auto     # або постав Go 1.25+
+go env -w GOTOOLCHAIN=auto     # або постав Go 1.27+
 ```
 
 ### Корпоративний проксі: `dial tcp: i/o timeout` на proxy.golang.org
@@ -71,7 +73,8 @@ go env -w GOSUMDB=off          # якщо внутрішній проксі не
 make arch-test-docker
 ```
 
-Образ `fe3dback/go-arch-lint` зібраний тільки під amd64: на Apple Silicon
+Тег образу береться з `ARCH_LINT_VERSION` (`fe3dback/go-arch-lint:release-v1.19.0`),
+тож у Docker та сама версія, що й у нативному запуску. Образ зібраний тільки під amd64: на Apple Silicon
 він піде через емуляцію і буде помітно повільніший. Основний шлях — нативний.
 
 ### `make arch-test` зелений — а чи він узагалі щось перевіряє?
@@ -84,6 +87,21 @@ make arch-test-selftest        # ✓ Лінтер коректно ловить 
 
 Це окремий крихітний модуль у `scripts/archlint-selftest/`, де порушення
 закладене навмисно. Якщо цей крок зелений — `arch-test` справді працює.
+
+Контроль зелений лише тоді, коли лінтер повернув помилку **і** назвав порушення
+`Component a shouldn't depend on archlint-selftest/b`. Одного коду виходу мало:
+раніше конфіг контролю мав `mayDependOn: []`, який go-arch-lint (щонайменше
+з v1.17) відкидає ще на валідації (`should have ref in 'mayDependOn'/'canUse' or at
+least one flag of ['anyProjectDeps', 'anyVendorDeps']`). Лінтер повертав 1, і контроль
+«проходив», хоча до коду лінтер не доходив. Тепер `run.sh` шукає саме рядок порушення.
+
+### `✗ go-arch-lint завершився з помилкою, але порушень меж не назвав.`
+
+**Причина.** Лінтер не прийняв `.go-arch-lint.yml`: текст помилки валідації стоїть вище.
+Справжні порушення лінтер завжди підсумовує рядком `total notices: N`, а тут його немає.
+
+**Фікс.** Виправ конфіг за текстом помилки. Найчастіше це порожній `mayDependOn: []`:
+дай компоненту хоча б `anyVendorDeps: true` або посилання на дозволений компонент.
 
 ---
 
@@ -198,10 +216,20 @@ make install
 
 ### `make install` падає на збірці залежності з вихідників
 
-Швидше за все, у тебе Python, новіший за перевірений діапазон (3.12–3.14): для нього
+Швидше за все, у тебе Python, новіший за перевірений діапазон (3.12–3.15): для нього
 ще немає бінарних коліс. Перевір `python3 --version` і зроби venv на підтримуваній версії.
 
-Верхня межа стоїть у `pyproject.toml` (`requires-python = ">=3.12,<3.15"`) свідомо.
+Верхня межа стоїть у `pyproject.toml` (`requires-python = ">=3.12,<3.16"`) свідомо.
+
+### Python 3.15, stage-3: `Building wheel for grimp (pyproject.toml): still running...`
+
+Це не зависання. grimp (рушій import-linter, потрібен лише в stage-3) під Python 3.15
+має готові колеса тільки для Linux x86_64 і Windows. На macOS і Linux arm64 pip збирає
+його з вихідників, а збірка сама завантажує Rust (~800 МБ у кеш) і триває кілька хвилин.
+Наступні `make install` беруть уже зібране колесо з кешу pip.
+
+Не хочеш чекати: зроби venv на 3.14 (`python3.14 -m venv .venv`). `make doctor` на 3.15
+попереджає про це заздалегідь.
 
 ### `lint-imports` каже, що не бачить конфіг
 
@@ -227,6 +255,23 @@ make install
 ### `✗ Залежності не встановлені. Запусти: make install`
 
 Саме те, що написано: у теці немає `node_modules`.
+
+### `✔ no dependency violations found (0 modules, 0 dependencies cruised)` і `missing-tsc-transpiler`
+
+**Причина.** У проєкті TypeScript 7. dependency-cruiser 18 читає TypeScript лише до
+версії 6 (`typescript: >=2.0.0 <7.0.0`): з сьомою він не бачить жодного `.ts` файлу,
+перевіряє нуль модулів і повертає **нуль**. Зелений arch-test при цьому нічого не доводить.
+
+**Фікс.** У демо запінений `typescript` 6.0.3, не оновлюй його до 7, поки
+dependency-cruiser не додасть підтримку. Правильний зелений вивід:
+`✔ no dependency violations found (43 modules, 94 dependencies cruised)`.
+
+### `npm warn install-scripts … not yet covered by allowScripts`
+
+Свіжий npm (11.19+) не запускає install-скрипти залежностей без дозволу. У демо це
+esbuild (через tsx) і fsevents: обидва працюють без своїх скриптів, тому в `package.json`
+вони явно позначені `"allowScripts": { "esbuild": false, "fsevents": false }`. Якщо ти
+бачиш попередження, у тебе стара копія `package.json`.
 
 ---
 

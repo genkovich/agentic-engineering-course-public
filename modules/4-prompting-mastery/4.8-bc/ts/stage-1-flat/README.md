@@ -6,11 +6,11 @@
 
 ## Стек
 
-- Node.js 22+
-- Fastify 4 — HTTP сервер
+- Node.js 22+ (`.nvmrc` просить 24 LTS)
+- Fastify 5 — HTTP сервер
 - pg — Postgres драйвер (raw SQL)
 - bcryptjs — паролі
-- TypeScript 5 + tsx (dev runtime)
+- TypeScript 6 + tsx (dev runtime)
 - Postgres 18 у Docker
 - Без міграційного інструмента — `migrations/0001_init.sql` запускається через `psql`
 

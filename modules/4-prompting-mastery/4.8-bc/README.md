@@ -11,9 +11,9 @@ Docker потрібен завжди. Мову бери одну — ту, як�
 | Що | Версія | Перевірити | Навіщо |
 |---|---|---|---|
 | Docker + compose v2 | будь-який свіжий | `docker compose version` | Postgres для всіх дев'яти проєктів |
-| Go | 1.25+ | `go version` | тільки для `go/` |
-| Node.js | 22 LTS | `node --version` | тільки для `ts/` |
-| Python | 3.12–3.14 | `python3 --version` | тільки для `py/` |
+| Go | 1.27+ | `go version` | тільки для `go/` |
+| Node.js | 24 LTS (22+ теж працює) | `node --version` | тільки для `ts/` |
+| Python | 3.12–3.15 | `python3 --version` | тільки для `py/` |
 
 Не вгадуй — питай сам проєкт. У кожній теці стейджа є `make doctor`: він перевіряє Docker,
 демон, версії, вільні порти і venv, а на кожну проблему друкує конкретну команду-виправлення.
@@ -25,9 +25,9 @@ Docker потрібен завжди. Мову бери одну — ту, як�
 
 | Папка | Стек | Stage 1 | Stage 2 | Stage 3 | Скринкасти |
 |---|---|---|---|---|---|
-| [`go/`](./go) | Go 1.25+ + chi/v5 + pgx | flat | feature-first | hexagonal + `go-arch-lint` | 1, 2, 3, 4, 5, 6 |
-| [`ts/`](./ts) | Node 22 LTS + Fastify 4 + pg | flat | feature-first | hexagonal + `dependency-cruiser` | 4 |
-| [`py/`](./py) | Python 3.12–3.14 + FastAPI + SQLAlchemy | flat | feature-first | hexagonal + `import-linter` | 4 |
+| [`go/`](./go) | Go 1.27+ + chi/v5 + pgx | flat | feature-first | hexagonal + `go-arch-lint` | 1, 2, 3, 4, 5, 6 |
+| [`ts/`](./ts) | Node 24 LTS + Fastify 5 + pg | flat | feature-first | hexagonal + `dependency-cruiser` | 4 |
+| [`py/`](./py) | Python 3.12–3.15 + FastAPI + SQLAlchemy | flat | feature-first | hexagonal + `import-linter` | 4 |
 
 **Reference мова — Go.** TS і Py точно дзеркалять домен, ендпоінти і структуру каталогів. Скринкасти 1–3, 5, 6 знімаються на Go; скринкаст 4 показує arch-test послідовно у Go → TS → Py.
 

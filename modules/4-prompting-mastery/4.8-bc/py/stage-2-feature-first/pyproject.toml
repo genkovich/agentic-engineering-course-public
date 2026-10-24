@@ -2,9 +2,10 @@
 name = "stage-2-feature-first"
 version = "0.1.0"
 description = "Stage 2 (feature-first / vertical slice) — Bounded Contexts demo, Python edition"
-# Верхня межа свідома: під новішим Python частина залежностей
-# ще не має бінарних коліс.
-requires-python = ">=3.12,<3.15"
+# Верхня межа свідома: під новий Python частина залежностей виходить
+# з бінарними колесами не одразу. Межу піднімаємо, коли в усіх пакетів
+# з requirements.lock.txt є колеса під нову версію (для 3.15 перевірено).
+requires-python = ">=3.12,<3.16"
 dependencies = [
     "fastapi>=0.110.0",
     # uvicorn БЕЗ [standard]: цей extra тягне uvloop, який не має коліс

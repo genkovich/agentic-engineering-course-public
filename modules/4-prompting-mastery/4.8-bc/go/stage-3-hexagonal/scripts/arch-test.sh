@@ -11,7 +11,7 @@
 
 set -uo pipefail
 
-VERSION="${ARCH_LINT_VERSION:-v1.17.0}"
+VERSION="${ARCH_LINT_VERSION:-v1.19.0}"
 
 echo "go-arch-lint ${VERSION}"
 OUTPUT="$(GOFLAGS= go run "github.com/fe3dback/go-arch-lint@${VERSION}" check 2>&1)"
@@ -28,9 +28,9 @@ if printf '%s' "$OUTPUT" | grep -qE 'internal error|panic:|without types was imp
   "without types was imported".
 
   Що перевірити:
-    1. go version            — потрібен Go 1.25+
+    1. go version            — потрібен Go 1.27+
                                (або GOTOOLCHAIN=auto, щоб потрібний доїхав сам)
-    2. ARCH_LINT_VERSION     — робоча версія v1.17.0; нижчі можуть бути зламані
+    2. ARCH_LINT_VERSION     — робоча версія v1.19.0; нижчі можуть бути зламані
     3. мережа / проксі       — перший запуск тягне лінтер з proxy.golang.org
 
   Немає локального Go взагалі? Запасний шлях: make arch-test-docker
@@ -42,7 +42,16 @@ fi
 if [ "$CODE" -ne 0 ]; then
 	printf '%s\n' "$OUTPUT"
 	echo ""
-	echo "✗ go-arch-lint знайшов порушення меж (список вище)."
+	# Порушення лінтер завжди підсумовує рядком `total notices: N`.
+	# Без нього ненульовий код означає інше: найчастіше конфіг не пройшов
+	# валідацію (наприклад, порожній `mayDependOn: []`), і до коду лінтер
+	# навіть не дійшов.
+	if printf '%s' "$OUTPUT" | grep -q 'total notices'; then
+		echo "✗ go-arch-lint знайшов порушення меж (список вище)."
+	else
+		echo "✗ go-arch-lint завершився з помилкою, але порушень меж не назвав."
+		echo "  Найчастіше це .go-arch-lint.yml, який ця версія лінтера не приймає (текст вище)."
+	fi
 	exit "$CODE"
 fi
 

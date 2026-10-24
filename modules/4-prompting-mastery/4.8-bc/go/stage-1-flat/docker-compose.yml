@@ -5,7 +5,9 @@ name: bc48-go-s1
 
 services:
   postgres:
-    image: postgres:18-alpine
+    # Тег запінений до патча. Плаваючий 18-alpine одного дня приносить інший образ,
+    # і демо ламається без жодної зміни в коді (так уже було з томом у 18-му).
+    image: postgres:18.6-alpine
     environment:
       POSTGRES_USER: demo
       POSTGRES_PASSWORD: demo

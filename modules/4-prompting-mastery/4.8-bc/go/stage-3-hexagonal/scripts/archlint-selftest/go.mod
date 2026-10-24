@@ -3,4 +3,6 @@
 // у самому демо.
 module archlint-selftest
 
-go 1.25.0
+go 1.27.0
+
+toolchain go1.27.3

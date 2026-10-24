@@ -6,7 +6,7 @@
 
 ## Стек
 
-- Go 1.25+ (на старішому Go з `GOTOOLCHAIN=auto` потрібний тулчейн доїде сам)
+- Go 1.27+ (на старішому Go з `GOTOOLCHAIN=auto` потрібний тулчейн доїде сам)
 - chi/v5 для роутингу
 - pgx/v5 для Postgres
 - Postgres 18 у Docker

@@ -11,7 +11,7 @@ BASE_URL     ?= http://localhost:$(HTTP_PORT)
 
 # Лінтер запускаємо через `go run pkg@version`, а не `go install`:
 # бінар не треба класти в $PATH, а версія завжди та, що написана тут.
-ARCH_LINT_VERSION ?= v1.17.0
+ARCH_LINT_VERSION ?= v1.19.0
 ARCH_LINT         := go run github.com/fe3dback/go-arch-lint@$(ARCH_LINT_VERSION)
 
 .PHONY: help doctor install db-up db-down db-migrate build run smoke \
@@ -90,6 +90,6 @@ arch-test-selftest:
 # Образ зібраний лише під amd64: на Apple Silicon іде через емуляцію і повільний.
 arch-test-docker:
 	docker run --rm --platform linux/amd64 -v "$(CURDIR)":/app -w /app \
-		fe3dback/go-arch-lint:latest check
+		fe3dback/go-arch-lint:release-$(ARCH_LINT_VERSION) check
 
 clean: db-down

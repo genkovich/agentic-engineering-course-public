@@ -24,8 +24,8 @@ jobs:
   build-and-arch-test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
         with:
           # Версія береться з go.mod — один source of truth замість двох,
           # які розходяться.

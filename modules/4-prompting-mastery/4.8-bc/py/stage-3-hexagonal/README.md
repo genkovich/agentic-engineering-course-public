@@ -9,7 +9,7 @@
 
 ## Стек
 
-- Python 3.12–3.14
+- Python 3.12–3.15
 - FastAPI 0.110+ (async)
 - SQLAlchemy 2.x з **asyncpg** (async driver)
 - Alembic 1.13+ — 5 окремих revisions, по одній на BC, з префіксом таблиць

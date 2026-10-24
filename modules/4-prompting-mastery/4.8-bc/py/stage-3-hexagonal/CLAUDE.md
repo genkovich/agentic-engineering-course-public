@@ -51,7 +51,7 @@ billing.SubscriptionCreated   → notifications subscribed
 
 ## Tooling
 
-- **Python 3.12** + FastAPI 0.110+
+- **Python 3.12–3.15** + FastAPI 0.110+
 - **SQLAlchemy 2.x async** + asyncpg (no sync drivers anywhere except Alembic env)
 - **Alembic 1.13+** — 5 revisions, one per BC, BC-prefixed tables
 - **import-linter v2** — `lint-imports` (конфіг `.importlinter` знаходиться автоматично)
