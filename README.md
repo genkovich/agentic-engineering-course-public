@@ -114,6 +114,7 @@ make run                    # MCP-сервер на stdio; make run-http — Str
     ├── 4-prompting-mastery/
     │   ├── README.md
     │   ├── 4.1-prompts/             text examples (PROMPTS.md, не runnable) (4.1)
+    │   ├── 4.5-rules/               .claude/rules/ з paths: Go + React + Terraform, хук-журнал (4.5)
     │   ├── 4.8-bc/                  Bounded Contexts — Go × TS × Py × 3 stages (4.8)
     │   └── 4.9-legacy-refactor/     FastAPI legacy → account через 7 skills (4.9)
     ├── 5-claude-code-extended/

@@ -1,0 +1,18 @@
+{
+  "claudeMdExcludes": [
+    "**/legacy-vendor/**/CLAUDE.md",
+    "**/node_modules/**/CLAUDE.md"
+  ],
+  "hooks": {
+    "InstructionsLoaded": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "cat >> .claude/instructions-loaded.jsonl; echo >> .claude/instructions-loaded.jsonl"
+          }
+        ]
+      }
+    ]
+  }
+}

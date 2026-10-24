@@ -1,0 +1,41 @@
+# Go
+/bin/
+/dist/
+/coverage.out
+*.test
+vendor/
+
+# Node
+node_modules/
+.pnpm-store/
+.npm/
+.yarn/
+.cache/
+.parcel-cache/
+.next/
+.vite/
+dist/
+
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.backup
+*.tfvars
+crash.log
+
+# Editors
+.vscode/
+.idea/
+*.swp
+.DS_Store
+
+# Local env
+.env
+.env.local
+.env.*.local
+
+# Claude Code local overrides
+.claude/settings.local.json
+
+# Журнал хука InstructionsLoaded (пише .claude/settings.json)
+.claude/instructions-loaded.jsonl
