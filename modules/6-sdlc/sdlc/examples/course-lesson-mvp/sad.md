@@ -161,7 +161,7 @@ C4Container
 
 <!-- Container-level sequences (US-NN; учасники = логічні модулі / спільна інфраструктура; без HTTP-verbs у параметрах). -->
 <!-- Endpoint-level sequences inlined нижче під `### Endpoint-level: …` (HTTP verbs, status codes, alt-branches). -->
-<!-- Sequence coverage audit: `_audit/sequences-2026-05-23.md`. -->
+<!-- US/AC → flow coverage: the `### Coverage: US/AC → flows` block at the end of this section (complete-sequence-diagrams step 7). -->
 
 ### US-01: createCourse (draft)
 
@@ -610,6 +610,44 @@ Drift check vs `openapi.yaml`:
 - Response codes у diagram (200 / 403 / 404) — присутні у `responses` block of `publishLesson` operation.
 - Error codes (`lesson.not_found`, `lesson.forbidden`) — використовуються у `ErrorResponse.code` per common convention `module.error_name`.
 - Outbox INSERT у тій самій транзакції з UPDATE — відповідає `lesson.published` event з `contracts/events.md`.
+
+### Coverage: US/AC → flows
+
+| ID | Realized by (§6 heading) | How | Note |
+|---|---|---|---|
+| US-01 | `US-01: createCourse (draft)` | flow | |
+| US-02 | `US-02: addLesson (block-based)` | flow | |
+| US-03 | `US-03: publishCourse` | flow | |
+| US-04 | `US-04: viewCourse (cross-org 404)` | flow | |
+| US-05 | `US-05: reorderLessons` | flow | |
+| US-06 | `US-06: markLessonComplete (idempotent)` | flow | |
+| US-07 | `US-07: setPeerVisibilityPreference` | flow | |
+| US-08 | `US-08: viewLessonWithPeerSignal` | flow | |
+| US-09 | `US-09: createComment` | flow | |
+| US-10 | `US-10: hideComment (moderation)` | flow | |
+| AC-01 | `US-01: createCourse (draft)` | flow | |
+| AC-02 | `US-01: createCourse (draft)` | branch | `alt description > 500 chars` |
+| AC-03 | `US-02: addLesson (block-based)` | flow | |
+| AC-04 | `US-02: addLesson (block-based)` | branch | `alt unique violation on (course_id, sequence)` |
+| AC-04b | `US-02: addLesson (block-based)` | branch | same branch — the DB `UNIQUE(course_id, sequence)` note covers the concurrent case, no app-level lock |
+| AC-05 | `US-03: publishCourse` | branch | `alt count = 0` |
+| AC-06 | `US-03: publishCourse` | flow | idempotent repeat = `else owner ok, already published` |
+| AC-07 | `US-04: viewCourse (cross-org 404)` | branch | `else published & different org` |
+| AC-08 | `US-04: viewCourse (cross-org 404)` | branch | `else draft & caller != owner and caller != admin` |
+| AC-09 | `US-01: createCourse (draft)` | branch | `alt not methodist` |
+| AC-10 | `US-02: addLesson (block-based)` | branch | `alt course in different org` |
+| AC-11 | `US-06: markLessonComplete (idempotent)` | flow | repeat POST = `else duplicate (unique_violation)` |
+| AC-12 | `US-06: markLessonComplete (idempotent)` | branch | `alt draft lesson OR cross-org` |
+| AC-13 | `US-07: setPeerVisibilityPreference` | flow | preference + `user_preference_audit` written in one tx |
+| AC-14 | `US-08: viewLessonWithPeerSignal` | flow | |
+| AC-15 | `US-08: viewLessonWithPeerSignal` | branch | `alt count < 3 (AC-15 anti-fingerprinting threshold)` |
+| AC-16 | `US-09: createComment` | flow | |
+| AC-17 | `US-09: createComment` | branch | `alt content > 2000 chars` + `alt bucket exhausted` |
+| AC-18 | `US-10: hideComment (moderation)` | flow | non-admin 403 = `alt not admin` |
+
+Coverage: 10/10 user stories · 19/19 ACs — 0 non-runtime N/A.
+
+**Flags:** `<cache>` participant (US-01, US-08, US-09) is not in the generic vocabulary and not declared in §5 — for architecture-design (ADR-0002 names the Redis cache tier).
 
 ## 7. Deployment view
 
