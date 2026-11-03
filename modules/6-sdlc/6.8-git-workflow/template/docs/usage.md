@@ -1,6 +1,6 @@
 # Usage
 
-Tiny in-memory API used by the Lecture 9.1 screencasts.
+Tiny in-memory API used by the Lecture 6.8 screencasts.
 
 - `api.pagination.page(cursor)` — one page of rows.
 - `api.users.list_users(cursor)` — one page of users.

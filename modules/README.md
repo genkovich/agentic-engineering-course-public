@@ -69,15 +69,18 @@ Reference приклади з лекцій (для Шляху A capstone, нап
 
 | Lecture | Тема | Артефакт |
 |---|---|---|
-| 6.1 | SDLC через артефакти — мапа фаз і гейтів | [sdlc/README.md](../sdlc/README.md), [00-overview/](../sdlc/00-overview/) |
-| 6.2 | Gate 1: словник домену → idea-brief | [fix-term](../sdlc/plugin/skills/fix-term/), [interview](../sdlc/plugin/skills/interview/) |
-| 6.3 | PRD | [write-prd](../sdlc/plugin/skills/write-prd/) |
-| 6.4 | Architecture Design (arc42 + ADR + C4) | [architecture-design](../sdlc/plugin/skills/architecture-design/) |
-| 6.5 | Sequence diagrams + data model | [complete-sequence-diagrams](../sdlc/plugin/skills/complete-sequence-diagrams/), [generate-data-model](../sdlc/plugin/skills/generate-data-model/) |
-| 6.6 | API contracts (OpenAPI) | [api-forge](../sdlc/plugin/skills/api-forge/) |
-| 6.7 | Tasks breakdown + test plan | [break-tasks](../sdlc/plugin/skills/break-tasks/), [plan-tests](../sdlc/plugin/skills/plan-tests/) |
+| 6.1 | SDLC через артефакти — мапа фаз і гейтів | [sdlc/README.md](./6-sdlc/sdlc/README.md), [00-overview/](./6-sdlc/sdlc/00-overview/) |
+| 6.2 | Gate 1: словник домену → idea-brief | [fix-term](./6-sdlc/sdlc/plugin/skills/fix-term/), [interview](./6-sdlc/sdlc/plugin/skills/interview/) |
+| 6.3 | PRD | [write-prd](./6-sdlc/sdlc/plugin/skills/write-prd/) |
+| 6.4 | Architecture Design (arc42 + ADR + C4) | [architecture-design](./6-sdlc/sdlc/plugin/skills/architecture-design/) |
+| 6.5 | Sequence diagrams + data model | [complete-sequence-diagrams](./6-sdlc/sdlc/plugin/skills/complete-sequence-diagrams/), [generate-data-model](./6-sdlc/sdlc/plugin/skills/generate-data-model/) |
+| 6.6 | API contracts (OpenAPI) | [api-forge](./6-sdlc/sdlc/plugin/skills/api-forge/) |
+| 6.7 | Tasks breakdown + test plan | [break-tasks](./6-sdlc/sdlc/plugin/skills/break-tasks/), [plan-tests](./6-sdlc/sdlc/plugin/skills/plan-tests/) |
+| 6.8 | Git з агентом: GitHub Flow, короткі гілки, малі коміти, чанкування, bisect, відкат, секрет-guard | [6-sdlc/6.8-git-workflow](./6-sdlc/6.8-git-workflow) |
 
-Артефакт модуля — toolkit `sdlc/` у корені репо (на нього посилаються LMS-уроки), модульний README з мапою лекцій: [6-sdlc](./6-sdlc). Наскрізний приклад усіх артефактів однієї фічі — [sdlc/examples/course-lesson-mvp](../sdlc/examples/course-lesson-mvp).
+Артефакт модуля — toolkit `6-sdlc/sdlc/` (на нього посилаються LMS-уроки), модульний README з мапою лекцій: [6-sdlc](./6-sdlc). Наскрізний приклад усіх артефактів однієї фічі — [sdlc/examples/course-lesson-mvp](./6-sdlc/sdlc/examples/course-lesson-mvp).
+
+Демо 6.8 - fixture зі своєю seed-історією, що будується в runtime у git-ignored `sandbox/`. Два режими: `make sandbox` (чиста історія + tag `good-baseline` для bisect/відкату/секрет-guard) і `make arm` (змішане дерево для коміту/чанкування/`git add -p`). П'ять `🎬`-скринкастів лекції знімаються на ньому; ANTHROPIC_API_KEY не потрібен.
 
 ## Module 7 - Execution & Scale
 
@@ -102,18 +105,15 @@ Reference приклади з лекцій (для Шляху A capstone, нап
 
 ## Module 9 - Collaboration
 
-Тема модуля: як код виходить за межі однієї сесії у командну роботу - git workflow з агентом, гілки й коміти, звірка діфів, рівні відкату, паралельна робота через worktree.
+Тема модуля: як код виходить за межі однієї сесії у командну роботу - паралельна робота через worktree, merge і cleanup, pull request, code review, реліз і документація.
 
 | Lecture | Тема | Demo |
 |---|---|---|
-| 9.1 | Git workflow: trunk-based, охайні коміти, чанкування, bisect, відкат, секрет-guard | [9-collaboration/9.1-git-workflow](./9-collaboration/9.1-git-workflow) |
 | 9.2 | Git worktrees: паралельні агенти, ізоляція оточення, helper `w`, субагенти, agent-vs-agent | [9-collaboration/9.2-git-worktrees](./9-collaboration/9.2-git-worktrees) |
 | 9.3 | Worktree merge + cleanup: порядок merge, конфлікти, paper-cut push + safety-hook, remove/prune | [9-collaboration/9.3-worktree-merge-cleanup](./9-collaboration/9.3-worktree-merge-cleanup) |
 | 9.5 | Code review локально в сесії: `/code-review`, `/simplify`, `/security-review`, multi-pass `/codereview`, субагент у чистому контексті | [9-collaboration/9.5-code-review](./9-collaboration/9.5-code-review) |
 | 9.6 | Code review на платформі: GitHub App (`@claude` + авто `/code-review`), екосистема рев'юерів (Codex/Copilot/CodeRabbit), спільний `AGENTS.md` | [9-collaboration/9.6-github-platform](./9-collaboration/9.6-github-platform) |
 | 9.7 | Реліз і документація з Claude: локальні skills → CI release pipeline, release notes й docs автоматизація | [9-collaboration/9.7-release-docs](./9-collaboration/9.7-release-docs) |
-
-Демо 9.1 - fixture зі своєю seed-історією, що будується в runtime у git-ignored `sandbox/`. Два режими: `make sandbox` (чиста історія + tag `good-baseline` для bisect/відкату/секрет-guard) і `make arm` (змішане дерево для коміту/чанкування/`git add -p`). П'ять `🎬`-скринкастів лекції знімаються на ньому; ANTHROPIC_API_KEY не потрібен.
 
 Демо 9.2 - fixture, що будує детермінований стартовий стан (git + ≥1 commit + локальний `origin` із `main`/`develop` — передумова worktree і база `origin/HEAD`) у git-ignored `sandbox/`. `make sandbox` (чистий репо з `.worktreeinclude`/`.env`/закоміченим helper `w`/субагентом `isolation: worktree`/`render_card`-задачею), `make serve` (env-driven сервіс на `PORT` із `.env` — доводить ізоляцію порту), `make reset` (перебудувати між дублями). Сім `🎬`-скринкастів (inline під слайдами фішок, точні команди) знімаються на ньому; ANTHROPIC_API_KEY для бази не потрібен, живі агент-сесії потребують Claude Code. Merge/cleanup паралельних гілок свідомо НЕ тут — це 9.3.
 
