@@ -15,6 +15,9 @@ from huggingface_hub.errors import LocalEntryNotFoundError
 from huggingface_hub.utils import logging as hf_logging
 from tokenizers import Tokenizer
 
+# Windows до Python 3.15 пише в консоль у cp1252/cp1251, і кирилиця в print падає.
+sys.stdout.reconfigure(encoding="utf-8")
+
 DEFAULT_TEXT = "Токенізація"
 
 # Not gated on Hugging Face, so no HF token or license click is needed.

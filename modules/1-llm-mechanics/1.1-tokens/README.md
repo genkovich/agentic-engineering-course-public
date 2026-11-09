@@ -41,6 +41,22 @@ make run-pairs             # скрипт 3
 .venv/bin/python claude_pairs.py --model claude-sonnet-5-5
 ```
 
+## Windows
+
+`make` у Windows немає, а Python у `.venv` лежить у `.venv\Scripts\`, а не в `.venv/bin/`. Ті самі кроки в PowerShell:
+
+```powershell
+py -m venv .venv
+.venv\Scripts\python -m pip install -r requirements.txt
+Copy-Item .env.example .env      # встав ANTHROPIC_API_KEY
+.venv\Scripts\python tokenizers_side_by_side.py
+.venv\Scripts\python claude_generations.py
+.venv\Scripts\python claude_generations.py --file my_prompt.md
+.venv\Scripts\python claude_pairs.py
+```
+
+Якщо `py` не знаходиться, пиши `python`. Більше про курс на Windows: [WINDOWS.md](../../../WINDOWS.md).
+
 ## Очікуваний output
 
 `make run-tokenizers` на слові «Токенізація»:
