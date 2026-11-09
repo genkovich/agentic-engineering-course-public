@@ -1,10 +1,19 @@
+# /// script
+# requires-python = ">=3.10"
+# dependencies = [
+#     "tiktoken==0.14.0",
+#     "tokenizers==0.23.3",
+#     "huggingface_hub==2.2.0",
+# ]
+# ///
 """Same text through three open tokenizers, side by side.
 
 cl100k (GPT-4) and o200k (GPT-4o, GPT-5) come from tiktoken, Gemma 3 from
 Hugging Face tokenizers. Every token gets its own background colour, so you
 see where each tokenizer cuts. No API key needed.
 
-Usage: python3 tokenizers_side_by_side.py ["your text"]
+Usage: uv run tokenizers_side_by_side.py ["your text"]
+   or: python3 tokenizers_side_by_side.py ["your text"]  (after pip install -r requirements-tokenizers.txt)
 """
 import os
 import sys
@@ -15,8 +24,9 @@ from huggingface_hub.errors import LocalEntryNotFoundError
 from huggingface_hub.utils import logging as hf_logging
 from tokenizers import Tokenizer
 
-# Windows до Python 3.15 пише в консоль у cp1252/cp1251, і кирилиця в print падає.
+# Windows до Python 3.15 пише в пайп у cp1252/cp1251, і кирилиця в print падає або стає \uXXXX.
 sys.stdout.reconfigure(encoding="utf-8")
+sys.stderr.reconfigure(encoding="utf-8")
 
 DEFAULT_TEXT = "Токенізація"
 
