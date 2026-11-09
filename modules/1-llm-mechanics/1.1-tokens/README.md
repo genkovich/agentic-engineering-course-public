@@ -15,7 +15,7 @@
 
 ## Pre-requisites
 
-- [uv](https://docs.astral.sh/uv/getting-started/installation/): він сам завантажить потрібний Python 3.13 і поставить пакети, системний Python не потрібен. Можна і без uv, тоді Python 3.10+ і pip (див. нижче)
+- [uv](https://docs.astral.sh/uv/getting-started/installation/): він сам завантажить потрібний Python 3.14 і поставить пакети, системний Python не потрібен. Можна і без uv, тоді Python 3.10+ і pip (див. нижче)
 - Інтернет на перший запуск: tiktoken і Hugging Face качають словники, далі вони беруться з кешу
 - Для скриптів 2 і 3: `ANTHROPIC_API_KEY` з [platform.claude.com](https://platform.claude.com) у `.env`
 
@@ -42,7 +42,7 @@ uv run tokenizers_side_by_side.py    # скрипт 1, ключ не потрі�
 uv run tokenizers_side_by_side.py "твій текст"
 ```
 
-Перший `uv run` створює `.venv` на Python 3.13 (версія записана в `.python-version`) і ставить пакети з `pyproject.toml`. Скрипт 1 має свої залежності прямо в шапці файлу, uv поставить їх окремо при першому запуску.
+Перший `uv run` створює `.venv` на Python 3.14 (версія записана в `.python-version`) і ставить пакети з `pyproject.toml`. Скрипт 1 має свої залежності прямо в шапці файлу, uv поставить їх окремо при першому запуску.
 
 Свої параметри:
 
