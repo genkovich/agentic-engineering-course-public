@@ -15,7 +15,7 @@
 
 ## Pre-requisites
 
-- Python 3.10+
+- [uv](https://docs.astral.sh/uv/getting-started/installation/): він сам завантажить потрібний Python 3.14 і поставить пакети, системний Python не потрібен. Можна і без uv, тоді Python 3.10+ і pip (див. нижче)
 - Інтернет на перший запуск: tiktoken і Hugging Face качають словники, далі вони беруться з кешу
 - Для скриптів 2 і 3: `ANTHROPIC_API_KEY` з [platform.claude.com](https://platform.claude.com) у `.env`
 
@@ -23,43 +23,62 @@
 
 ## Як запустити
 
-```bash
-make setup                 # .venv і залежності
-make run-tokenizers        # скрипт 1, ключ не потрібен
-make run-tokenizers TEXT='"твій текст"'
+Встанови uv один раз:
 
-cp .env.example .env       # встав ANTHROPIC_API_KEY
-make run-generations       # скрипт 2
-make run-pairs             # скрипт 3
+```bash
+curl -LsSf https://astral.sh/uv/install.sh | sh                      # macOS, Linux
+powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"   # Windows
 ```
+
+Після цього перезапусти термінал. Далі команди однакові на всіх системах:
+
+```bash
+cp .env.example .env                 # Windows: Copy-Item .env.example .env; встав ANTHROPIC_API_KEY
+uv run check_setup.py                # перевірка: Python, пакети, ключ, API
+uv run claude_generations.py         # скрипт 2
+uv run claude_generations.py --file my_prompt.md
+uv run claude_pairs.py               # скрипт 3
+uv run tokenizers_side_by_side.py    # скрипт 1, ключ не потрібен
+uv run tokenizers_side_by_side.py "твій текст"
+```
+
+Перший `uv run` створює `.venv` на Python 3.14 (версія записана в `.python-version`) і ставить пакети з `pyproject.toml`. Скрипт 1 має свої залежності прямо в шапці файлу, uv поставить їх окремо при першому запуску.
 
 Свої параметри:
 
 ```bash
-.venv/bin/python claude_generations.py --model claude-haiku-4-5 --model claude-opus-5-5
-.venv/bin/python claude_generations.py --file my_prompt.md
-.venv/bin/python claude_pairs.py --model claude-sonnet-5-5
+uv run claude_generations.py --model claude-haiku-4-5 --model claude-opus-5-5
+uv run claude_pairs.py --model claude-sonnet-5-5
 ```
 
-## Windows
+Якщо щось не працює, запусти `uv run check_setup.py` і скинь його вивід у чат курсу.
 
-`make` у Windows немає, а Python у `.venv` лежить у `.venv\Scripts\`, а не в `.venv/bin/`. Ті самі кроки в PowerShell:
+### Без uv
+
+Для домашки (скрипти 2 і 3) потрібні тільки два пакети з `requirements.txt`. Пакети для скрипта 1 лежать окремо в `requirements-tokenizers.txt`: на нових чи free-threaded збірках Python (наприклад, 3.15t) для них може не бути готових збірок, і pip почне компілювати їх з Rust.
+
+```bash
+make setup                 # .venv і обидва requirements
+make check
+make run-generations
+make run-pairs
+make run-tokenizers TEXT='"твій текст"'
+```
+
+Windows (PowerShell), де `make` немає:
 
 ```powershell
 py -m venv .venv
 .venv\Scripts\python -m pip install -r requirements.txt
-Copy-Item .env.example .env      # встав ANTHROPIC_API_KEY
-.venv\Scripts\python tokenizers_side_by_side.py
+.venv\Scripts\python check_setup.py
 .venv\Scripts\python claude_generations.py
-.venv\Scripts\python claude_generations.py --file my_prompt.md
-.venv\Scripts\python claude_pairs.py
 ```
 
 Якщо `py` не знаходиться, пиши `python`. Більше про курс на Windows: [WINDOWS.md](../../../WINDOWS.md).
 
 ## Очікуваний output
 
-`make run-tokenizers` на слові «Токенізація»:
+`uv run tokenizers_side_by_side.py` на слові «Токенізація»:
 
 ```
   cl100k (GPT-4)    9 ток.   Т|ок|ен|і|з|а|ц|і|я
@@ -69,9 +88,9 @@ Copy-Item .env.example .env      # встав ANTHROPIC_API_KEY
 
 У терміналі межі показані кольором, у пайпі чи з `NO_COLOR=1` через `|`.
 
-`make run-generations` дає таблицю: модель, дата заміру, покоління токенізатора, `input_tokens` для EN і UA, множник UA/EN. Під таблицею приріст нової моделі проти першої у відсотках.
+`claude_generations.py` дає таблицю: модель, дата заміру, покоління токенізатора, `input_tokens` для EN і UA, множник UA/EN. Під таблицею приріст нової моделі проти першої у відсотках.
 
-`make run-pairs` дає три блоки, у кожному `input_tokens` обох варіантів і різницю в разах.
+`claude_pairs.py` дає три блоки, у кожному `input_tokens` обох варіантів і різницю в разах.
 
 У `input_tokens` входить кілька службових токенів обгортки повідомлення, тому на дуже коротких рядках різниця менша, ніж на довгих.
 

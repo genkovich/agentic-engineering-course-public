@@ -7,8 +7,9 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-# Windows до Python 3.15 пише в консоль у cp1252/cp1251, і кирилиця в print падає.
+# Windows до Python 3.15 пише в пайп у cp1252/cp1251, і кирилиця в print падає або стає \uXXXX.
 sys.stdout.reconfigure(encoding="utf-8")
+sys.stderr.reconfigure(encoding="utf-8")
 
 
 def require_api_key() -> None:
