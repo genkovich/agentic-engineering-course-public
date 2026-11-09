@@ -54,7 +54,7 @@ def main() -> None:
     models = args.model or DEFAULT_MODELS
     if args.file and not args.file.is_file():
         fail(f"Файл {args.file} не знайдено.")
-    texts = {args.file.name: args.file.read_text()} if args.file else PARAGRAPH
+    texts = {args.file.name: args.file.read_text(encoding="utf-8")} if args.file else PARAGRAPH
 
     client = make_client()
     today = datetime.date.today().isoformat()

@@ -7,6 +7,9 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+# Windows до Python 3.15 пише в консоль у cp1252/cp1251, і кирилиця в print падає.
+sys.stdout.reconfigure(encoding="utf-8")
+
 
 def require_api_key() -> None:
     if not os.environ.get("ANTHROPIC_API_KEY"):
