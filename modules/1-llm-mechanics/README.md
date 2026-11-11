@@ -30,7 +30,7 @@
 | [1.4-stochasticity](./1.4-stochasticity) | Той самий промпт через T=0/0.5/1.0, чому промпт це теж "ручка temperature" | 1.4 |
 | [1.9-embeddings](./1.9-embeddings) | Cosine similarity для слів, king-man+woman ≈ queen, семантичний пошук | 1.9 |
 
-Demos самостійні: `cd modules/1-llm-mechanics/<N.M-demo> && pip install -r requirements.txt && make run`.
+Demos самостійні: `cd modules/1-llm-mechanics/<N.M-demo> && uv run main.py`. Середовище і `.env` одні на весь курс, у корені репо: див. «Як використовувати» в [README](../../README.md).
 
 ## Pre-requisites
 

@@ -15,20 +15,20 @@
 
 ## Pre-requisites
 
-- Python 3.10+
+- [uv](https://docs.astral.sh/uv/getting-started/installation/): сам поставить потрібний Python
 - `VOYAGE_API_KEY` (рекомендовано, лекція згадує саме Voyage AI) АБО `OPENAI_API_KEY` (fallback)
 
 Для отримання Voyage API ключа: https://www.voyageai.com (200 безкоштовних 1M токенів). OpenAI: https://platform.openai.com.
 
 ## Як запустити
 
+Перший раз (один на весь курс): постав [uv](https://docs.astral.sh/uv/getting-started/installation/), у корені репо скопіюй `.env.example` у `.env` і впиши ключі. Далі з папки уроку:
+
 ```bash
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
-cp .env.example .env       # додай VOYAGE_API_KEY або OPENAI_API_KEY
-make run
+uv run main.py         # потрібен VOYAGE_API_KEY або OPENAI_API_KEY у .env
 ```
+
+Перший `uv run` створює одне `.venv` у корені репо і ставить туди пакети для всіх уроків модулів 1-2, далі воно береться готовим. На Windows команди ті самі.
 
 Скрипт спочатку пробує Voyage AI, потім OpenAI як fallback. Якщо обидва ключі відсутні, gracefully падає з інструкцією.
 
