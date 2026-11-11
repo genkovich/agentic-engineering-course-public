@@ -3,6 +3,8 @@
 **Module:** 2 - Ecosystem
 **Lectures:** 2.3
 
+> Це демо до уроку: його можна запустити й подивитись код. Домашнє завдання описане в уроці в Kwiga, запускати демо для нього не обов'язково, якщо в завданні не сказано інакше.
+
 ## Що показує
 
 Явна реалізація observe → think → act loop без SDK helpers. Це той самий патерн, що під капотом у Claude Code, Cursor, Aider, всіх "AI coding assistants". Скрипт показує, що сам по собі агент це 30 рядків коду: while-loop з max_iterations, набір tools, stop condition (assistant без tool_use means done).
