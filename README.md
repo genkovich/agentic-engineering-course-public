@@ -25,12 +25,22 @@ Public repository for the **Agentic Engineering з Claude** course. Contains han
 
 ### Modules 1-2 demos
 
+Середовище і ключі налаштовуються один раз на весь курс, а не в кожному уроці:
+
 ```bash
+# 1. uv (один раз): сам завантажить потрібний Python і пакети
+curl -LsSf https://astral.sh/uv/install.sh | sh                                    # macOS, Linux
+powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"  # Windows
+
+# 2. Ключі (один раз), у корені репо
+cp .env.example .env        # Windows: Copy-Item .env.example .env; впиши ANTHROPIC_API_KEY
+
+# 3. Будь-який урок
 cd modules/1-llm-mechanics/1.2-token-counter
-pip install -r requirements.txt && make run
+uv run main.py
 ```
 
-Кожен demo — самостійна Python-директорія (`README.md`, `main.py`, `requirements.txt`, `Makefile`, `.env.example`). Потрібен `ANTHROPIC_API_KEY`. Перелік демо до лекцій — у README модулів [1](modules/1-llm-mechanics/README.md) і [2](modules/2-ecosystem/README.md).
+Перший `uv run` створює одне `.venv` у корені репо за `pyproject.toml` і ставить пакети для всіх демо модулів 1-2. Далі кожен урок запускається одразу, команди однакові на macOS, Linux і Windows. Скрипти шукають `.env` вгору по папках, тому одного файлу в корені достатньо. Перелік демо до лекцій у README модулів [1](modules/1-llm-mechanics/README.md) і [2](modules/2-ecosystem/README.md). Хто не хоче uv, може поставити пакети з `requirements.txt` уроку в будь-яке своє середовище.
 
 ### Module 3 starters
 

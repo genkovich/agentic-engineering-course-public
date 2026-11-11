@@ -48,7 +48,7 @@ winget install ezwinports.make
 
 | Артефакт у репо | Де запускати на Windows |
 |---|---|
-| `*.py` (Python-скрипти, демо) | Натівно: `python script.py` у PowerShell |
+| `*.py` (Python-скрипти, демо модулів 1-2) | Натівно у PowerShell: `uv run script.py`. Середовище і `.env` одні на весь репо, див. «Modules 1-2 demos» у [README](README.md) |
 | `*.ps1` (PowerShell-скрипти) | Натівно у PowerShell |
 | `claude`, `claude -p ...` | Натівно у PowerShell |
 | `*.sh` (bash-скрипти) | Git Bash (або WSL) |

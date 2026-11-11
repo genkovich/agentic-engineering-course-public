@@ -4,10 +4,8 @@ RAG Pipeline Demo — PGVector + OpenAI Embeddings + Claude
 
 Запуск:
   1. docker compose up -d
-  2. export OPENAI_API_KEY=sk-...
-  3. export ANTHROPIC_API_KEY=sk-ant-...
-  4. pip install -r requirements.txt
-  5. python rag_pipeline.py
+  2. OPENAI_API_KEY і ANTHROPIC_API_KEY у .env в корені репо
+  3. uv run rag_pipeline.py
 """
 
 import os
@@ -15,6 +13,9 @@ import re
 import psycopg2
 from openai import OpenAI
 from anthropic import Anthropic
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # ── Конфігурація ──────────────────────────────────────────────────────
 

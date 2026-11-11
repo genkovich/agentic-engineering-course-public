@@ -1,7 +1,7 @@
 .PHONY: run clean
 
 run:
-	python3 main.py
+	uv run main.py
 
 clean:
-	rm -rf .venv __pycache__ *.pyc
+	rm -rf __pycache__ *.pyc

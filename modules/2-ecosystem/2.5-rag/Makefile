@@ -6,11 +6,11 @@ up:
 	@sleep 3
 
 run:
-	python3 rag_pipeline.py
+	uv run rag_pipeline.py
 
 down:
 	docker compose down
 
 clean:
 	docker compose down -v
-	rm -rf .venv __pycache__ *.pyc
+	rm -rf __pycache__ *.pyc
