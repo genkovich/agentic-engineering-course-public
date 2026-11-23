@@ -10,7 +10,7 @@
 
 | Lecture | Тема | Demo |
 |---|---|---|
-| 1.1, 1.2 | Що таке токен, input vs output ціна | [1-llm-mechanics/1.2-token-counter](./1-llm-mechanics/1.2-token-counter) |
+| 1.1, 1.2 | Що таке токен, input vs output ціна, вартість з кешем і Batch | [1-llm-mechanics/1.2-token-counter](./1-llm-mechanics/1.2-token-counter) |
 | 1.3, 1.7 | Контекстне вікно, stateless природа моделі | [1-llm-mechanics/1.3-context-window](./1-llm-mechanics/1.3-context-window) |
 | 1.4 | Стохастичність, temperature, промпт як ручка | [1-llm-mechanics/1.4-stochasticity](./1-llm-mechanics/1.4-stochasticity) |
 | 1.9 | Embeddings, cosine similarity, vector arithmetic | [1-llm-mechanics/1.9-embeddings](./1-llm-mechanics/1.9-embeddings) |

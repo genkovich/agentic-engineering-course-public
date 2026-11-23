@@ -1,7 +1,7 @@
 """Token counter demo for Module 1.
 
 Compares token counts for the same content in EN vs UA, prose vs code,
-and shows estimated input/output cost for Sonnet 4.6.
+and shows estimated input/output cost for Sonnet 5.5.
 """
 import os
 import sys
@@ -11,15 +11,16 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-MODEL = "claude-sonnet-4-6"
+MODEL = "claude-sonnet-5-5"
 
-# Pricing per million tokens (input / output) for Claude 4.x family.
+# Pricing per million tokens (input / output) for the current Claude 5.5 family
+# (Haiku price is for prompts up to 100K tokens).
 # Output is 5x input across all tiers because tokens are generated sequentially
 # (autoregression) while input is processed in parallel.
 PRICING = {
-    "Opus":   {"input": 5.0,  "output": 25.0},
-    "Sonnet": {"input": 3.0,  "output": 15.0},
-    "Haiku":  {"input": 1.0,  "output": 5.0},
+    "Opus":   {"input": 4.0,  "output": 20.0},
+    "Sonnet": {"input": 2.0,  "output": 10.0},
+    "Haiku":  {"input": 0.1,  "output": 0.5},
 }
 INPUT_PRICE_PER_MTOK = PRICING["Sonnet"]["input"]
 OUTPUT_PRICE_PER_MTOK = PRICING["Sonnet"]["output"]
@@ -118,7 +119,7 @@ def main() -> None:
         "tokenize to 1 token each."
     )
     print()
-    print("Pricing per million tokens (Claude 4.x family):")
+    print("Pricing per million tokens (Claude 5.5 family):")
     for tier, prices in PRICING.items():
         ratio = prices["output"] / prices["input"]
         print(
