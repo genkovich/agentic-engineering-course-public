@@ -1,11 +1,11 @@
-# Demo: 9.1 Git workflow
+# Demo: 6.8 Git workflow
 
-**Module:** 9 - Collaboration
-**Lectures:** 9.1 Git workflow з Claude (trunk-based і охайні коміти)
+**Module:** 6 - SDLC через артефакти
+**Lectures:** 6.8 Git з агентом: короткі гілки, малі коміти, безпечний відкат (GitHub Flow)
 
 ## Що показує
 
-Це fixture-демо: самодостатній крихітний Python-«api», у якого є власна git-історія. Історія будується в runtime у теці `sandbox/` (git-ignored монорепо), тому в монорепо комітяться лише шаблони й скрипти, а не сама історія. На цьому фікстурі знімаються всі п'ять `🎬`-скринкастів лекції 9.1.
+Це fixture-демо: самодостатній крихітний Python-«api», у якого є власна git-історія. Історія будується в runtime у теці `sandbox/` (git-ignored монорепо), тому в монорепо комітяться лише шаблони й скрипти, а не сама історія. На цьому фікстурі знімаються всі п'ять `🎬`-скринкастів лекції 6.8.
 
 Демо тримає два стани, бо різні скринкасти хочуть різного робочого дерева:
 
@@ -23,7 +23,7 @@ ANTHROPIC_API_KEY не потрібен: демо керується інтер�
 ## Як запустити
 
 ```bash
-cd modules/9-collaboration/9.1-git-workflow
+cd modules/6-sdlc/6.8-git-workflow
 
 make sandbox     # чиста seed-історія + tag good-baseline
 make arm         # накинути змішані незакомічені правки поверх sandbox
@@ -52,6 +52,6 @@ make clean       # прибрати sandbox/
 
 ## Source
 
-- Лекція 9.1 Git workflow з Claude (`Module 9 / Lecture 1`).
+- Лекція 6.8 Git з агентом (`Module 6 / Lecture 8`).
 - Anthropic best practices, permissions, commands, checkpointing, hooks.
 - Conventional Commits; Driessen / GitHub Flow / trunk-based.

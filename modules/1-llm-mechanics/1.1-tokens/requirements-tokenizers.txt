@@ -1,0 +1,4 @@
+# Тільки для tokenizers_side_by_side.py (скрипт 1). Для count_tokens не потрібні.
+tiktoken==0.14.0
+tokenizers==0.23.3
+huggingface_hub==2.2.0

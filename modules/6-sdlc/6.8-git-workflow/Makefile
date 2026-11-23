@@ -1,4 +1,4 @@
-# Demo 9.1 — Git workflow. Builds a throwaway sandbox git repo with a seed
+# Demo 6.8 — Git workflow. Builds a throwaway sandbox git repo with a seed
 # history so the lecture screencasts have a real repo to run on. Nothing
 # here needs ANTHROPIC_API_KEY: the demo is driven interactively through
 # Claude Code, not an API script.

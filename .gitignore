@@ -59,8 +59,8 @@ modules/5-claude-code-extended/5.7-sdk/fixture-repo/
 modules/5-claude-code-extended/5.7-sdk/sdk-python/.venv/
 
 # --- Module 9 collaboration demo sandboxes (rebuilt locally via make sandbox) ---
-# Lecture 9.1 demo sandbox — rebuilt locally via setup.sh (make sandbox)
-modules/9-collaboration/9.1-git-workflow/sandbox/
+# Lecture 6.8 demo sandbox — rebuilt locally via setup.sh (make sandbox)
+modules/6-sdlc/6.8-git-workflow/sandbox/
 
 # Lecture 9.2 demo sandbox + w-helper worktree siblings + bare origin — rebuilt via make sandbox
 modules/9-collaboration/9.2-git-worktrees/sandbox/

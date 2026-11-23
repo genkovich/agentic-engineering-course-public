@@ -69,7 +69,7 @@ git diff main..worktree-feature-a       # review гілки перед merge
 
 - Хуки `WorktreeCreate`/`WorktreeRemove` тут навмисно не написані. Лекція (Slide 8) прямо радить не писати їх наперед: вони потрібні лише для не-git VCS (SVN/Perforce/Mercurial) і складного провіженінгу під кожен worktree. У типовому git-проєкті досить нативного керування. Це talking-point, а не код фікстура.
 - Концепт worktree, підняття багатьох сесій, ізоляція оточення, субагенти - це 9.2 (демо `9.2-git-worktrees`). Тут лише безпечний фініш: merge назад і cleanup.
-- Базовий git workflow (trunk-based, охайні коміти, звірка diff, відкат) - це 9.1 (демо `9.1-git-workflow`).
+- Базовий git workflow (GitHub Flow, охайні коміти, звірка diff, відкат) - це 6.8 (демо `6.8-git-workflow` у Module 6).
 - Загальна механіка pull request і делегування review самому Claude - це 9.4/9.5. Тут review кожної гілки лишається ручним кроком завершення.
 
 ## Source

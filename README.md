@@ -16,7 +16,7 @@ Public repository for the **Agentic Engineering з Claude** course. Contains han
 | [Module 6 — SDLC через артефакти](modules/6-sdlc/) | Idea → CONTEXT/PRD/SAD/data-model/OpenAPI/tasks через 21 skill, 11 агентів і шаблони | SDLC toolkit + наскрізний example |
 | [Module 7 - Execution & Scale](modules/7-execution-scale/) | Патерни виконання: Ralph, /goal, dynamic workflows, фон/розклад, feedback loops, TDD | demos (7, runnable) |
 | [Module 8 - MCP](modules/8-mcp/) | Власний MCP-сервер і клієнт, транспорти, advanced-можливості і безпека MCP | demos (3, runnable) |
-| [Module 9 — Collaboration](modules/9-collaboration/) | Git workflow, worktrees, merge/cleanup, PR, code review локально й на платформі, реліз і docs | demos (7, runnable) |
+| [Module 9 — Collaboration](modules/9-collaboration/) | Worktrees, merge/cleanup, PR, code review локально й на платформі, реліз і docs | demos (6, runnable) |
 | [Module 10 — Agent Teams](modules/10-agent-teams/) | Subagents, custom subagents, evals і регресії, agentic debugging, agent teams | demos (5, runnable) |
 
 Лекції та теорія всіх модулів — у LMS курсу; тут — код, що клонується і запускається.
@@ -126,6 +126,7 @@ make run                    # MCP-сервер на stdio; make run-http — Str
     │   └── 5.7-sdk/                 release-notes via claude -p (5.7)
     ├── 6-sdlc/
     │   ├── README.md
+    │   ├── 6.8-git-workflow/        GitHub Flow, коміти, bisect, відкат, секрет-guard (6.8)
     │   └── sdlc/                    SDLC toolkit (знімок v4.5.1)
     │       ├── README.md            мапа лекцій → файлів, способи використання
     │       ├── 00-overview/         DoR / DoD / process map / MVP-vs-Full
@@ -147,9 +148,8 @@ make run                    # MCP-сервер на stdio; make run-http — Str
     │   ├── 8.6-first-mcp-server/    task-store: tools/resource/prompt, stdio + HTTP (8.6-8.8, 8.10)
     │   ├── 8.8-web-chat-channel/    канал Claude Code: MCP-канал + веб-чат на SSE (8.8)
     │   └── 8.9-mcp-client/          власний клієнт: listTools → tool-use loop (8.9)
-    ├── 9-collaboration/             git-командна робота, 7 runnable демо (Module 9)
+    ├── 9-collaboration/             git-командна робота, 6 runnable демо (Module 9)
     │   ├── README.md                мапа демо → лекцій
-    │   ├── 9.1-git-workflow/        trunk-based, коміти, bisect, відкат, секрет-guard (9.1)
     │   ├── 9.2-git-worktrees/       паралельні агенти, ізоляція оточення (9.2)
     │   ├── 9.3-worktree-merge-cleanup/  merge, конфлікти, safety-hook, cleanup (9.3)
     │   ├── 9.4-pull-requests/       PR-воркфлоу з агентом (9.4)

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # setup.sh [sandbox|rules|perms] — build sandbox/ for the 9.4 Pull Requests
-# screencasts. Unlike 9.1-9.3, `gh pr create` talks to the real GitHub API, so
+# screencasts. Unlike 6.8 and 9.2-9.3, `gh pr create` talks to the real GitHub API, so
 # a fully-local fixture is impossible. The fixture here is a deterministic local
 # SEED (history, branches, code, configs) PLUS a real `origin` on GitHub.
 #
@@ -228,7 +228,7 @@ PY
   git checkout -q main
 fi
 
-# Working-tree-only secret (git-ignored), parallel to 9.1's secret-guard prop.
+# Working-tree-only secret (git-ignored), parallel to 6.8's secret-guard prop.
 printf 'API_KEY=sk-demo-not-a-real-key\n' > .env
 
 # ── 5. remote wiring on GitHub (skipped when GH_DEMO_REPO is empty) ─────────
