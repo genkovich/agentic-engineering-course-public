@@ -7,10 +7,8 @@ description: >
   workflows, or when batch-filling multiple forms with the same template.
   Use even if the user does not mention pdfplumber or pikepdf by name.
 allowed-tools: Bash, Read, Write
-model: opus
-effort: max
-disable-model-invocation: true
-user-invocable: true
+# LLM-invoked demo: Claude must be able to pick this skill up on its own.
+# Do not add disable-model-invocation here, the auto-trigger exercise depends on it.
 ---
 
 # PDF form filler
