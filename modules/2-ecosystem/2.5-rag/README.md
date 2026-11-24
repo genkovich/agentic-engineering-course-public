@@ -19,22 +19,22 @@
 ## Pre-requisites
 
 - Docker (для PGVector)
-- Python 3.10+
+- [uv](https://docs.astral.sh/uv/getting-started/installation/): сам поставить потрібний Python
 - OpenAI API ключ (для embeddings)
 - Anthropic API ключ (для Claude)
 
 ## Як запустити
 
+Перший раз (один на весь курс): постав [uv](https://docs.astral.sh/uv/getting-started/installation/), у корені репо скопіюй `.env.example` у `.env` і впиши ключі. Далі з папки уроку:
+
 ```bash
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
-cp .env.example .env       # додай свої OPENAI_API_KEY і ANTHROPIC_API_KEY
-make up                    # підняти PGVector
-make run                   # запустити pipeline
-make down                  # зупинити PGVector (дані залишаються)
-make clean                 # повне очищення (volume + venv)
+docker compose up -d       # підняти PGVector (або make up)
+uv run rag_pipeline.py     # запустити pipeline, потрібні OPENAI_API_KEY і ANTHROPIC_API_KEY
+docker compose down        # зупинити PGVector, дані залишаються (або make down)
+docker compose down -v     # повне очищення разом з volume (або make clean)
 ```
+
+Перший `uv run` створює одне `.venv` у корені репо і ставить туди пакети для всіх уроків модулів 1-2, далі воно береться готовим. На Windows команди ті самі.
 
 ## Очікуваний output
 

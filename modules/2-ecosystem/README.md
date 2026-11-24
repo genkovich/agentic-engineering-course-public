@@ -25,7 +25,7 @@
 | [2.6-prompt-injection](./2.6-prompt-injection) | 3 типи атак (direct/indirect/markdown exfil) і defense-in-depth pipeline | 2.6 |
 | [2.7-data-privacy](./2.7-data-privacy) | Інспекція env vars що контролюють telemetry в Claude Code | 2.7 |
 
-Demos самостійні: `cd modules/2-ecosystem/<N.M-demo> && pip install -r requirements.txt && make run`.
+Demos самостійні: `cd modules/2-ecosystem/<N.M-demo> && uv run main.py`. Середовище і `.env` одні на весь курс, у корені репо: див. «Як використовувати» в [README](../../README.md).
 
 ## Pre-requisites
 

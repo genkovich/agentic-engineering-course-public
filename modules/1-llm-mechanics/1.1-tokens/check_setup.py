@@ -48,16 +48,19 @@ except ImportError as err:
     bad(f"Не встановлено {err.name}. Запусти через uv run або постав пакети з requirements.txt.")
     anthropic = None
 
-env_file = Path(__file__).with_name(".env")
-if not env_file.exists():
-    bad("Немає файлу .env поруч зі скриптами. Скопіюй .env.example у .env.")
+# Same lookup as load_dotenv(): the nearest .env going up from this folder,
+# so one .env in the repo root works for every lesson.
+env_file = next((d / ".env" for d in Path(__file__).resolve().parents if (d / ".env").is_file()), None)
+if env_file is None:
+    bad("Не знайшов .env. Скопіюй .env.example з кореня репо в .env у корені і впиши ключ.")
 else:
+    line("OK", f"Беру ключ з {env_file}.")
     if anthropic is not None:
         from dotenv import load_dotenv
         load_dotenv(env_file)
     key = os.environ.get("ANTHROPIC_API_KEY", "").strip()
     if not key:
-        bad("У .env порожній ANTHROPIC_API_KEY. Впиши ключ одразу після знака «=».")
+        bad(f"У {env_file} порожній ANTHROPIC_API_KEY. Впиши ключ одразу після знака «=».")
     elif not key.startswith("sk-ant-"):
         bad("Ключ у .env не схожий на ключ Anthropic (має починатися з sk-ant-).")
     else:

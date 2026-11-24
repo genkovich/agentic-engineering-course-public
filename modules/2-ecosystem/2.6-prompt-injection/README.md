@@ -45,20 +45,19 @@ Module 3 курсу детально покриває sandbox у Claude Code (`.
 
 ## Pre-requisites
 
-- Python 3.10+
-- `ANTHROPIC_API_KEY` у `.env`
+- [uv](https://docs.astral.sh/uv/getting-started/installation/): сам поставить потрібний Python
+- `ANTHROPIC_API_KEY` у `.env` в корені репо
 
 ## Як запустити
 
-```bash
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
-cp .env.example .env
+Перший раз (один на весь курс): постав [uv](https://docs.astral.sh/uv/getting-started/installation/), у корені репо скопіюй `.env.example` у `.env` і впиши ключі. Далі з папки уроку:
 
-make run-attacks    # без захистів, дивись поведінку моделі
-make run-defenses   # defense in depth, дивись що блокується
+```bash
+uv run attacks.py     # без захистів, дивись поведінку моделі
+uv run defenses.py    # defense in depth, дивись що блокується
 ```
+
+Перший `uv run` створює одне `.venv` у корені репо і ставить туди пакети для всіх уроків модулів 1-2, далі воно береться готовим. На Windows команди ті самі.
 
 ## Очікуваний output
 

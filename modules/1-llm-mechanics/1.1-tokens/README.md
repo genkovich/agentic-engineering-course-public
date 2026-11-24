@@ -17,7 +17,7 @@
 
 - [uv](https://docs.astral.sh/uv/getting-started/installation/): він сам завантажить потрібний Python 3.14 і поставить пакети, системний Python не потрібен. Можна і без uv, тоді Python 3.10+ і pip (див. нижче)
 - Інтернет на перший запуск: tiktoken і Hugging Face качають словники, далі вони беруться з кешу
-- Для скриптів 2 і 3: `ANTHROPIC_API_KEY` з [platform.claude.com](https://platform.claude.com) у `.env`
+- Для скриптів 2 і 3: `ANTHROPIC_API_KEY` з [platform.claude.com](https://platform.claude.com) у `.env` в корені репо (один на весь курс)
 
 `count_tokens` безкоштовний, але працює лише з API-акаунтом. Якщо API відповідає `credit balance is too low`, поповни баланс на platform.claude.com. Підписка Pro чи Max на claude.ai сюди не рахується, це окремий рахунок.
 
@@ -33,7 +33,7 @@ powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | ie
 Після цього перезапусти термінал. Далі команди однакові на всіх системах:
 
 ```bash
-cp .env.example .env                 # Windows: Copy-Item .env.example .env; встав ANTHROPIC_API_KEY
+# ключ один раз на весь курс: у корені репо скопіюй .env.example у .env і встав ANTHROPIC_API_KEY
 uv run check_setup.py                # перевірка: Python, пакети, ключ, API
 uv run claude_generations.py         # скрипт 2
 uv run claude_generations.py --file my_prompt.md
@@ -42,7 +42,7 @@ uv run tokenizers_side_by_side.py    # скрипт 1, ключ не потрі�
 uv run tokenizers_side_by_side.py "твій текст"
 ```
 
-Перший `uv run` створює `.venv` на Python 3.14 (версія записана в `.python-version`) і ставить пакети з `pyproject.toml`. Скрипт 1 має свої залежності прямо в шапці файлу, uv поставить їх окремо при першому запуску.
+Перший `uv run` створює одне `.venv` у корені репо на Python 3.14 (версія записана в `.python-version` у корені) і ставить пакети з кореневого `pyproject.toml` для всіх демо модулів 1-2. Далі інші уроки запускаються з нього ж, без нових установок. Якщо раніше ти скопіював `.env` у цю папку, він теж працює: скрипти беруть найближчий `.env` вгору по папках. Скрипт 1 має свої залежності прямо в шапці файлу, uv поставить їх окремо при першому запуску.
 
 Свої параметри:
 

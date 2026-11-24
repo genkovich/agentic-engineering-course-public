@@ -1,10 +1,10 @@
 .PHONY: run-attacks run-defenses clean
 
 run-attacks:
-	python3 attacks.py
+	uv run attacks.py
 
 run-defenses:
-	python3 defenses.py
+	uv run defenses.py
 
 clean:
-	rm -rf .venv __pycache__ *.pyc
+	rm -rf __pycache__ *.pyc
